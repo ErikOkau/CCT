@@ -1,0 +1,145 @@
+// Guild Bosses Section
+.bosses-section {
+  padding: 80px 0;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.bosses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin-top: 50px;
+}
+
+.boss-card {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 40px 30px;
+  border-radius: 20px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+  }
+
+  &.red-velvet::before {
+    background: linear-gradient(45deg, #ff4444, #cc0000);
+  }
+
+  &.avatar::before {
+    background: linear-gradient(45deg, #4444ff, #0000cc);
+  }
+
+  &.living-abyss::before {
+    background: linear-gradient(45deg, #44ff44, #00cc00);
+  }
+
+  &:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .boss-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #ffd700;
+  }
+}
+
+.boss-requirements {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.requirement {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .req-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+  }
+
+  .req-value {
+    font-weight: 600;
+    color: #ffd700;
+  }
+}
+
+// Features Section
+.features-section {
+  padding: 80px 0;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+  margin-top: 50px;
+}
+
+.feature-card {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 40px 30px;
+  border-radius: 20px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .feature-icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #ffd700;
+  }
+
+  p {
+    opacity: 0.8;
+    line-height: 1.6;
+  }
+}
+
+// Responsive Design for Bosses
+@media (max-width: 768px) {
+  .features-grid,
+  .bosses-grid {
+    grid-template-columns: 1fr;
+  }
+}

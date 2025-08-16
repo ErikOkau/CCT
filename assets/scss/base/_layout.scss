@@ -1,0 +1,13 @@
+// Base Layout Styles
+.landing-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0066cc 0%, #003366 50%, #000033 100%);
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}

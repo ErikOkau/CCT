@@ -1,0 +1,9 @@
+// Base styles
+@use 'base/layout';
+
+// Component styles
+@use 'components/hero';
+@use 'components/upload';
+@use 'components/results';
+@use 'components/bosses';
+@use 'components/footer';

@@ -1,0 +1,32 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "devDependencies": {
+    "@nuxt/devtools": "latest",
+    "nuxt": "^3.8.2",
+    "prisma": "^6.14.0",
+    "sass": "^1.90.0",
+    "sass-loader": "^13.3.3",
+    "vue": "^3.3.12",
+    "vue-router": "^4.2.5",
+    "webpack": "^5.89.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.14.0",
+    "@types/file-saver": "^2.0.7",
+    "file-saver": "^2.0.5",
+    "gsap": "^3.12.4",
+    "nuxi": "^3.28.0",
+    "tesseract.js": "^5.0.4",
+    "three": "^0.159.0",
+    "xlsx": "^0.18.5"
+  }
+}
