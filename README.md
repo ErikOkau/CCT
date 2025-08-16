@@ -145,22 +145,3 @@ npm run preview
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- Cookie Run Kingdom for the amazing game
-- The Vue.js and Nuxt.js communities
-- Chaos Control Team guild members
-- All contributors and supporters
-
-## 📞 Support
-
-If you have any questions or need help, please contact the CCT guild leadership.
-
----
-
-Made with ⚡ for Chaos Control Team guild leaders!
