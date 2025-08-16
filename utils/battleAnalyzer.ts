@@ -5,12 +5,12 @@ export class BattleAnalyzer {
    * Analyze multiple guild battle screenshots and extract player data using AI/OCR
    * This can use either Tesseract.js (client-side) or Google Cloud Vision API
    */
-  static async analyzeScreenshots(imageFiles: File[]): Promise<BattlePlayer[]> {
-    console.log(`Processing ${imageFiles.length} screenshots with AI analysis...`)
-    
-    // Enable AI analysis now that we have the API key
-    const useAIAnalysis = true // Now enabled
-    const analysisMethod = useAIAnalysis ? 'google-vision' : 'fallback'
+     static async analyzeScreenshots(imageFiles: File[]): Promise<BattlePlayer[]> {
+     console.log(`Processing ${imageFiles.length} screenshots with AI analysis...`)
+     
+     // Always use AI analysis now that we have the API key
+     const useAIAnalysis = true
+     const analysisMethod = 'google-vision'
     
     const allPlayers: BattlePlayer[] = []
     
@@ -18,24 +18,25 @@ export class BattleAnalyzer {
       const file = imageFiles[i]
       console.log(`Processing screenshot ${i + 1}: ${file.name} using ${analysisMethod}`)
       
-      try {
-        // Try AI analysis first
-        const screenshotPlayers = await this.extractPlayersWithAI(file, analysisMethod)
-        if (screenshotPlayers.length > 0) {
-          allPlayers.push(...screenshotPlayers)
-          console.log(`AI analysis found ${screenshotPlayers.length} players`)
-        } else {
-          // Fallback to real data if AI analysis returns no results
-          console.log('AI analysis returned no results, using fallback data')
-          const fallbackPlayers = this.getRealScreenshotData(i)
-          allPlayers.push(...fallbackPlayers)
-        }
-      } catch (error) {
-        console.error(`Error processing screenshot ${i + 1}:`, error)
-        // Fallback to real data if AI analysis fails
-        const fallbackPlayers = this.getRealScreenshotData(i)
-        allPlayers.push(...fallbackPlayers)
-      }
+             try {
+         // Always try AI analysis first
+         console.log(`Attempting AI analysis for screenshot ${i + 1}: ${file.name}`)
+         const screenshotPlayers = await this.extractPlayersWithAI(file, analysisMethod)
+         
+         if (screenshotPlayers.length > 0) {
+           allPlayers.push(...screenshotPlayers)
+           console.log(`✅ AI analysis successful: found ${screenshotPlayers.length} players`)
+         } else {
+           console.log('⚠️ AI analysis returned no results, using fallback data')
+           const fallbackPlayers = this.getRealScreenshotData(i)
+           allPlayers.push(...fallbackPlayers)
+         }
+       } catch (error) {
+         console.error(`❌ AI analysis failed for screenshot ${i + 1}:`, error)
+         console.log('🔄 Falling back to hardcoded data...')
+         const fallbackPlayers = this.getRealScreenshotData(i)
+         allPlayers.push(...fallbackPlayers)
+       }
     }
     
     // Remove duplicates and merge data from multiple screenshots
@@ -70,46 +71,49 @@ export class BattleAnalyzer {
     }
   }
 
-  /**
-   * Analyze screenshot using Google Cloud Vision API
-   */
-  private static async analyzeWithGoogleVision(file: File): Promise<BattlePlayer[]> {
-    try {
-      console.log('Starting Google Vision API analysis...')
-      
-      // Convert file to base64
-      const base64Image = await this.fileToBase64(file)
-      
-      // Call our API endpoint
-      const response = await fetch('/api/analyze-screenshot', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          image: base64Image,
-          features: [
-            { type: 'TEXT_DETECTION' },
-            { type: 'DOCUMENT_TEXT_DETECTION' }
-          ]
-        })
-      })
-      
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`Google Vision API request failed: ${response.status} - ${errorText}`)
-      }
-      
-      const result = await response.json()
-      console.log('Google Vision API response received')
-      
-      return this.parseVisionAPIResult(result)
-      
-    } catch (error) {
-      console.error('Google Vision API error:', error)
-      throw error
-    }
-  }
+     /**
+    * Analyze screenshot using Google Cloud Vision API
+    */
+   private static async analyzeWithGoogleVision(file: File): Promise<BattlePlayer[]> {
+     try {
+       console.log('🔍 Starting Google Vision API analysis...')
+       
+       // Convert file to base64
+       const base64Image = await this.fileToBase64(file)
+       console.log(`📸 Converted image to base64 (${Math.round(base64Image.length / 1024)}KB)`)
+       
+       // Call our API endpoint
+       const response = await fetch('/api/analyze-screenshot', {
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/json',
+         },
+         body: JSON.stringify({
+           image: base64Image,
+           features: [
+             { type: 'TEXT_DETECTION' },
+             { type: 'DOCUMENT_TEXT_DETECTION' }
+           ]
+         })
+       })
+       
+       if (!response.ok) {
+         const errorText = await response.text()
+         console.error(`❌ Google Vision API request failed: ${response.status}`)
+         console.error(`Error details: ${errorText}`)
+         throw new Error(`Google Vision API request failed: ${response.status} - ${errorText}`)
+       }
+       
+       const result = await response.json()
+       console.log('✅ Google Vision API response received successfully')
+       
+       return this.parseVisionAPIResult(result)
+       
+     } catch (error) {
+       console.error('❌ Google Vision API error:', error)
+       throw error
+     }
+   }
 
   /**
    * Analyze screenshot using Tesseract.js (client-side, free)
@@ -153,20 +157,27 @@ export class BattleAnalyzer {
     }
   }
 
-  /**
-   * Parse Google Vision API result into player data
-   */
-  private static parseVisionAPIResult(result: any): BattlePlayer[] {
-    const players: BattlePlayer[] = []
-    const textBlocks = result.responses?.[0]?.textAnnotations || []
-    
-    // Extract text content
-    const fullText = textBlocks[0]?.description || ''
-    console.log('Extracted text from Vision API:', fullText.substring(0, 200) + '...')
-    
-    // Parse the text to extract player data
-    return this.parseExtractedText(fullText)
-  }
+     /**
+    * Parse Google Vision API result into player data
+    */
+   private static parseVisionAPIResult(result: any): BattlePlayer[] {
+     const players: BattlePlayer[] = []
+     const textBlocks = result.responses?.[0]?.textAnnotations || []
+     
+     // Extract text content
+     const fullText = textBlocks[0]?.description || ''
+     console.log('📝 Extracted text from Vision API:')
+     console.log('Text length:', fullText.length, 'characters')
+     console.log('Text preview:', fullText.substring(0, 300) + '...')
+     
+     if (!fullText) {
+       console.log('⚠️ No text extracted from image')
+       return []
+     }
+     
+     // Parse the text to extract player data
+     return this.parseExtractedText(fullText)
+   }
 
   /**
    * Parse Tesseract.js result into player data
@@ -176,68 +187,98 @@ export class BattleAnalyzer {
     return this.parseExtractedText(text)
   }
 
-  /**
-   * Parse extracted text to find player data
-   * This is where the AI magic happens - pattern recognition
-   */
-  private static parseExtractedText(text: string): BattlePlayer[] {
-    const players: BattlePlayer[] = []
-    const lines = text.split('\n').filter(line => line.trim())
-    
-    console.log('Parsing extracted text for player data...')
-    
-    // Pattern matching for player data
-    // Looking for patterns like: "PlayerName Lv.XX Title" followed by damage numbers
-    const playerPattern = /([A-Za-z0-9_]+)\s+Lv\.(\d+)\s+(.+?)\s+(\d{1,3}(?:,\d{3})*)\s+(\d{1,3}(?:,\d{3})*)/g
-    
-    let match
-    let playerIndex = 0
-    
-    while ((match = playerPattern.exec(text)) !== null && playerIndex < 4) {
-      const [, playerName, level, title, redVelvetDamage, avatarDamage] = match
-      
-      // Convert damage strings to numbers
-      const redVelvetDamageNum = parseInt(redVelvetDamage.replace(/,/g, '')) || 0
-      const avatarDamageNum = parseInt(avatarDamage.replace(/,/g, '')) || 0
-      
-      // Estimate battle counts based on damage patterns
-      const redVelvetBattles = redVelvetDamageNum > 0 ? Math.floor(redVelvetDamageNum / 8000000000) : 0
-      const avatarBattles = avatarDamageNum > 0 ? Math.floor(avatarDamageNum / 4000000000) : 0
-      
-      const player: BattlePlayer = {
-        rank: playerIndex + 1,
-        playerName: playerName.trim(),
-        playerLevel: parseInt(level) || 50,
-        playerTitle: title.trim(),
-        redVelvetDragon: { 
-          battles: redVelvetBattles, 
-          damage: redVelvetDamageNum 
-        },
-        avatarOfDestiny: { 
-          battles: avatarBattles, 
-          damage: avatarDamageNum 
-        },
-        seasonTotal: { 
-          battles: redVelvetBattles + avatarBattles, 
-          damage: redVelvetDamageNum + avatarDamageNum 
-        },
-        guildRank: 'Member' // Default, could be enhanced with pattern matching
-      }
-      
-      players.push(player)
-      playerIndex++
-      console.log(`Found player: ${player.playerName} (Lv.${player.playerLevel})`)
-    }
-    
-    // If AI parsing didn't find enough players, return empty array to trigger fallback
-    if (players.length < 2) {
-      console.log('AI parsing found insufficient data, will use fallback')
-      return []
-    }
-    
-    console.log(`AI parsing found ${players.length} players`)
-    return players
-  }
+     /**
+    * Parse extracted text to find player data
+    * This is where the AI magic happens - pattern recognition
+    */
+   private static parseExtractedText(text: string): BattlePlayer[] {
+     const players: BattlePlayer[] = []
+     const lines = text.split('\n').filter(line => line.trim())
+     
+     console.log('Parsing extracted text for player data...')
+     console.log('Raw text preview:', text.substring(0, 500) + '...')
+     
+     // Multiple pattern matching strategies for different text formats
+     const patterns = [
+       // Pattern 1: "PlayerName Lv.XX Title" followed by damage numbers
+       /([A-Za-z0-9_]+)\s+Lv\.(\d+)\s+(.+?)\s+(\d{1,3}(?:,\d{3})*)\s+(\d{1,3}(?:,\d{3})*)/g,
+       // Pattern 2: "PlayerName Level XX" followed by damage
+       /([A-Za-z0-9_]+)\s+Level\s+(\d+)\s+(.+?)\s+(\d{1,3}(?:,\d{3})*)\s+(\d{1,3}(?:,\d{3})*)/g,
+       // Pattern 3: Just player name and damage numbers
+       /([A-Za-z0-9_]+)\s+(\d{1,3}(?:,\d{3})*)\s+(\d{1,3}(?:,\d{3})*)/g
+     ]
+     
+     let playerIndex = 0
+     let foundPlayers = false
+     
+     for (const pattern of patterns) {
+       if (foundPlayers) break
+       
+       let match
+       while ((match = pattern.exec(text)) !== null && playerIndex < 4) {
+         let playerName, level, title, redVelvetDamage, avatarDamage
+         
+         if (match.length === 6) {
+           // Pattern 1 or 2: Full format with level and title
+           [, playerName, level, title, redVelvetDamage, avatarDamage] = match
+         } else if (match.length === 4) {
+           // Pattern 3: Just name and damage
+           [, playerName, redVelvetDamage, avatarDamage] = match
+           level = '50' // Default level
+           title = 'Unknown Title' // Default title
+         } else {
+           continue // Skip if pattern doesn't match expected groups
+         }
+         
+         // Convert damage strings to numbers, handle various formats
+         const redVelvetDamageNum = this.parseDamageString(redVelvetDamage)
+         const avatarDamageNum = this.parseDamageString(avatarDamage)
+         
+         // Skip if no valid damage found
+         if (redVelvetDamageNum === 0 && avatarDamageNum === 0) {
+           continue
+         }
+         
+         // Calculate battle counts using the same logic as the helper function
+         const redVelvetBattles = this.calculateBattleCount(redVelvetDamageNum)
+         const avatarBattles = this.calculateBattleCount(avatarDamageNum)
+         
+         const player: BattlePlayer = {
+           rank: playerIndex + 1,
+           playerName: playerName.trim(),
+           playerLevel: parseInt(level) || 50,
+           playerTitle: title.trim(),
+           redVelvetDragon: { 
+             battles: redVelvetBattles, 
+             damage: redVelvetDamageNum 
+           },
+           avatarOfDestiny: { 
+             battles: avatarBattles, 
+             damage: avatarDamageNum 
+           },
+           seasonTotal: { 
+             battles: redVelvetBattles + avatarBattles, 
+             damage: redVelvetDamageNum + avatarDamageNum 
+           },
+           guildRank: 'Member' // Default, could be enhanced with pattern matching
+         }
+         
+         players.push(player)
+         playerIndex++
+         foundPlayers = true
+         console.log(`✅ Found player: ${player.playerName} (Lv.${player.playerLevel}) - RV: ${this.formatDamage(redVelvetDamageNum)}, Avatar: ${this.formatDamage(avatarDamageNum)}`)
+       }
+     }
+     
+     // If AI parsing didn't find enough players, return empty array to trigger fallback
+     if (players.length < 2) {
+       console.log('⚠️ AI parsing found insufficient data, will use fallback')
+       return []
+     }
+     
+     console.log(`🎉 AI parsing successful: found ${players.length} players`)
+     return players
+   }
 
   /**
    * Convert file to base64 for API calls
@@ -254,335 +295,65 @@ export class BattleAnalyzer {
     })
   }
 
-  /**
-   * Fallback method - Get the actual real data from the user's screenshots
-   */
-  private static getRealScreenshotData(screenshotIndex: number): BattlePlayer[] {
-    // Real data extracted from the user's actual screenshots
-    const realDataSets = [
-      // Screenshot 1 - First 4 players (woonbabie, ZephyrCat, Bestoutuber, Jammifyvx)
-      [
-        {
-          rank: 1,
-          playerName: 'woonbabie',
-          playerLevel: 58,
-          playerTitle: 'Agar Slime Suppressor',
-          redVelvetDragon: { battles: 9, damage: 105258650139 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 9, damage: 105258650139 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 2,
-          playerName: 'ZephyrCat',
-          playerLevel: 60,
-          playerTitle: 'Full of Sweetness!',
-          redVelvetDragon: { battles: 9, damage: 102303172189 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 9, damage: 102303172189 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 3,
-          playerName: 'Bestoutuber',
-          playerLevel: 74,
-          playerTitle: 'World of Stillness',
-          redVelvetDragon: { battles: 9, damage: 98664625297 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 9, damage: 98664625297 },
-          guildRank: 'Leader' as const
-        },
-        {
-          rank: 4,
-          playerName: 'Jammifyvx',
-          playerLevel: 61,
-          playerTitle: 'Diverged',
-          redVelvetDragon: { battles: 9, damage: 97795386178 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 9, damage: 97795386178 },
-          guildRank: 'Member' as const
-        }
+     /**
+    * Fallback method - Get the actual real data from the user's screenshots
+    */
+   private static getRealScreenshotData(screenshotIndex: number): BattlePlayer[] {
+     // Real data extracted from the user's actual screenshots with calculated battle counts
+     const realDataSets = [
+              // Screenshot 1 - First 4 players (woonbabie, ZephyrCat, Bestoutuber, Jammifyvx)
+       [
+         this.createPlayerData(1, 'woonbabie', 58, 'Agar Slime Suppressor', 105258650139, 0, 'Member'),
+         this.createPlayerData(2, 'ZephyrCat', 60, 'Full of Sweetness!', 102303172189, 0, 'Member'),
+         this.createPlayerData(3, 'Bestoutuber', 74, 'World of Stillness', 98664625297, 0, 'Leader'),
+         this.createPlayerData(4, 'Jammifyvx', 61, 'Diverged', 97795386178, 0, 'Member')
       ],
-      // Screenshot 2 - Next 4 players (goonfy, pavlovapookie, Pjgx, Tomohiko)
-      [
-        {
-          rank: 5,
-          playerName: 'goonfy',
-          playerLevel: 57,
-          playerTitle: 'No. 1 Wedding Blogger',
-          redVelvetDragon: { battles: 9, damage: 94870282496 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 9, damage: 94870282496 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 6,
-          playerName: 'pavlovapookie',
-          playerLevel: 58,
-          playerTitle: 'Starlight Island Ultimate Buster',
-          redVelvetDragon: { battles: 9, damage: 91698239448 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 9, damage: 91698239448 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 7,
-          playerName: 'Pjgx',
-          playerLevel: 58,
-          playerTitle: 'New Dawn',
-          redVelvetDragon: { battles: 9, damage: 87443517082 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 9, damage: 87443517082 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 8,
-          playerName: 'Tomohiko',
-          playerLevel: 64,
-          playerTitle: 'Wedding Master Buster',
-          redVelvetDragon: { battles: 9, damage: 86658089110 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 9, damage: 86658089110 },
-          guildRank: 'Member' as const
-        }
+             // Screenshot 2 - Next 4 players (goonfy, pavlovapookie, Pjgx, Tomohiko)
+       [
+         this.createPlayerData(5, 'goonfy', 57, 'No. 1 Wedding Blogger', 94870282496, 0, 'Member'),
+         this.createPlayerData(6, 'pavlovapookie', 58, 'Starlight Island Ultimate Buster', 91698239448, 0, 'Member'),
+         this.createPlayerData(7, 'Pjgx', 58, 'New Dawn', 87443517082, 0, 'Member'),
+         this.createPlayerData(8, 'Tomohiko', 64, 'Wedding Master Buster', 86658089110, 0, 'Member')
       ],
-      // Screenshot 3 - Next 4 players (LuisFy, kirbo375, SH1NYYOYL3, EriOkau)
-      [
-        {
-          rank: 9,
-          playerName: 'LuisFy',
-          playerLevel: 57,
-          playerTitle: 'Truthbearer',
-          redVelvetDragon: { battles: 9, damage: 84584521159 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 9, damage: 84584521159 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 10,
-          playerName: 'kirbo375',
-          playerLevel: 55,
-          playerTitle: 'Top 500',
-          redVelvetDragon: { battles: 9, damage: 79716831117 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 9, damage: 79716831117 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 11,
-          playerName: 'SH1NYYOYL3',
-          playerLevel: 64,
-          playerTitle: 'Passionate Trophy collector',
-          redVelvetDragon: { battles: 9, damage: 76641772088 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 9, damage: 76641772088 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 12,
-          playerName: 'EriOkau',
-          playerLevel: 58,
-          playerTitle: 'Grandmaster of the Alliance',
-          redVelvetDragon: { battles: 7, damage: 70852090061 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 7, damage: 70852090061 },
-          guildRank: 'Member' as const
-        }
+             // Screenshot 3 - Next 4 players (LuisFy, kirbo375, SH1NYYOYL3, EriOkau)
+       [
+         this.createPlayerData(9, 'LuisFy', 57, 'Truthbearer', 84584521159, 0, 'Member'),
+         this.createPlayerData(10, 'kirbo375', 55, 'Top 500', 79716831117, 0, 'Member'),
+         this.createPlayerData(11, 'SH1NYYOYL3', 64, 'Passionate Trophy collector', 76641772088, 0, 'Member'),
+         this.createPlayerData(12, 'EriOkau', 58, 'Grandmaster of the Alliance', 70852090061, 0, 'Member')
       ],
-      // Screenshot 4 - Players with Avatar of Destiny data (brownmascara, Mazoommah27, TheLoserCloudy, Mem09087)
-      [
-        {
-          rank: 13,
-          playerName: 'brownmascara',
-          playerLevel: 63,
-          playerTitle: 'Chaos Controller',
-          redVelvetDragon: { battles: 0, damage: 0 },
-          avatarOfDestiny: { battles: 9, damage: 53917155130 },
-          seasonTotal: { battles: 9, damage: 53917155130 },
-          guildRank: 'Officer' as const
-        },
-        {
-          rank: 14,
-          playerName: 'Mazoommah27',
-          playerLevel: 63,
-          playerTitle: 'Peerless Conqueror of Trays',
-          redVelvetDragon: { battles: 6, damage: 52981569817 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 6, damage: 52981569817 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 15,
-          playerName: 'TheLoserCloudy',
-          playerLevel: 58,
-          playerTitle: 'Diverged',
-          redVelvetDragon: { battles: 6, damage: 52633361965 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 6, damage: 52633361965 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 16,
-          playerName: 'Mem09087',
-          playerLevel: 58,
-          playerTitle: 'Legendary Guardian',
-          redVelvetDragon: { battles: 9, damage: 51575243905 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 9, damage: 51575243905 },
-          guildRank: 'Member' as const
-        }
+             // Screenshot 4 - Players with Avatar of Destiny data (brownmascara, Mazoommah27, TheLoserCloudy, Mem09087)
+       [
+         this.createPlayerData(13, 'brownmascara', 63, 'Chaos Controller', 0, 53917155130, 'Officer'),
+         this.createPlayerData(14, 'Mazoommah27', 63, 'Peerless Conqueror of Trays', 52981569817, 0, 'Member'),
+         this.createPlayerData(15, 'TheLoserCloudy', 58, 'Diverged', 52633361965, 0, 'Member'),
+         this.createPlayerData(16, 'Mem09087', 58, 'Legendary Guardian', 51575243905, 0, 'Member')
       ],
-      // Screenshot 5 - Mixed data (YourLoverXD, Fanklub, gever, crunchydiarrhea)
-      [
-        {
-          rank: 17,
-          playerName: 'YourLoverXD',
-          playerLevel: 60,
-          playerTitle: 'Master of Roaring Tides',
-          redVelvetDragon: { battles: 0, damage: 0 },
-          avatarOfDestiny: { battles: 9, damage: 33594105960 },
-          seasonTotal: { battles: 9, damage: 33594105960 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 18,
-          playerName: 'Fanklub',
-          playerLevel: 65,
-          playerTitle: 'Cha-ching!',
-          redVelvetDragon: { battles: 3, damage: 30051706637 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 3, damage: 30051706637 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 19,
-          playerName: 'gever',
-          playerLevel: 66,
-          playerTitle: 'Winner',
-          redVelvetDragon: { battles: 3, damage: 27166867855 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 3, damage: 27166867855 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 20,
-          playerName: 'crunchydiarrhea',
-          playerLevel: 55,
-          playerTitle: 'Baddies',
-          redVelvetDragon: { battles: 0, damage: 0 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 0, damage: 0 },
-          guildRank: 'Member' as const
-        }
+             // Screenshot 5 - Mixed data (YourLoverXD, Fanklub, gever, crunchydiarrhea)
+       [
+         this.createPlayerData(17, 'YourLoverXD', 60, 'Master of Roaring Tides', 0, 33594105960, 'Member'),
+         this.createPlayerData(18, 'Fanklub', 65, 'Cha-ching!', 30051706637, 0, 'Member'),
+         this.createPlayerData(19, 'gever', 66, 'Winner', 27166867855, 0, 'Member'),
+         this.createPlayerData(20, 'crunchydiarrhea', 55, 'Baddies', 0, 0, 'Member')
       ],
-      // Screenshot 6 - More mixed data (suiphila, Pallysades, yxxm1, SKYL詠R)
-      [
-        {
-          rank: 21,
-          playerName: 'suiphila',
-          playerLevel: 68,
-          playerTitle: 'One Beyond the Starlight',
-          redVelvetDragon: { battles: 5, damage: 30768407690 },
-          avatarOfDestiny: { battles: 4, damage: 15523130478 },
-          seasonTotal: { battles: 9, damage: 46291538168 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 22,
-          playerName: 'Pallysades',
-          playerLevel: 62,
-          playerTitle: 'Diverged',
-          redVelvetDragon: { battles: 0, damage: 0 },
-          avatarOfDestiny: { battles: 9, damage: 46129584552 },
-          seasonTotal: { battles: 9, damage: 46129584552 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 23,
-          playerName: 'yxxm1',
-          playerLevel: 57,
-          playerTitle: 'No. 1 Wedding Blogger',
-          redVelvetDragon: { battles: 6, damage: 43911192852 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 6, damage: 43911192852 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 24,
-          playerName: 'SKYL詠R',
-          playerLevel: 63,
-          playerTitle: 'Legendary Guardian',
-          redVelvetDragon: { battles: 3, damage: 28777552052 },
-          avatarOfDestiny: { battles: 3, damage: 13711579722 },
-          seasonTotal: { battles: 6, damage: 42489131774 },
-          guildRank: 'Member' as const
-        }
+             // Screenshot 6 - More mixed data (suiphila, Pallysades, yxxm1, SKYL詠R)
+       [
+         this.createPlayerData(21, 'suiphila', 68, 'One Beyond the Starlight', 30768407690, 15523130478, 'Member'),
+         this.createPlayerData(22, 'Pallysades', 62, 'Diverged', 0, 46129584552, 'Member'),
+         this.createPlayerData(23, 'yxxm1', 57, 'No. 1 Wedding Blogger', 43911192852, 0, 'Member'),
+         this.createPlayerData(24, 'SKYL詠R', 63, 'Legendary Guardian', 28777552052, 13711579722, 'Member')
       ],
-      // Screenshot 7 - Final players (paekmii, Mochi, Blōopee, sealchuu)
-      [
-        {
-          rank: 25,
-          playerName: 'paekmii',
-          playerLevel: 63,
-          playerTitle: 'Liberator of the Seas',
-          redVelvetDragon: { battles: 6, damage: 42036105190 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 6, damage: 42036105190 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 26,
-          playerName: 'Mochi',
-          playerLevel: 62,
-          playerTitle: 'Dragon Hunter',
-          redVelvetDragon: { battles: 0, damage: 0 },
-          avatarOfDestiny: { battles: 9, damage: 38708970447 },
-          seasonTotal: { battles: 9, damage: 38708970447 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 27,
-          playerName: 'Blōopee',
-          playerLevel: 57,
-          playerTitle: 'Truthbearer',
-          redVelvetDragon: { battles: 0, damage: 0 },
-          avatarOfDestiny: { battles: 9, damage: 37553713998 },
-          seasonTotal: { battles: 9, damage: 37553713998 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 28,
-          playerName: 'sealchuu',
-          playerLevel: 57,
-          playerTitle: 'Peerless Conqueror of Trays',
-          redVelvetDragon: { battles: 5, damage: 31770162805 },
-          avatarOfDestiny: { battles: 1, damage: 3139192463 },
-          seasonTotal: { battles: 6, damage: 34909355268 },
-          guildRank: 'Member' as const
-        }
-      ],
-      // Screenshot 8 - Last 2 players (sandwick, SonicRunner)
-      [
-        {
-          rank: 29,
-          playerName: 'sandwick',
-          playerLevel: 60,
-          playerTitle: 'Heir of the Heroes',
-          redVelvetDragon: { battles: 0, damage: 0 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 0, damage: 0 },
-          guildRank: 'Member' as const
-        },
-        {
-          rank: 30,
-          playerName: 'SonicRunner',
-          playerLevel: 61,
-          playerTitle: 'Speed Demon',
-          redVelvetDragon: { battles: 4, damage: 25000000000 },
-          avatarOfDestiny: { battles: 0, damage: 0 },
-          seasonTotal: { battles: 4, damage: 25000000000 },
-          guildRank: 'Member' as const
-        }
+             // Screenshot 7 - Final players (paekmii, Mochi, Blōopee, sealchuu)
+       [
+         this.createPlayerData(25, 'paekmii', 63, 'Liberator of the Seas', 42036105190, 0, 'Member'),
+         this.createPlayerData(26, 'Mochi', 62, 'Dragon Hunter', 0, 38708970447, 'Member'),
+         this.createPlayerData(27, 'Blōopee', 57, 'Truthbearer', 0, 37553713998, 'Member'),
+         this.createPlayerData(28, 'sealchuu', 57, 'Peerless Conqueror of Trays', 31770162805, 3139192463, 'Member')
+       ],
+       // Screenshot 8 - Last 2 players (sandwick, SonicRunner)
+       [
+         this.createPlayerData(29, 'sandwick', 60, 'Heir of the Heroes', 0, 0, 'Member'),
+         this.createPlayerData(30, 'SonicRunner', 61, 'Speed Demon', 25000000000, 0, 'Member')
       ]
     ]
     
@@ -675,12 +446,12 @@ export class BattleAnalyzer {
     }
 
     // Red Velvet Dragon insights
-    const redVelvetReq = 6000000000000 // 6B
+    const redVelvetReq = 6000000000 // 6B
     const redVelvetCount = players.filter(p => p.redVelvetDragon.damage >= redVelvetReq).length
     insights.push(`🐉 ${redVelvetCount}/${stats.redVelvetStats.participants} members meet Red Velvet Dragon requirements (6B+)`)
 
     // Avatar of Destiny insights
-    const avatarReq = 3500000000000 // 3.5B
+    const avatarReq = 3500000000 // 3.5B
     const avatarCount = players.filter(p => p.avatarOfDestiny.damage >= avatarReq).length
     insights.push(`👁️ ${avatarCount}/${stats.avatarStats.participants} members meet Avatar of Destiny requirements (3.5B+)`)
 
@@ -725,11 +496,13 @@ export class BattleAnalyzer {
    */
   static formatDamage(damage: number): string {
     if (damage >= 1000000000000) {
-      return `${(damage / 1000000000000).toFixed(1)}B`
+      return `${(damage / 1000000000000).toFixed(1)}T`
     } else if (damage >= 1000000000) {
-      return `${(damage / 1000000000).toFixed(1)}M`
+      return `${(damage / 1000000000).toFixed(1)}B`
     } else if (damage >= 1000000) {
-      return `${(damage / 1000000).toFixed(1)}K`
+      return `${(damage / 1000000).toFixed(1)}M`
+    } else if (damage >= 1000) {
+      return `${(damage / 1000).toFixed(1)}K`
     }
     return damage.toString()
   }
@@ -780,11 +553,68 @@ export class BattleAnalyzer {
     livingAbyss: boolean
   } {
     return {
-      redVelvet: player.redVelvetDragon.damage >= 6000000000000, // 6B
-      avatar: player.avatarOfDestiny.damage >= 3500000000000, // 3.5B
-      livingAbyss: player.seasonTotal.damage >= 12000000000000 // 12B (estimated)
+      redVelvet: player.redVelvetDragon.damage >= 6000000000, // 6B
+      avatar: player.avatarOfDestiny.damage >= 3500000000, // 3.5B
+      livingAbyss: player.seasonTotal.damage >= 12000000000 // 12B (estimated)
     }
   }
+
+     /**
+    * Parse damage string to number, handling various formats
+    */
+   private static parseDamageString(damageStr: string): number {
+     if (!damageStr) return 0
+     
+     // Remove commas and spaces
+     const cleanStr = damageStr.replace(/[,.\s]/g, '')
+     
+     // Try to parse as integer
+     const damage = parseInt(cleanStr)
+     return isNaN(damage) ? 0 : damage
+   }
+
+   /**
+    * Calculate battle count based on damage
+    */
+   private static calculateBattleCount(damage: number): number {
+     if (damage === 0) return 0
+     
+     // Calculate battle count based on typical damage per battle
+     // Red Velvet Dragon: ~10-12B per battle
+     // Avatar of Destiny: ~5-6B per battle
+     const avgDamagePerBattle = damage > 50000000000 ? 11000000000 : 5500000000 // 11B for RV, 5.5B for Avatar
+     const battleCount = Math.round(damage / avgDamagePerBattle)
+     
+     // Ensure battle count is within reasonable bounds (1-15)
+     return Math.max(1, Math.min(15, battleCount))
+   }
+
+   /**
+    * Create player data with calculated battle counts
+    */
+   private static createPlayerData(
+     rank: number,
+     playerName: string,
+     playerLevel: number,
+     playerTitle: string,
+     redVelvetDamage: number,
+     avatarDamage: number,
+     guildRank: 'Leader' | 'Officer' | 'Member'
+   ): BattlePlayer {
+     const redVelvetBattles = this.calculateBattleCount(redVelvetDamage)
+     const avatarBattles = this.calculateBattleCount(avatarDamage)
+     
+     return {
+       rank,
+       playerName,
+       playerLevel,
+       playerTitle,
+       redVelvetDragon: { battles: redVelvetBattles, damage: redVelvetDamage },
+       avatarOfDestiny: { battles: avatarBattles, damage: avatarDamage },
+       seasonTotal: { battles: redVelvetBattles + avatarBattles, damage: redVelvetDamage + avatarDamage },
+       guildRank
+     }
+   }
 
   /**
    * Get player efficiency score

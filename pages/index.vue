@@ -350,7 +350,9 @@ onMounted(() => {
         <h2 class="section-title">Guild Boss Requirements</h2>
         <div class="bosses-grid">
           <div class="boss-card red-velvet">
-            <div class="boss-icon">🐉</div>
+            <div class="boss-icon">
+              <img src="/img/Red_Velvet_Dragon.webp" alt="Red Velvet Dragon" />
+            </div>
             <h3>Red Velvet Dragon</h3>
             <div class="boss-requirements">
               <div class="requirement">
@@ -368,7 +370,9 @@ onMounted(() => {
             </div>
           </div>
           <div class="boss-card avatar">
-            <div class="boss-icon">👁️</div>
+            <div class="boss-icon">
+              <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" alt="Avatar of Destiny" />
+            </div>
             <h3>Avatar of Destiny</h3>
             <div class="boss-requirements">
               <div class="requirement">
@@ -386,8 +390,10 @@ onMounted(() => {
             </div>
           </div>
           <div class="boss-card living-abyss">
-            <div class="boss-icon">🌊</div>
-            <h3>Living Abyss</h3>
+            <div class="boss-icon">
+              <img src="/img/Living_Licorice_Abyss.webp" alt="Living Licorice Abyss" />
+            </div>
+            <h3>Living Licorice Abyss</h3>
             <div class="boss-requirements">
               <div class="requirement">
                 <span class="req-label">Damage Req:</span>

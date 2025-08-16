@@ -60,11 +60,13 @@ export const useExcelExport = () => {
 
   const formatDamage = (damage: number): string => {
     if (damage >= 1000000000000) {
-      return `${(damage / 1000000000000).toFixed(1)}B`
+      return `${(damage / 1000000000000).toFixed(1)}T`
     } else if (damage >= 1000000000) {
-      return `${(damage / 1000000000).toFixed(1)}M`
+      return `${(damage / 1000000000).toFixed(1)}B`
     } else if (damage >= 1000000) {
-      return `${(damage / 1000000).toFixed(1)}K`
+      return `${(damage / 1000000).toFixed(1)}M`
+    } else if (damage >= 1000) {
+      return `${(damage / 1000).toFixed(1)}K`
     }
     return damage.toString()
   }
