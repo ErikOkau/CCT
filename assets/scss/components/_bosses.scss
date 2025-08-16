@@ -49,9 +49,24 @@
   }
 
   .boss-icon {
-    font-size: 4rem;
     margin-bottom: 20px;
-    display: block;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+    }
+    
+    &:hover img {
+      transform: scale(1.05);
+      border-color: rgba(255, 215, 0, 0.5);
+    }
   }
 
   h3 {
