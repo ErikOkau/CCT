@@ -357,7 +357,7 @@ onMounted(() => {
             <div class="boss-requirements">
               <div class="requirement">
                 <span class="req-label">Damage Req:</span>
-                <span class="req-value">6.0B</span>
+                <span class="req-value">8.0B</span>
               </div>
               <div class="requirement">
                 <span class="req-label">Damage Goal:</span>
@@ -393,11 +393,11 @@ onMounted(() => {
             <div class="boss-icon">
               <img src="/img/Living_Licorice_Abyss.webp" alt="Living Licorice Abyss" />
             </div>
-            <h3>Living Licorice Abyss</h3>
+            <h3>Living Abyss</h3>
             <div class="boss-requirements">
               <div class="requirement">
                 <span class="req-label">Damage Req:</span>
-                <span class="req-value">12.0B</span>
+                <span class="req-value">16.0B</span>
               </div>
               <div class="requirement">
                 <span class="req-label">Damage Goal:</span>
