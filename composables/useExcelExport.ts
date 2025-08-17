@@ -10,18 +10,24 @@ export const useExcelExport = () => {
     const excelData = battleData.map(player => ({
       'Rank': player.rank,
       'Player Name': player.playerName,
-      'Level': player.playerLevel,
-      'Title': player.playerTitle,
-      'Guild Rank': player.guildRank,
+      'Level': player.playerLevel || 'N/A',
+      'Title': player.playerTitle || 'N/A',
+      'Guild Rank': player.guildRank || 'Member',
       'Red Velvet Dragon - Battles': player.redVelvetDragon.battles,
       'Red Velvet Dragon - Damage': player.redVelvetDragon.damage,
       'Red Velvet Dragon - Damage (Formatted)': formatDamage(player.redVelvetDragon.damage),
+      'Red Velvet Dragon - Avg DMG/Ticket': player.redVelvetDragon.avgDamagePerTicket || 'N/A',
       'Avatar of Destiny - Battles': player.avatarOfDestiny.battles,
       'Avatar of Destiny - Damage': player.avatarOfDestiny.damage,
       'Avatar of Destiny - Damage (Formatted)': formatDamage(player.avatarOfDestiny.damage),
-      'Season Total - Battles': player.seasonTotal.battles,
-      'Season Total - Damage': player.seasonTotal.damage,
-      'Season Total - Damage (Formatted)': formatDamage(player.seasonTotal.damage)
+      'Avatar of Destiny - Avg DMG/Ticket': player.avatarOfDestiny.avgDamagePerTicket || 'N/A',
+      'Living Abyss - Battles': player.livingAbyss.battles,
+      'Living Abyss - Damage': player.livingAbyss.damage,
+      'Living Abyss - Damage (Formatted)': formatDamage(player.livingAbyss.damage),
+      'Living Abyss - Avg DMG/Ticket': player.livingAbyss.avgDamagePerTicket || 'N/A',
+      'Total Damage': player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage,
+      'Total Damage (Formatted)': formatDamage(player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage),
+      'Total Battles': player.redVelvetDragon.battles + player.avatarOfDestiny.battles + player.livingAbyss.battles
     }))
 
     // Create workbook and worksheet
@@ -38,12 +44,18 @@ export const useExcelExport = () => {
       { wch: 15 },  // RV Battles
       { wch: 20 },  // RV Damage
       { wch: 15 },  // RV Damage Formatted
+      { wch: 15 },  // RV Avg DMG/Ticket
       { wch: 15 },  // Avatar Battles
       { wch: 20 },  // Avatar Damage
       { wch: 15 },  // Avatar Damage Formatted
-      { wch: 15 },  // Season Battles
-      { wch: 20 },  // Season Damage
-      { wch: 15 }   // Season Damage Formatted
+      { wch: 15 },  // Avatar Avg DMG/Ticket
+      { wch: 15 },  // Living Abyss Battles
+      { wch: 20 },  // Living Abyss Damage
+      { wch: 15 },  // Living Abyss Damage Formatted
+      { wch: 15 },  // Living Abyss Avg DMG/Ticket
+      { wch: 20 },  // Total Damage
+      { wch: 15 },  // Total Damage Formatted
+      { wch: 15 }   // Total Battles
     ]
     ws['!cols'] = colWidths
 

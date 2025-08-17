@@ -1,21 +1,24 @@
 export interface BattlePlayer {
   rank: number
   playerName: string
-  playerLevel: number
-  playerTitle: string
+  playerLevel?: number
+  playerTitle?: string
   redVelvetDragon: {
     battles: number
     damage: number
+    avgDamagePerTicket?: number
   }
   avatarOfDestiny: {
     battles: number
     damage: number
+    avgDamagePerTicket?: number
   }
-  seasonTotal: {
+  livingAbyss: {
     battles: number
     damage: number
+    avgDamagePerTicket?: number
   }
-  guildRank: 'Leader' | 'Member' | 'Officer'
+  guildRank?: 'Leader' | 'Member' | 'Officer'
 }
 
 export interface BattleStats {
@@ -34,6 +37,31 @@ export interface BattleStats {
     totalDamage: number
     averageDamage: number
     participants: number
+  }
+  livingAbyssStats: {
+    totalDamage: number
+    averageDamage: number
+    participants: number
+  }
+}
+
+export interface GoogleSheetsData {
+  rank: number
+  playerName: string
+  redVelvetDragon: {
+    damage: number
+    battles: number
+    avgDamagePerTicket: number
+  }
+  avatarOfDestiny: {
+    damage: number
+    battles: number
+    avgDamagePerTicket: number
+  }
+  livingAbyss: {
+    damage: number
+    battles: number
+    avgDamagePerTicket: number
   }
 }
 
