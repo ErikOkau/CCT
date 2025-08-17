@@ -84,7 +84,7 @@ onMounted(() => {
     <!-- Upload Section -->
     <section class="upload-section">
       <div class="container">
-        <h2 class="section-title">Upload Your Battle Screenshot</h2>
+        <h2 class="section-title">Upload Battle Screenshot</h2>
 
         <div class="upload-area" :class="{
           'dragging': uploadState.isDragging,

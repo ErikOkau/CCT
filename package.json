@@ -23,9 +23,9 @@
     "@prisma/client": "^6.14.0",
     "@types/file-saver": "^2.0.7",
     "file-saver": "^2.0.5",
+    "googleapis": "^156.0.0",
     "gsap": "^3.12.4",
     "nuxi": "^3.28.0",
-    "tesseract.js": "^5.0.4",
     "three": "^0.159.0",
     "xlsx": "^0.18.5"
   }
