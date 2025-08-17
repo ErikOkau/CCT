@@ -4,7 +4,7 @@ import { BattleAnalyzer } from '~/utils/battleAnalyzer'
 import type { BattlePlayer } from '~/types/battle'
 
 const spreadsheetId = ref('1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs')
-const range = ref('Sheet1!A1:Z100')
+const range = ref('20-1!A1:Z100') // Sheet 20-1 contains the guild battle data
 const parsedPlayers = ref<BattlePlayer[]>([])
 const error = ref('')
 const processing = ref(false)
@@ -83,6 +83,7 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
           placeholder="e.g., A1:Z100"
           :disabled="processing"
         >
+        <p class="note">Note: If you are using a Google Sheet with multiple sheets, please specify the sheet name (e.g., "Sheet1!A1:Z100" or "Sheet2!A1:Z100").</p>
       </div>
       
       <button 
@@ -288,5 +289,11 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
   margin: 0.5rem 0;
   color: #333;
   font-size: 0.875rem;
+}
+
+.note {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #666;
 }
 </style>

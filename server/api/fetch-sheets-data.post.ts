@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
     // Fetch data from Google Sheets
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: range || 'Sheet1!A1:Z100',
+      range: range || '20-1!A1:Z100', // Default to 20-1 sheet which contains guild battle data
     })
 
     const rows = response.data.values
