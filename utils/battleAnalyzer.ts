@@ -9,18 +9,6 @@ export class BattleAnalyzer {
   }
 
   /**
-   * Analyze battle screenshots and extract player data
-   * @param files - Array of image files to analyze
-   * @returns Promise<BattlePlayer[]> - Array of extracted player data
-   */
-  static async analyzeScreenshots(files: File[]): Promise<BattlePlayer[]> {
-    console.log(`🔍 Analyzing ${files.length} screenshot(s)...`)
-
-    // For now, return hardcoded data
-    return this.getHardcodedBattleResults()
-  }
-
-  /**
    * Fetch data from Google Sheets and convert to BattlePlayer format
    */
   static async fetchFromGoogleSheets(spreadsheetId: string, range?: string): Promise<BattlePlayer[]> {
@@ -97,108 +85,7 @@ export class BattleAnalyzer {
     }))
   }
 
-  /**
-   * Get hardcoded battle results for testing
-   */
-  private static getHardcodedBattleResults(): BattlePlayer[] {
-    return [
-      {
-        rank: 1,
-        playerName: 'ZephyrCat',
-        playerLevel: 85,
-        playerTitle: 'Legendary Warrior',
-        redVelvetDragon: {
-          battles: 15,
-          damage: 8500000000
-        },
-        avatarOfDestiny: {
-          battles: 12,
-          damage: 4200000000
-        },
-        livingAbyss: {
-          battles: 27,
-          damage: 12700000000
-        },
-        guildRank: 'Leader'
-      },
-      {
-        rank: 2,
-        playerName: 'Pallysades',
-        playerLevel: 82,
-        playerTitle: 'Master Guardian',
-        redVelvetDragon: {
-          battles: 14,
-          damage: 7800000000
-        },
-        avatarOfDestiny: {
-          battles: 15,
-          damage: 3800000000
-        },
-        livingAbyss: {
-          battles: 29,
-          damage: 11600000000
-        },
-        guildRank: 'Officer'
-      },
-      {
-        rank: 3,
-        playerName: 'Slothy24',
-        playerLevel: 79,
-        playerTitle: 'Elite Fighter',
-        redVelvetDragon: {
-          battles: 13,
-          damage: 7200000000
-        },
-        avatarOfDestiny: {
-          battles: 11,
-          damage: 3500000000
-        },
-        livingAbyss: {
-          battles: 24,
-          damage: 10700000000
-        },
-        guildRank: 'Member'
-      },
-      {
-        rank: 4,
-        playerName: 'Diverged',
-        playerLevel: 76,
-        playerTitle: 'Veteran Soldier',
-        redVelvetDragon: {
-          battles: 12,
-          damage: 6800000000
-        },
-        avatarOfDestiny: {
-          battles: 10,
-          damage: 3200000000
-        },
-        livingAbyss: {
-          battles: 22,
-          damage: 10000000000
-        },
-        guildRank: 'Member'
-      },
-      {
-        rank: 5,
-        playerName: 'sealchuu',
-        playerLevel: 74,
-        playerTitle: 'Battle Master',
-        redVelvetDragon: {
-          battles: 11,
-          damage: 6500000000
-        },
-        avatarOfDestiny: {
-          battles: 9,
-          damage: 3000000000
-        },
-        livingAbyss: {
-          battles: 20,
-          damage: 9500000000
-        },
-        guildRank: 'Member'
-      }
-    ]
-  }
+
 
   /**
    * Calculate battle statistics from player data
@@ -318,6 +205,8 @@ export class BattleAnalyzer {
     if (rank === 3) return 'rank-bronze'
     return 'rank-normal'
   }
+
+
 
   /**
    * Get CSS class for guild rank badge

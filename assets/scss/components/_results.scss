@@ -191,6 +191,10 @@
   &.avatar::before {
     background: linear-gradient(45deg, #4444ff, #0000cc);
   }
+
+  &.living-abyss::before {
+    background: linear-gradient(45deg, #8a2be2, #4b0082);
+  }
 }
 
 .boss-stat-header {
