@@ -158,6 +158,243 @@
   opacity: 0.8;
 }
 
+// Ticket Statistics Section
+.ticket-stats-section {
+  margin-bottom: 50px;
+
+  h3 {
+    margin-bottom: 30px;
+    font-size: 1.8rem;
+    text-align: center;
+    color: #ffd700;
+  }
+}
+
+.ticket-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.ticket-stat-card {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 25px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  }
+
+  &.missed {
+    border-color: rgba(255, 107, 0, 0.3);
+    
+    .ticket-icon {
+      background: linear-gradient(45deg, #ff6b00, #ffd700);
+    }
+  }
+
+  &.below-min {
+    border-color: rgba(255, 0, 0, 0.3);
+    
+    .ticket-icon {
+      background: linear-gradient(45deg, #ff4444, #cc0000);
+    }
+  }
+
+  &.average {
+    border-color: rgba(0, 204, 255, 0.3);
+    
+    .ticket-icon {
+      background: linear-gradient(45deg, #00ccff, #0066cc);
+    }
+  }
+}
+
+.ticket-stat-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+
+  .ticket-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    color: #333;
+  }
+
+  h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #ffd700;
+  }
+}
+
+.ticket-stat-content {
+  text-align: center;
+}
+
+.ticket-stat-main {
+  margin-bottom: 8px;
+
+  .ticket-number {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #ffd700;
+  }
+
+  .ticket-max {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+.ticket-stat-subtitle {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+// Ticket Boss Breakdown
+.ticket-boss-breakdown {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 25px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  h4 {
+    margin: 0 0 20px 0;
+    font-size: 1.3rem;
+    color: #ffd700;
+    text-align: center;
+  }
+}
+
+.ticket-boss-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.ticket-boss-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+  }
+
+  &.red-velvet {
+    border-color: rgba(255, 68, 68, 0.3);
+  }
+
+  &.avatar {
+    border-color: rgba(68, 68, 255, 0.3);
+  }
+
+  &.living-abyss {
+    border-color: rgba(138, 43, 226, 0.3);
+  }
+}
+
+.boss-ticket-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.boss-ticket-info {
+  flex: 1;
+}
+
+.boss-ticket-name {
+  font-weight: 600;
+  color: #ffd700;
+  margin-bottom: 5px;
+}
+
+.boss-ticket-count {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+// Ticket Cell Styles
+.ticket-cell {
+  min-width: 120px;
+}
+
+.ticket-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: center;
+}
+
+.ticket-count {
+  font-weight: 600;
+  font-size: 0.9rem;
+  
+  &.ticket-excellent {
+    color: #00ff88;
+  }
+  
+  &.ticket-good {
+    color: #00ccff;
+  }
+  
+  &.ticket-warning {
+    color: #ffd700;
+  }
+  
+  &.ticket-poor {
+    color: #ff4444;
+  }
+}
+
+.ticket-status {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  
+  &.ticket-excellent {
+    color: #00ff88;
+  }
+  
+  &.ticket-good {
+    color: #00ccff;
+  }
+  
+  &.ticket-warning {
+    color: #ffd700;
+  }
+  
+  &.ticket-poor {
+    color: #ff4444;
+  }
+}
+
 // Boss Stats Grid
 .boss-stats-grid {
   display: grid;
@@ -256,7 +493,6 @@
 }
 
 .table-container {
-  overflow-x: auto;
   margin-bottom: 15px;
 }
 
@@ -266,37 +502,40 @@ table {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
   overflow: hidden;
+  table-layout: fixed;
 }
 
 th,
 td {
-  padding: 15px;
+  padding: 12px 8px;
   text-align: left;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  word-wrap: break-word;
+  overflow: hidden;
 }
 
 th {
   background: rgba(255, 215, 0, 0.1);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: #ffd700;
 }
 
 .rank-cell {
-  width: 80px;
+  width: 60px;
 }
 
 .rank-badge {
   display: inline-block;
-  width: 30px;
-  height: 30px;
+  width: 25px;
+  height: 25px;
   border-radius: 50%;
   text-align: center;
-  line-height: 30px;
+  line-height: 25px;
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
 
   &.rank-gold {
     background: linear-gradient(45deg, #ffd700, #ffed4e);
@@ -330,56 +569,70 @@ th {
 }
 
 .player-cell {
-  min-width: 200px;
+  width: 15%;
 }
 
 .player-info {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 3px;
 }
 
 .player-name {
   font-weight: 600;
   color: #ffd700;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .player-details {
   display: flex;
-  gap: 10px;
-  font-size: 0.8rem;
+  gap: 8px;
+  font-size: 0.7rem;
   opacity: 0.8;
+  flex-wrap: wrap;
 }
 
 .player-level {
   background: rgba(255, 215, 0, 0.2);
-  padding: 2px 6px;
-  border-radius: 10px;
+  padding: 1px 4px;
+  border-radius: 8px;
   color: #ffd700;
+  white-space: nowrap;
 }
 
 .player-title {
   font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .damage-cell {
-  min-width: 120px;
+  width: 12%;
 }
 
 .damage-info {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .damage-value {
   font-weight: 600;
   color: #ffd700;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .battles-count {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   opacity: 0.7;
+  white-space: nowrap;
 }
 
 .guild-rank-badge {
@@ -391,17 +644,17 @@ th {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 
-  &.rank-leader {
+  &.guild-leader {
     background: linear-gradient(45deg, #ff6b00, #ffd700);
     color: #000;
   }
 
-  &.rank-officer {
-    background: linear-gradient(45deg, #00ccff, #0066cc);
-    color: white;
+  &.guild-officer {
+    background: linear-gradient(45deg, #ff6b00, #ffd700);
+    color: #000;
   }
 
-  &.rank-member {
+  &.guild-member {
     background: rgba(255, 255, 255, 0.2);
     color: white;
   }

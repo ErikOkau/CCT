@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useBattleAnalysis } from '~/composables/useBattleAnalysis'
-import { useExcelExport } from '~/composables/useExcelExport'
 import { useAuth } from '~/composables/useAuth'
 import { BattleAnalyzer } from '~/utils/battleAnalyzer'
 
@@ -31,12 +30,216 @@ onMounted(() => {
   checkSession()
 })
 
-const { exportToExcel } = useExcelExport()
-
 // GSAP animations
 onMounted(() => {
   // Add entrance animations here if needed
 })
+
+// Guild Battle Schedule Data
+const activeSeason = ref(1) // Will be calculated based on current date
+
+// Season date ranges (in GMT+9 timezone)
+const seasonDates = {
+  1: { start: new Date('2025-08-07T00:00:00+09:00'), end: new Date('2025-08-13T23:59:59+09:00') },
+  2: { start: new Date('2025-08-14T00:00:00+09:00'), end: new Date('2025-08-20T23:59:59+09:00') },
+  3: { start: new Date('2025-08-21T00:00:00+09:00'), end: new Date('2025-08-27T23:59:59+09:00') }
+}
+
+// Season-specific data availability and spreadsheet configurations
+const seasonConfigurations = {
+  1: { 
+    hasData: true,  // Season 20-1 (previous season) has data
+    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
+    range: '20-1!A1:Z100' // Season 20-1 range
+  },
+  2: { 
+    hasData: false, // Season 20-2 (current season) - no data yet
+    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
+    range: '20-2!A1:Z100' // Season 20-2 range (for when data becomes available)
+  },
+  3: { 
+    hasData: false, // Season 20-3 (upcoming season) no data available
+    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
+    range: '20-3!A1:Z100' // Season 20-3 range (for when data becomes available)
+  }
+}
+
+// Season types for display purposes
+const seasonTypes = {
+  1: 'previous',  // Season 20-1 - previous season
+  2: 'current',   // Season 20-2 - current season
+  3: 'upcoming'   // Season 20-3 - upcoming season
+}
+
+// Function to determine current season based on date
+const getCurrentSeason = () => {
+  const now = new Date()
+  const gmtPlus9 = new Date(now.getTime() + (9 * 60 * 60 * 1000)) // Convert to GMT+9
+  
+  for (const [season, dates] of Object.entries(seasonDates)) {
+    if (gmtPlus9 >= dates.start && gmtPlus9 <= dates.end) {
+      return parseInt(season)
+    }
+  }
+  
+  // If not in any season, return the most recent past season or default to 1
+  if (gmtPlus9 < seasonDates[1].start) return 1
+  if (gmtPlus9 > seasonDates[3].end) return 3
+  
+  return 1
+}
+
+// Set active season based on current date
+activeSeason.value = getCurrentSeason()
+
+// Function to check if current season has data
+const hasSeasonData = (season: number) => {
+  return seasonConfigurations[season as keyof typeof seasonConfigurations]?.hasData || false
+}
+
+// Function to get season display name
+const getSeasonDisplayName = (season: number) => {
+  return `20-${season}`
+}
+
+// Function to get season type
+const getSeasonType = (season: number) => {
+  return seasonTypes[season as keyof typeof seasonTypes] || 'unknown'
+}
+
+// Function to get season status message
+const getSeasonStatusMessage = (season: number) => {
+  const seasonType = getSeasonType(season)
+  const hasData = hasSeasonData(season)
+  
+  switch (seasonType) {
+    case 'previous':
+      return hasData ? 'Previous Season - Data Available' : 'Previous Season - No Data'
+    case 'current':
+      return hasData ? 'Current Season - Data Available' : 'Current Season - Coming Soon'
+    case 'upcoming':
+      return 'Upcoming Season - No Data Available'
+    default:
+      return 'Unknown Season'
+  }
+}
+
+// Function to get season status icon
+const getSeasonStatusIcon = (season: number) => {
+  const seasonType = getSeasonType(season)
+  const hasData = hasSeasonData(season)
+  
+  switch (seasonType) {
+    case 'previous':
+      return hasData ? '📊' : '📈'
+    case 'current':
+      return hasData ? '📊' : '⏳'
+    case 'upcoming':
+      return '🔮'
+    default:
+      return '❓'
+  }
+}
+
+// Function to get season dates for display
+const getSeasonDates = (season: number) => {
+  const dates = seasonDates[season as keyof typeof seasonDates]
+  if (!dates) return 'Unknown dates'
+  
+  const startDate = dates.start.toLocaleDateString('en-US', { 
+    month: '2-digit', 
+    day: '2-digit', 
+    year: '2-digit' 
+  })
+  const endDate = dates.end.toLocaleDateString('en-US', { 
+    month: '2-digit', 
+    day: '2-digit', 
+    year: '2-digit' 
+  })
+  
+  return `${startDate} - ${endDate}`
+}
+
+// Function to automatically fetch data for selected season
+const fetchSeasonData = async (season: number) => {
+  const config = seasonConfigurations[season as keyof typeof seasonConfigurations]
+  
+  if (!config || !config.hasData) {
+    // Reset analysis state for seasons without data
+    resetAnalysis()
+    return
+  }
+  
+  // Set the spreadsheet configuration for the selected season
+  sheetsState.spreadsheetId = config.spreadsheetId
+  sheetsState.range = config.range
+  
+  // Automatically fetch data for the season
+  try {
+    await fetchFromGoogleSheets()
+  } catch (error) {
+    console.error('Error fetching season data:', error)
+  }
+}
+
+// Watch for active season changes and fetch data automatically
+watch(activeSeason, (newSeason) => {
+  fetchSeasonData(newSeason)
+})
+
+// Boss schedule data based on the image
+const bossSchedule = {
+  1: { // Season 20-1
+    1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
+    2: null, // Empty
+    3: { name: 'Living Abyss', image: '/img/Living_Licorice_Abyss.webp' }
+  },
+  2: { // Season 20-2 (currently active)
+    1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
+    2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
+    3: null // Empty
+  },
+  3: { // Season 20-3
+    1: null, // Empty
+    2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
+    3: { name: 'Living Abyss', image: '/img/Living_Licorice_Abyss.webp' }
+  }
+}
+
+// Method to get boss for specific season and position
+const getBossForSeason = (season: number, position: number) => {
+  const seasonData = bossSchedule[season as keyof typeof bossSchedule]
+  if (!seasonData) return null
+  return seasonData[position as keyof typeof seasonData] || null
+}
+
+// Ticket status helper methods - Season 20-1 only has Red Velvet Dragon and Living Abyss
+const getTicketStatusClass = (player: any) => {
+  const ticketsUsed = player.redVelvetDragon.battles + player.livingAbyss.battles // Avatar of Destiny not in Season 20-1
+  if (ticketsUsed >= 18) return 'ticket-excellent'
+  if (ticketsUsed >= 15) return 'ticket-good'
+  if (ticketsUsed >= 10) return 'ticket-warning'
+  return 'ticket-poor'
+}
+
+const getTicketStatusText = (player: any) => {
+  const ticketsUsed = player.redVelvetDragon.battles + player.livingAbyss.battles // Avatar of Destiny not in Season 20-1
+  if (ticketsUsed >= 18) return 'Yay'
+  if (ticketsUsed >= 15) return 'Slothful'
+  return 'At risk of disposal'
+}
+
+// Get correct guild rank for specific players
+const getPlayerGuildRank = (playerName: string) => {
+  if (playerName === 'Bestoutuber') return 'Leader'
+  if (playerName === 'brownmascara') return 'Officer'
+  return 'Member'
+}
+
+// Player preview expand/collapse
+const showAllPlayers = ref(false)
+const displayedPlayers = computed(() => showAllPlayers.value ? analysisState.battleData : analysisState.previewData)
+const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.value }
 </script>
 
 <template>
@@ -122,126 +325,195 @@ onMounted(() => {
       </div>
     </section>
 
-    
+    <!-- Guild Battle Schedule Section -->
+    <section class="schedule-section">
+      <div class="schedule-container">
+        <div class="schedule-header">
+          <h2 class="schedule-title">Boss Schedule</h2>
+          <p class="schedule-subtitle">Destiny's Flight 20</p>
+          <p class="schedule-note">Season times are to GMT+9</p>
+        </div>
 
-    <!-- Google Sheets Section (Admin Only) -->
-    <section v-if="isAuthenticated && isAdmin()" class="sheets-section">
-      <div class="container">
-        <h2 class="section-title">📊 Connect to Google Sheets</h2>
-        <p class="section-subtitle">Fetch battle data directly from your Google Sheets spreadsheet</p>
+        <div class="schedule-grid">
+                                <!-- Season Headers -->
+            <div class="season-headers">
+              <div 
+                class="season-header" 
+                :class="{ active: activeSeason === 1 }"
+                @click="activeSeason = 1"
+              >
+                <div class="season-name">Season 20-1</div>
+                <div class="season-dates">08.07.25 - 08.13.25</div>
+                                 <div v-if="activeSeason === 1" class="current-indicator">{{ getSeasonStatusIcon(1) }} {{ getSeasonStatusMessage(1) }}</div>
+                 <div v-if="!hasSeasonData(1)" class="coming-soon-indicator">{{ getSeasonStatusIcon(1) }} {{ getSeasonStatusMessage(1) }}</div>
+               </div>
+               <div 
+                 class="season-header" 
+                 :class="{ active: activeSeason === 2 }"
+                 @click="activeSeason = 2"
+               >
+                 <div class="season-name">Season 20-2</div>
+                 <div class="season-dates">08.14.25 - 08.20.25</div>
+                 <div v-if="activeSeason === 2" class="current-indicator">{{ getSeasonStatusIcon(2) }} {{ getSeasonStatusMessage(2) }}</div>
+                 <div v-if="!hasSeasonData(2)" class="coming-soon-indicator">{{ getSeasonStatusIcon(2) }} {{ getSeasonStatusMessage(2) }}</div>
+               </div>
+               <div 
+                 class="season-header" 
+                 :class="{ active: activeSeason === 3 }"
+                 @click="activeSeason = 3"
+               >
+                 <div class="season-name">Season 20-3</div>
+                 <div class="season-dates">08.21.25 - 08.27.25</div>
+                 <div v-if="activeSeason === 3" class="current-indicator">{{ getSeasonStatusIcon(3) }} {{ getSeasonStatusMessage(3) }}</div>
+                 <div v-if="!hasSeasonData(3)" class="coming-soon-indicator">{{ getSeasonStatusIcon(3) }} {{ getSeasonStatusMessage(3) }}</div>
+              </div>
+            </div>
 
-        <div class="sheets-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="spreadsheet-id">Spreadsheet ID:</label>
-              <input 
-                id="spreadsheet-id"
-                v-model="sheetsState.spreadsheetId" 
-                type="text" 
-                placeholder="e.g., 1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs"
-                :disabled="sheetsState.isFetching"
-                class="form-input"
-              >
+          <!-- Boss Schedule Grid -->
+          <div class="boss-schedule">
+            <!-- Row 1: Red Velvet Dragon -->
+            <div class="boss-row">
+              <div class="boss-cell" v-if="getBossForSeason(1, 1)">
+                <img :src="getBossForSeason(1, 1)?.image" :alt="getBossForSeason(1, 1)?.name" class="boss-image">
+                <div class="boss-name">{{ getBossForSeason(1, 1)?.name }}</div>
+              </div>
+              <div class="boss-cell empty" v-else></div>
+              
+              <div class="boss-cell" v-if="getBossForSeason(2, 1)">
+                <img :src="getBossForSeason(2, 1)?.image" :alt="getBossForSeason(2, 1)?.name" class="boss-image">
+                <div class="boss-name">{{ getBossForSeason(2, 1)?.name }}</div>
+              </div>
+              <div class="boss-cell empty" v-else></div>
+              
+              <div class="boss-cell" v-if="getBossForSeason(3, 1)">
+                <img :src="getBossForSeason(3, 1)?.image" :alt="getBossForSeason(3, 1)?.name" class="boss-image">
+                <div class="boss-name">{{ getBossForSeason(3, 1)?.name }}</div>
+              </div>
+              <div class="boss-cell empty" v-else></div>
             </div>
-            <div class="form-group">
-              <label for="range">Range (optional):</label>
-              <input 
-                id="range"
-                v-model="sheetsState.range" 
-                type="text" 
-                placeholder="e.g., 20-1!A1:Z100"
-                :disabled="sheetsState.isFetching"
-                class="form-input"
-              >
+
+            <!-- Row 2: Avatar of Destiny -->
+            <div class="boss-row">
+              <div class="boss-cell" v-if="getBossForSeason(1, 2)">
+                <img :src="getBossForSeason(1, 2)?.image" :alt="getBossForSeason(1, 2)?.name" class="boss-image">
+                <div class="boss-name">{{ getBossForSeason(1, 2)?.name }}</div>
+              </div>
+              <div class="boss-cell empty" v-else></div>
+              
+              <div class="boss-cell" v-if="getBossForSeason(2, 2)">
+                <img :src="getBossForSeason(2, 2)?.image" :alt="getBossForSeason(2, 2)?.name" class="boss-image">
+                <div class="boss-name">{{ getBossForSeason(2, 2)?.name }}</div>
+              </div>
+              <div class="boss-cell empty" v-else></div>
+              
+              <div class="boss-cell" v-if="getBossForSeason(3, 2)">
+                <img :src="getBossForSeason(3, 2)?.image" :alt="getBossForSeason(3, 2)?.name" class="boss-image">
+                <div class="boss-name">{{ getBossForSeason(3, 2)?.name }}</div>
+              </div>
+              <div class="boss-cell empty" v-else></div>
             </div>
-            <div class="form-group">
-              <button 
-                @click="fetchFromGoogleSheets" 
-                :disabled="!sheetsState.spreadsheetId || sheetsState.isFetching"
-                class="fetch-button"
-              >
-                {{ sheetsState.isFetching ? '📊 Fetching...' : '📊 Fetch from Google Sheets' }}
-              </button>
+
+            <!-- Row 3: Living Abyss -->
+            <div class="boss-row">
+              <div class="boss-cell" v-if="getBossForSeason(1, 3)">
+                <img :src="getBossForSeason(1, 3)?.image" :alt="getBossForSeason(1, 3)?.name" class="boss-image">
+                <div class="boss-name">{{ getBossForSeason(1, 3)?.name }}</div>
+              </div>
+              <div class="boss-cell empty" v-else></div>
+              
+              <div class="boss-cell" v-if="getBossForSeason(2, 3)">
+                <img :src="getBossForSeason(2, 3)?.image" :alt="getBossForSeason(2, 3)?.name" class="boss-image">
+                <div class="boss-name">{{ getBossForSeason(2, 3)?.name }}</div>
+              </div>
+              <div class="boss-cell empty" v-else></div>
+              
+              <div class="boss-cell" v-if="getBossForSeason(3, 3)">
+                <img :src="getBossForSeason(3, 3)?.image" :alt="getBossForSeason(3, 3)?.name" class="boss-image">
+                <div class="boss-name">{{ getBossForSeason(3, 3)?.name }}</div>
+              </div>
+              <div class="boss-cell empty" v-else></div>
             </div>
           </div>
-          
-                     <!-- Success/Error Messages -->
-           <div v-if="sheetsState.fetchSuccess" class="success-message">
-             ✅ Successfully fetched data from Google Sheets!
-             <div class="data-info">
-               <small>Data is automatically saved and will persist across page refreshes.</small>
-             </div>
-           </div>
-           <div v-if="sheetsState.fetchError" class="error-message">
-             ❌ {{ sheetsState.fetchError }}
-           </div>
-           
-           <!-- Clear Data Button (Admin Only) -->
-           <div v-if="analysisState.analysisComplete && isAdmin()" class="clear-data-section">
-             <button @click="resetAnalysis" class="clear-button">
-               🗑️ Clear Saved Data
-             </button>
-             <small class="clear-note">This will remove all saved data and reset the form. (Admin only)</small>
-           </div>
+
+          <!-- Pagination -->
+          <div class="schedule-pagination">
+            <button 
+              v-for="season in 3" 
+              :key="season"
+              @click="activeSeason = season"
+              class="page-button"
+              :class="{ active: activeSeason === season }"
+            >
+              {{ season }}
+            </button>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Results Section -->
-    <section class="results-section" v-if="analysisState.analysisComplete">
-      <div class="container">
-        <div class="results-header">
-          <h2 class="section-title">Battle Analysis Results</h2>
-          <div class="action-buttons">
-                         <button @click="exportToExcel(analysisState.battleData)" class="export-button">
-               📊 Export to Excel
-             </button>
+                   <!-- Season Status Section -->
+      <section v-if="!hasSeasonData(activeSeason)" class="coming-soon-section">
+        <div class="container">
+          <div class="coming-soon-content">
+            <div class="coming-soon-icon">{{ getSeasonStatusIcon(activeSeason) }}</div>
+            <h2 class="coming-soon-title">{{ getSeasonType(activeSeason) === 'current' ? 'Coming Soon!' : getSeasonType(activeSeason) === 'upcoming' ? 'Upcoming Season' : 'No Data Available' }}</h2>
+            <p class="coming-soon-subtitle">
+              <span v-if="getSeasonType(activeSeason) === 'current'">
+                Battle analysis data for Season {{ getSeasonDisplayName(activeSeason) }} will be available soon.
+              </span>
+              <span v-else-if="getSeasonType(activeSeason) === 'upcoming'">
+                Season {{ getSeasonDisplayName(activeSeason) }} is an upcoming season. No data is available yet.
+              </span>
+              <span v-else>
+                No battle analysis data is available for Season {{ getSeasonDisplayName(activeSeason) }}.
+              </span>
+            </p>
+            <div class="coming-soon-info">
+              <div class="info-card" v-if="getSeasonType(activeSeason) === 'current'">
+                <div class="info-icon">📊</div>
+                <h3>Data Collection</h3>
+                <p>We're currently collecting battle data for this season. Check back later for detailed analysis.</p>
+              </div>
+              <div class="info-card" v-if="getSeasonType(activeSeason) === 'current'">
+                <div class="info-icon">🎯</div>
+                <h3>Boss Schedule</h3>
+                <p>View the boss schedule above to see which bosses will appear in this season.</p>
+              </div>
+              <div class="info-card" v-if="getSeasonType(activeSeason) === 'current'">
+                <div class="info-icon">📈</div>
+                <h3>Performance Tracking</h3>
+                <p>Once data is available, you'll be able to track guild performance and ticket usage.</p>
+              </div>
+              <div class="info-card" v-if="getSeasonType(activeSeason) === 'upcoming'">
+                <div class="info-icon">🔮</div>
+                <h3>Future Season</h3>
+                <p>This season hasn't started yet. Check the boss schedule above to see what's planned.</p>
+              </div>
+              <div class="info-card" v-if="getSeasonType(activeSeason) === 'upcoming'">
+                <div class="info-icon">📅</div>
+                <h3>Season Dates</h3>
+                <p>Season {{ getSeasonDisplayName(activeSeason) }} will run from {{ getSeasonDates(activeSeason) }}.</p>
+              </div>
+              <div class="info-card" v-if="getSeasonType(activeSeason) === 'upcoming'">
+                <div class="info-icon">🎯</div>
+                <h3>Preparation</h3>
+                <p>Use this time to prepare your guild for the upcoming battles and strategize your approach.</p>
+              </div>
+            </div>
           </div>
+        </div>
+      </section>
+
+           
+
+         <!-- Results Section -->
+     <section class="results-section" v-if="hasSeasonData(activeSeason)">
+      <div class="container">
+                 <div class="results-header">
+           <h2 class="section-title">Battle Analysis Results - Season {{ getSeasonDisplayName(activeSeason) }}</h2>
         </div>
 
-        <!-- Database Save Form -->
-        <div class="database-form">
-          <h3>Save to Database</h3>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="seasonName">Season Name:</label>
-              <input 
-                id="seasonName"
-                v-model="databaseForm.seasonName" 
-                type="text" 
-                placeholder="e.g., 20-2"
-                class="form-input"
-              >
-            </div>
-            <div class="form-group">
-              <label for="guildName">Guild Name:</label>
-              <input 
-                id="guildName"
-                v-model="databaseForm.guildName" 
-                type="text" 
-                placeholder="e.g., Chaos Control Team"
-                class="form-input"
-              >
-            </div>
-            <div class="form-group">
-              <button 
-                @click="saveToDatabase" 
-                :disabled="databaseForm.isSavingToDatabase"
-                class="save-button"
-              >
-                {{ databaseForm.isSavingToDatabase ? 'Saving...' : '💾 Save to Database' }}
-              </button>
-            </div>
-          </div>
-          
-          <!-- Success/Error Messages -->
-          <div v-if="databaseForm.saveSuccess" class="success-message">
-            ✅ Successfully saved to database!
-          </div>
-          <div v-if="databaseForm.saveError" class="error-message">
-            ❌ {{ databaseForm.saveError }}
-          </div>
-        </div>
+        
 
                  <div class="stats-grid">
            <div class="stat-card">
@@ -261,6 +533,93 @@ onMounted(() => {
            <div class="stat-card">
              <div class="stat-number">{{ analysisState.battleStats?.totalBattlesDone || 0 }}</div>
              <div class="stat-label">Total Battles Done</div>
+           </div>
+         </div>
+
+         <!-- Ticket Statistics Section -->
+         <div class="ticket-stats-section">
+           <h3>🎫 Ticket Usage Statistics</h3>
+           <div class="ticket-stats-grid">
+             <div class="ticket-stat-card">
+               <div class="ticket-stat-header">
+                 <div class="ticket-icon">🎫</div>
+                 <h4>Total Tickets</h4>
+               </div>
+               <div class="ticket-stat-content">
+                 <div class="ticket-stat-main">
+                   <span class="ticket-number">{{ analysisState.battleStats?.ticketStats.totalTicketsUsed || 0 }}</span>
+                   <span class="ticket-max">/ {{ (analysisState.battleStats?.totalPlayers || 0) * 18 }}</span>
+                 </div>
+                 <div class="ticket-stat-subtitle">Tickets Used</div>
+               </div>
+             </div>
+
+             <div class="ticket-stat-card missed">
+               <div class="ticket-stat-header">
+                 <div class="ticket-icon">⚠️</div>
+                 <h4>Missed Tickets</h4>
+               </div>
+               <div class="ticket-stat-content">
+                 <div class="ticket-stat-main">
+                   <span class="ticket-number">{{ analysisState.battleStats?.ticketStats.totalTicketsMissed || 0 }}</span>
+                 </div>
+                 <div class="ticket-stat-subtitle">Tickets Lost</div>
+               </div>
+             </div>
+
+             <div class="ticket-stat-card below-min">
+               <div class="ticket-stat-header">
+                 <div class="ticket-icon">📉</div>
+                 <h4>Below Minimum</h4>
+               </div>
+               <div class="ticket-stat-content">
+                 <div class="ticket-stat-main">
+                   <span class="ticket-number">{{ analysisState.battleStats?.ticketStats.playersBelowMinimum || 0 }}</span>
+                 </div>
+                 <div class="ticket-stat-subtitle">Players (< 15 tickets)</div>
+               </div>
+             </div>
+
+             <div class="ticket-stat-card average">
+               <div class="ticket-stat-header">
+                 <div class="ticket-icon">📊</div>
+                 <h4>Average Usage</h4>
+               </div>
+               <div class="ticket-stat-content">
+                 <div class="ticket-stat-main">
+                   <span class="ticket-number">{{ analysisState.battleStats?.ticketStats.averageTicketsUsed || 0 }}</span>
+                 </div>
+                 <div class="ticket-stat-subtitle">Tickets per Player</div>
+               </div>
+             </div>
+           </div>
+
+           <!-- Ticket Usage by Boss -->
+           <div class="ticket-boss-breakdown">
+             <h4>Ticket Usage by Boss</h4>
+             <div class="ticket-boss-grid">
+               <div class="ticket-boss-item red-velvet">
+                 <div class="boss-ticket-icon">🐉</div>
+                 <div class="boss-ticket-info">
+                   <div class="boss-ticket-name">Red Velvet Dragon</div>
+                   <div class="boss-ticket-count">{{ analysisState.battleStats?.ticketStats.ticketsUsedByBoss.redVelvet || 0 }} tickets</div>
+                 </div>
+               </div>
+               <div class="ticket-boss-item avatar">
+                 <div class="boss-ticket-icon">👁️</div>
+                 <div class="boss-ticket-info">
+                   <div class="boss-ticket-name">Avatar of Destiny</div>
+                   <div class="boss-ticket-count">{{ analysisState.battleStats?.ticketStats.ticketsUsedByBoss.avatar || 0 }} tickets</div>
+                 </div>
+               </div>
+               <div class="ticket-boss-item living-abyss">
+                 <div class="boss-ticket-icon">🔷</div>
+                 <div class="boss-ticket-info">
+                   <div class="boss-ticket-name">Living Abyss</div>
+                   <div class="boss-ticket-count">{{ analysisState.battleStats?.ticketStats.ticketsUsedByBoss.livingAbyss || 0 }} tickets</div>
+                 </div>
+               </div>
+             </div>
            </div>
          </div>
 
@@ -350,21 +709,27 @@ onMounted(() => {
 
          <div class="results-table">
            <h3>Player Performance Preview</h3>
+           <div class="toggle-row">
+             <button @click="toggleShowAllPlayers" class="export-button">
+               {{ showAllPlayers ? 'Show Top 5' : 'Show All Players' }}
+             </button>
+           </div>
            <div class="table-container">
              <table>
-                              <thead>
-                  <tr>
-                    <th>Rank</th>
-                    <th>Player</th>
-                    <th>Red Velvet Dragon</th>
-                    <th>Avatar of Destiny</th>
-                    <th>Living Abyss</th>
-                    <th>Season Total</th>
-                    <th>Guild Rank</th>
-                  </tr>
-                </thead>
+                                               <thead>
+                   <tr>
+                     <th>Rank</th>
+                     <th>Player</th>
+                     <th>Red Velvet Dragon</th>
+                     <th>Avatar of Destiny</th>
+                     <th>Living Abyss</th>
+                     <th>Season Total</th>
+                     <th>Tickets Used</th>
+                     <th>Guild Rank</th>
+                   </tr>
+                 </thead>
                <tbody>
-                 <tr v-for="player in analysisState.previewData" :key="player.rank">
+                 <tr v-for="player in displayedPlayers" :key="player.rank">
                   <td class="rank-cell">
                     <span class="rank-badge" :class="BattleAnalyzer.getRankBadgeClass(player.rank)">
                       {{ player.rank }}
@@ -400,25 +765,35 @@ onMounted(() => {
                        <div class="battles-count">x{{ player.livingAbyss.battles }}</div>
                      </div>
                    </td>
-                   <td class="damage-cell">
+                                      <td class="damage-cell">
                      <div class="damage-info">
                        <div class="damage-value">{{
                          BattleAnalyzer.formatDamage(player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage) }}</div>
-                       <div class="battles-count">x{{ player.redVelvetDragon.battles + player.avatarOfDestiny.battles + player.livingAbyss.battles }}</div>
+                       <div class="battles-count">x{{ player.redVelvetDragon.battles + player.livingAbyss.battles }}</div>
                      </div>
                    </td>
-                  <td class="rank-cell">
-                    <span class="guild-rank-badge"
-                      :class="BattleAnalyzer.getGuildRankBadgeClass(player.guildRank || 'Member')">
-                      {{ player.guildRank || 'Member' }}
-                    </span>
-                  </td>
+                   <td class="ticket-cell">
+                     <div class="ticket-info">
+                       <div class="ticket-count" :class="getTicketStatusClass(player)">
+                         {{ player.redVelvetDragon.battles + player.livingAbyss.battles }}/18
+                       </div>
+                       <div class="ticket-status" :class="getTicketStatusClass(player)">
+                         {{ getTicketStatusText(player) }}
+                       </div>
+                     </div>
+                   </td>
+                   <td class="rank-cell">
+                     <span class="guild-rank-badge"
+                       :class="BattleAnalyzer.getGuildRankBadgeClass(getPlayerGuildRank(player.playerName))">
+                       {{ getPlayerGuildRank(player.playerName) }}
+                     </span>
+                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
           <p class="table-note">
-            Showing top 5 players. Download the full Excel report for complete data.
+            {{ showAllPlayers ? `Showing all ${analysisState.battleData.length} players.` : 'Showing top 5 players.' }} Download the full Excel report for complete data.
           </p>
         </div>
       </div>
@@ -520,144 +895,13 @@ onMounted(() => {
   padding: 0;
 }
 
-.sheets-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 4rem 0;
-  color: white;
-}
-
-.section-subtitle {
-  text-align: center;
-  margin-bottom: 2rem;
-  opacity: 0.9;
-  font-size: 1.1rem;
-}
-
-.sheets-form {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 2rem;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.form-row {
+/* optional small layout tweak for toggle row */
+.toggle-row {
   display: flex;
-  gap: 1rem;
-  align-items: flex-end;
-  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin: 0 0 12px 0;
 }
 
-.form-group {
-  flex: 1;
-  min-width: 200px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  opacity: 0.9;
-}
-
-.form-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-}
-
-.form-input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.form-input:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.fetch-button {
-  background: #4CAF50;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background 0.3s ease;
-}
-
-.fetch-button:hover:not(:disabled) {
-  background: #45a049;
-}
-
-.fetch-button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.success-message {
-  background: rgba(76, 175, 80, 0.2);
-  color: #4CAF50;
-  padding: 1rem;
-  border-radius: 6px;
-  margin-top: 1rem;
-  border: 1px solid rgba(76, 175, 80, 0.3);
-}
-
-.error-message {
-  background: rgba(244, 67, 54, 0.2);
-  color: #f44336;
-  padding: 1rem;
-  border-radius: 6px;
-  margin-top: 1rem;
-  border: 1px solid rgba(244, 67, 54, 0.3);
-}
-
-.data-info {
-  margin-top: 0.5rem;
-  opacity: 0.8;
-}
-
-.clear-data-section {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  text-align: center;
-}
-
-.clear-button {
-  background: rgba(244, 67, 54, 0.2);
-  color: #f44336;
-  border: 1px solid rgba(244, 67, 54, 0.3);
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-}
-
-.clear-button:hover {
-  background: rgba(244, 67, 54, 0.3);
-  border-color: rgba(244, 67, 54, 0.5);
-}
-
-.clear-note {
-  display: block;
-  margin-top: 0.5rem;
-  opacity: 0.7;
-  font-size: 0.8rem;
-}
 
 /* Navigation Header Styles */
 .nav-header {

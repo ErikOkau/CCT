@@ -28,6 +28,17 @@ export interface BattleStats {
   totalBattlesDone: number
   topPerformers: BattlePlayer[]
   guildScore: number
+  ticketStats: {
+    totalTicketsUsed: number
+    totalTicketsMissed: number
+    playersBelowMinimum: number
+    averageTicketsUsed: number
+    ticketsUsedByBoss: {
+      redVelvet: number
+      avatar: number
+      livingAbyss: number
+    }
+  }
   redVelvetStats: {
     totalDamage: number
     averageDamage: number

@@ -103,20 +103,26 @@ function parseSpreadsheetData(rows: any[][]): any[] {
     // Parse Red Velvet Dragon data (columns A-F: 0-5)
     // Column 2 (C) contains damage in "Billion" format
     const redVelvetDamageText = row[2] || ''
-    const redVelvetDamage = parseFloat(redVelvetDamageText.replace(' Billion', '')) || 0
-    const redVelvetBattles = parseInt(row[4]) || 0 // Column E
+    const redVelvetDamage = parseFloat(redVelvetDamageText.replace(' Billion', '')) * 1000000000 || 0 // Convert to actual number
+    const redVelvetBattlesRaw = parseInt(row[4]) || 0 // Column E - "Battles Done" = tickets used
+    // If no damage recorded, battles should be 0 (player didn't actually participate)
+    const redVelvetBattles = redVelvetDamage > 0 ? redVelvetBattlesRaw : 0
     const redVelvetAvg = parseInt(row[5]) || 0 // Column F
     
     // Parse Avatar of Destiny data (columns H-M: 7-12)
     const avatarDamageText = row[9] || '' // Column J
-    const avatarDamage = parseFloat(avatarDamageText.replace(' Billion', '')) || 0
-    const avatarBattles = parseInt(row[11]) || 0 // Column L
+    const avatarDamage = parseFloat(avatarDamageText.replace(' Billion', '')) * 1000000000 || 0 // Convert to actual number
+    const avatarBattlesRaw = parseInt(row[11]) || 0 // Column L - "Battles Done" = tickets used
+    // If no damage recorded, battles should be 0 (player didn't actually participate)
+    const avatarBattles = avatarDamage > 0 ? avatarBattlesRaw : 0
     const avatarAvg = parseInt(row[12]) || 0 // Column M
     
     // Parse Living Abyss data (columns O-T: 14-19)
     const livingAbyssDamageText = row[16] || '' // Column Q
-    const livingAbyssDamage = parseFloat(livingAbyssDamageText.replace(' Billion', '')) || 0
-    const livingAbyssBattles = parseInt(row[18]) || 0 // Column S
+    const livingAbyssDamage = parseFloat(livingAbyssDamageText.replace(' Billion', '')) * 1000000000 || 0 // Convert to actual number
+    const livingAbyssBattlesRaw = parseInt(row[18]) || 0 // Column S - "Battles Done" = tickets used
+    // If no damage recorded, battles should be 0 (player didn't actually participate)
+    const livingAbyssBattles = livingAbyssDamage > 0 ? livingAbyssBattlesRaw : 0
     const livingAbyssAvg = parseInt(row[19]) || 0 // Column T
     
     players.push({
