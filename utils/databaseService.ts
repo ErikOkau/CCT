@@ -44,6 +44,117 @@ export class DatabaseService {
   }
 
   /**
+   * Store battle analysis data (universal for all users)
+   */
+  static async storeBattleAnalysis(
+    seasonName: string,
+    guildName: string,
+    players: BattlePlayer[],
+    stats: BattleStats
+  ) {
+    try {
+      // Get or create season and guild
+      const season = await this.getOrCreateSeason({
+        name: seasonName,
+        startDate: new Date()
+      })
+
+      const guild = await this.getOrCreateGuild({
+        name: guildName
+      })
+
+      // Store battle analysis
+      const analysis = await prisma.battleAnalysis.upsert({
+        where: {
+          seasonId_guildId: {
+            seasonId: season.id,
+            guildId: guild.id
+          }
+        },
+        update: {
+          totalPlayers: stats.totalPlayers,
+          highestDamage: BigInt(stats.highestDamage),
+          averageDamage: BigInt(stats.averageDamage),
+          totalBattlesDone: stats.totalBattlesDone,
+          guildScore: stats.guildScore,
+          redVelvetStats: stats.redVelvetStats,
+          avatarStats: stats.avatarStats,
+          livingAbyssStats: stats.livingAbyssStats,
+          insights: stats.insights,
+          playerData: players,
+          analysisDate: new Date()
+        },
+        create: {
+          seasonId: season.id,
+          guildId: guild.id,
+          totalPlayers: stats.totalPlayers,
+          highestDamage: BigInt(stats.highestDamage),
+          averageDamage: BigInt(stats.averageDamage),
+          totalBattlesDone: stats.totalBattlesDone,
+          guildScore: stats.guildScore,
+          redVelvetStats: stats.redVelvetStats,
+          avatarStats: stats.avatarStats,
+          livingAbyssStats: stats.livingAbyssStats,
+          insights: stats.insights,
+          playerData: players
+        }
+      })
+
+      return analysis
+    } catch (error) {
+      console.error('Error storing battle analysis:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Get latest battle analysis for a guild and season
+   */
+  static async getLatestBattleAnalysis(seasonName: string, guildName: string) {
+    try {
+      const season = await prisma.season.findUnique({
+        where: { name: seasonName }
+      })
+
+      const guild = await prisma.guild.findUnique({
+        where: { name: guildName }
+      })
+
+      if (!season || !guild) {
+        return null
+      }
+
+      const analysis = await prisma.battleAnalysis.findFirst({
+        where: {
+          seasonId: season.id,
+          guildId: guild.id
+        },
+        orderBy: {
+          analysisDate: 'desc'
+        }
+      })
+
+      return analysis
+    } catch (error) {
+      console.error('Error getting battle analysis:', error)
+      return null
+    }
+  }
+
+  /**
+   * Clear all battle analysis data (admin only)
+   */
+  static async clearAllBattleAnalysis() {
+    try {
+      await prisma.battleAnalysis.deleteMany({})
+      return { success: true, message: 'All battle analysis data cleared' }
+    } catch (error) {
+      console.error('Error clearing battle analysis:', error)
+      throw error
+    }
+  }
+
+  /**
    * Store battle results for a guild in a specific season
    */
   static async storeBattleResults(

@@ -41,11 +41,15 @@ export default defineEventHandler(async (event) => {
     }
 
     console.log(`📊 Fetched ${rows.length} rows from Google Sheets`)
+    console.log('First few rows:', rows.slice(0, 5))
 
     // Parse the spreadsheet data
     const players = parseSpreadsheetData(rows)
     
     console.log(`✅ Successfully parsed ${players.length} players from Google Sheets`)
+    if (players.length > 0) {
+      console.log('Sample player data:', players[0])
+    }
 
     return {
       message: 'Google Sheets data fetched successfully!',
@@ -67,10 +71,20 @@ function parseSpreadsheetData(rows: any[][]): any[] {
   // Skip header rows (first 2 rows contain boss names and column headers)
   const dataRows = rows.slice(2)
   
-  // Find the end of player data (look for empty rows)
+  // Find the end of player data (look for summary row or empty rows)
   let endIndex = dataRows.length
   for (let i = 0; i < dataRows.length; i++) {
-    if (!dataRows[i] || dataRows[i].length === 0 || !dataRows[i][0]) {
+    const row = dataRows[i]
+    // Stop at summary row (contains "DAMAGE REQ" or similar)
+    if (row && row.length > 0 && 
+        (row[0]?.toString().includes('DAMAGE REQ') || 
+         row[0]?.toString().includes('DAMAGE GOAL') ||
+         row[0]?.toString().includes('Min Tickets'))) {
+      endIndex = i
+      break
+    }
+    // Stop at empty rows
+    if (!row || row.length === 0 || !row[0]) {
       endIndex = i
       break
     }
@@ -78,26 +92,32 @@ function parseSpreadsheetData(rows: any[][]): any[] {
   
   const playerRows = dataRows.slice(0, endIndex)
   
+  console.log(`Processing ${playerRows.length} player rows (stopped at row ${endIndex})`)
+  
   playerRows.forEach((row, index) => {
-    if (row.length < 12) return // Skip incomplete rows
+    if (row.length < 6) return // Skip incomplete rows
     
     const rank = index + 1
     const playerName = row[1] || `Player ${rank}`
     
-    // Parse Red Velvet Dragon data (columns 2-4)
-    const redVelvetDamage = parseFloat(row[2]) || 0
-    const redVelvetBattles = parseInt(row[3]) || 0
-    const redVelvetAvg = parseInt(row[4]) || 0
+    // Parse Red Velvet Dragon data (columns A-F: 0-5)
+    // Column 2 (C) contains damage in "Billion" format
+    const redVelvetDamageText = row[2] || ''
+    const redVelvetDamage = parseFloat(redVelvetDamageText.replace(' Billion', '')) || 0
+    const redVelvetBattles = parseInt(row[4]) || 0 // Column E
+    const redVelvetAvg = parseInt(row[5]) || 0 // Column F
     
-    // Parse Avatar of Destiny data (columns 6-8)
-    const avatarDamage = parseFloat(row[6]) || 0
-    const avatarBattles = parseInt(row[7]) || 0
-    const avatarAvg = parseInt(row[8]) || 0
+    // Parse Avatar of Destiny data (columns H-M: 7-12)
+    const avatarDamageText = row[9] || '' // Column J
+    const avatarDamage = parseFloat(avatarDamageText.replace(' Billion', '')) || 0
+    const avatarBattles = parseInt(row[11]) || 0 // Column L
+    const avatarAvg = parseInt(row[12]) || 0 // Column M
     
-    // Parse Living Abyss data (columns 10-12)
-    const livingAbyssDamage = parseFloat(row[10]) || 0
-    const livingAbyssBattles = parseInt(row[11]) || 0
-    const livingAbyssAvg = parseInt(row[12]) || 0
+    // Parse Living Abyss data (columns O-T: 14-19)
+    const livingAbyssDamageText = row[16] || '' // Column Q
+    const livingAbyssDamage = parseFloat(livingAbyssDamageText.replace(' Billion', '')) || 0
+    const livingAbyssBattles = parseInt(row[18]) || 0 // Column S
+    const livingAbyssAvg = parseInt(row[19]) || 0 // Column T
     
     players.push({
       rank,

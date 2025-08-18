@@ -51,7 +51,7 @@ const formatDamage = (damage: number) => {
 
 const formatAvgDamage = (avgDamage: number | undefined) => {
   if (avgDamage === undefined) return 'N/A'
-  return avgDamage.toLocaleString()
+  return `${avgDamage.toLocaleString()}B`
 }
 </script>
 
