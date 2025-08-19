@@ -7,19 +7,10 @@ const router = useRouter()
 
 const {
   isAuthenticated,
-  checkSession
+  checkSession,
+  registerForm,
+  register
 } = useAuth()
-
-// Registration form state
-const registrationForm = reactive({
-  username: '',
-  password: '',
-  confirmPassword: '',
-  email: '',
-  isRegistering: false,
-  error: '',
-  success: ''
-})
 
 // Check session on page load
 onMounted(async () => {
@@ -33,62 +24,39 @@ onMounted(async () => {
 
 const handleRegistration = async () => {
   // Reset messages
-  registrationForm.error = ''
-  registrationForm.success = ''
+  registerForm.error = ''
   
   // Validation
-  if (!registrationForm.username || !registrationForm.password || !registrationForm.confirmPassword) {
-    registrationForm.error = 'Please fill in all fields'
+  if (!registerForm.email || !registerForm.password || !registerForm.username) {
+    registerForm.error = 'Please fill in all fields'
     return
   }
   
-  if (registrationForm.password !== registrationForm.confirmPassword) {
-    registrationForm.error = 'Passwords do not match'
+  if (registerForm.password.length < 6) {
+    registerForm.error = 'Password must be at least 6 characters long'
     return
   }
   
-  if (registrationForm.password.length < 6) {
-    registrationForm.error = 'Password must be at least 6 characters long'
-    return
-  }
-  
-  if (registrationForm.username.length < 3) {
-    registrationForm.error = 'Username must be at least 3 characters long'
+  if (registerForm.username.length < 3) {
+    registerForm.error = 'Username must be at least 3 characters long'
     return
   }
   
   try {
-    registrationForm.isRegistering = true
+    registerForm.isRegistering = true
     
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        username: registrationForm.username,
-        password: registrationForm.password,
-        email: registrationForm.email
-      })
-    })
+    const success = await register()
     
-    const data = await response.json()
-    
-    if (response.ok && data.success) {
-      registrationForm.success = 'Registration successful! You can now login.'
-      // Clear form
-      registrationForm.username = ''
-      registrationForm.password = ''
-      registrationForm.confirmPassword = ''
-      registrationForm.email = ''
-    } else {
-      registrationForm.error = data.statusMessage || 'Registration failed'
+    if (success) {
+      // Show success message
+      alert('Registration successful! Please check your email to confirm your account.')
+      router.push('/login')
     }
   } catch (error) {
     console.error('Registration error:', error)
-    registrationForm.error = 'Registration failed. Please try again.'
+    registerForm.error = 'Registration failed. Please try again.'
   } finally {
-    registrationForm.isRegistering = false
+    registerForm.isRegistering = false
   }
 }
 </script>
@@ -114,24 +82,25 @@ const handleRegistration = async () => {
             <label for="username">Username:</label>
             <input 
               id="username"
-              v-model="registrationForm.username" 
+              v-model="registerForm.username" 
               type="text" 
               placeholder="Enter username (min 3 characters)"
-              :disabled="registrationForm.isRegistering"
+              :disabled="registerForm.isRegistering"
               class="form-input"
               required
             >
           </div>
           
           <div class="form-group">
-            <label for="email">Email (optional):</label>
+            <label for="email">Email:</label>
             <input 
               id="email"
-              v-model="registrationForm.email" 
+              v-model="registerForm.email" 
               type="email" 
               placeholder="Enter email address"
-              :disabled="registrationForm.isRegistering"
+              :disabled="registerForm.isRegistering"
               class="form-input"
+              required
             >
           </div>
           
@@ -139,23 +108,10 @@ const handleRegistration = async () => {
             <label for="password">Password:</label>
             <input 
               id="password"
-              v-model="registrationForm.password" 
+              v-model="registerForm.password" 
               type="password" 
               placeholder="Enter password (min 6 characters)"
-              :disabled="registrationForm.isRegistering"
-              class="form-input"
-              required
-            >
-          </div>
-          
-          <div class="form-group">
-            <label for="confirmPassword">Confirm Password:</label>
-            <input 
-              id="confirmPassword"
-              v-model="registrationForm.confirmPassword" 
-              type="password" 
-              placeholder="Confirm your password"
-              :disabled="registrationForm.isRegistering"
+              :disabled="registerForm.isRegistering"
               class="form-input"
               required
             >
@@ -163,19 +119,15 @@ const handleRegistration = async () => {
           
           <button 
             type="submit" 
-            :disabled="registrationForm.isRegistering || !registrationForm.username || !registrationForm.password || !registrationForm.confirmPassword"
+            :disabled="registerForm.isRegistering || !registerForm.username || !registerForm.password || !registerForm.email"
             class="registration-button"
           >
-            {{ registrationForm.isRegistering ? '📝 Creating Account...' : '📝 Create Account' }}
+            {{ registerForm.isRegistering ? '📝 Creating Account...' : '📝 Create Account' }}
           </button>
         </form>
         
-        <div v-if="registrationForm.error" class="error-message">
-          ❌ {{ registrationForm.error }}
-        </div>
-        
-        <div v-if="registrationForm.success" class="success-message">
-          ✅ {{ registrationForm.success }}
+        <div v-if="registerForm.error" class="error-message">
+          ❌ {{ registerForm.error }}
         </div>
         
         <div class="registration-footer">

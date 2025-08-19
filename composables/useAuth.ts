@@ -1,4 +1,5 @@
 import { ref, reactive } from 'vue'
+import { supabase } from '~/utils/supabase'
 
 export interface User {
   id: string
@@ -12,10 +13,18 @@ export const useAuth = () => {
   const isLoading = ref(false)
 
   const loginForm = reactive({
-    username: '',
+    email: '',
     password: '',
     error: '',
     isLoggingIn: false
+  })
+
+  const registerForm = reactive({
+    email: '',
+    password: '',
+    username: '',
+    error: '',
+    isRegistering: false
   })
 
   /**
@@ -24,12 +33,25 @@ export const useAuth = () => {
   const checkSession = async () => {
     try {
       isLoading.value = true
-      const response = await fetch('/api/auth/session')
-      const data = await response.json()
+      
+      const { data: { session }, error } = await supabase.auth.getSession()
+      
+      if (session && session.user) {
+        // Get user profile from profiles table
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
 
-      if (data.authenticated && data.user) {
-        user.value = data.user
-        isAuthenticated.value = true
+        if (profile) {
+          user.value = {
+            id: session.user.id,
+            username: profile.username || session.user.email || '',
+            role: profile.role === 'admin' ? 'ADMIN' : 'USER'
+          }
+          isAuthenticated.value = true
+        }
       } else {
         user.value = null
         isAuthenticated.value = false
@@ -44,11 +66,11 @@ export const useAuth = () => {
   }
 
   /**
-   * Login user
+   * Login user with email/password
    */
   const login = async () => {
-    if (!loginForm.username || !loginForm.password) {
-      loginForm.error = 'Please enter both username and password'
+    if (!loginForm.email || !loginForm.password) {
+      loginForm.error = 'Please enter both email and password'
       return
     }
 
@@ -56,29 +78,38 @@ export const useAuth = () => {
       loginForm.isLoggingIn = true
       loginForm.error = ''
 
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          username: loginForm.username,
-          password: loginForm.password
-        })
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: loginForm.email,
+        password: loginForm.password
       })
 
-      const data = await response.json()
-
-      if (response.ok && data.success) {
-        user.value = data.user
-        isAuthenticated.value = true
-        loginForm.username = ''
-        loginForm.password = ''
-        return true
-      } else {
-        loginForm.error = data.statusMessage || 'Login failed'
+      if (error) {
+        loginForm.error = error.message
         return false
       }
+
+      if (data.user) {
+        // Get user profile
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single()
+
+        if (profile) {
+          user.value = {
+            id: data.user.id,
+            username: profile.username || data.user.email || '',
+            role: profile.role === 'admin' ? 'ADMIN' : 'USER'
+          }
+          isAuthenticated.value = true
+          loginForm.email = ''
+          loginForm.password = ''
+          return true
+        }
+      }
+      
+      return false
     } catch (error) {
       console.error('Login error:', error)
       loginForm.error = 'Login failed. Please try again.'
@@ -89,16 +120,62 @@ export const useAuth = () => {
   }
 
   /**
+   * Register new user
+   */
+  const register = async () => {
+    if (!registerForm.email || !registerForm.password || !registerForm.username) {
+      registerForm.error = 'Please fill in all fields'
+      return
+    }
+
+    try {
+      registerForm.isRegistering = true
+      registerForm.error = ''
+
+      const { data, error } = await supabase.auth.signUp({
+        email: registerForm.email,
+        password: registerForm.password,
+        options: {
+          data: {
+            username: registerForm.username
+          }
+        }
+      })
+
+      if (error) {
+        registerForm.error = error.message
+        return false
+      }
+
+      if (data.user) {
+        // Profile will be created automatically by the trigger
+        registerForm.email = ''
+        registerForm.password = ''
+        registerForm.username = ''
+        return true
+      }
+      
+      return false
+    } catch (error) {
+      console.error('Registration error:', error)
+      registerForm.error = 'Registration failed. Please try again.'
+      return false
+    } finally {
+      registerForm.isRegistering = false
+    }
+  }
+
+  /**
    * Logout user
    */
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', {
-        method: 'POST'
-      })
+      const { error } = await supabase.auth.signOut()
       
-      user.value = null
-      isAuthenticated.value = false
+      if (!error) {
+        user.value = null
+        isAuthenticated.value = false
+      }
     } catch (error) {
       console.error('Logout error:', error)
     }
@@ -111,13 +188,28 @@ export const useAuth = () => {
     return user.value?.role === 'ADMIN'
   }
 
+  // Initialize auth state
+  checkSession()
+
+  // Listen for auth changes
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      await checkSession()
+    } else if (event === 'SIGNED_OUT') {
+      user.value = null
+      isAuthenticated.value = false
+    }
+  })
+
   return {
     user,
     isAuthenticated,
     isLoading,
     loginForm,
+    registerForm,
     checkSession,
     login,
+    register,
     logout,
     isAdmin
   }

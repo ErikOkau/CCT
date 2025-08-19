@@ -52,12 +52,12 @@ const handleLogin = async () => {
         
         <form @submit.prevent="handleLogin" class="login-form">
           <div class="form-group">
-            <label for="username">Username:</label>
+            <label for="email">Email:</label>
             <input 
-              id="username"
-              v-model="loginForm.username" 
-              type="text" 
-              placeholder="Enter username"
+              id="email"
+              v-model="loginForm.email" 
+              type="email" 
+              placeholder="Enter your email"
               :disabled="loginForm.isLoggingIn"
               class="form-input"
               required
@@ -79,7 +79,7 @@ const handleLogin = async () => {
           
           <button 
             type="submit" 
-            :disabled="loginForm.isLoggingIn || !loginForm.username || !loginForm.password"
+            :disabled="loginForm.isLoggingIn || !loginForm.email || !loginForm.password"
             class="login-button"
           >
             {{ loginForm.isLoggingIn ? '🔐 Logging in...' : '🔐 Login' }}
