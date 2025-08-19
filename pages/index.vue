@@ -2,7 +2,6 @@
 import { onMounted } from 'vue'
 import { useBattleAnalysis } from '~/composables/useBattleAnalysis'
 import { useExcelExport } from '~/composables/useExcelExport'
-import { useAuth } from '~/composables/useAuth'
 import { BattleAnalyzer } from '~/utils/battleAnalyzer'
 
 // Use composables
@@ -15,23 +14,7 @@ const {
   saveToDatabase
 } = useBattleAnalysis()
 
-const {
-  user,
-  isAuthenticated,
-  isLoading,
-  loginForm,
-  checkSession,
-  login,
-  logout,
-  isAdmin
-} = useAuth()
-
 const { exportToExcel } = useExcelExport()
-
-// Check session on page load
-onMounted(() => {
-  checkSession()
-})
 
 // GSAP animations
 onMounted(() => {
@@ -266,17 +249,6 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
         
         <nav class="nav-menu">
           <NuxtLink to="/" class="nav-link">Home</NuxtLink>
-          <NuxtLink v-if="!isAuthenticated" to="/login" class="nav-link">Login</NuxtLink>
-          <NuxtLink v-if="!isAuthenticated" to="/registration" class="nav-link">Register</NuxtLink>
-          
-          <div v-if="isAuthenticated" class="user-menu">
-            <span class="user-badge">
-              👤 {{ user?.username }} ({{ user?.role }})
-            </span>
-            <button @click="logout" class="logout-button">
-              🚪 Logout
-            </button>
-          </div>
         </nav>
       </div>
     </header>
@@ -461,8 +433,8 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
       </div>
     </section>
 
-    <!-- Google Sheets Section (Admin Only) -->
-    <section v-if="isAuthenticated && isAdmin()" class="sheets-section">
+    <!-- Google Sheets Section -->
+    <section class="sheets-section">
       <div class="container">
         <h2 class="section-title">📊 Connect to Google Sheets</h2>
         <p class="section-subtitle">Fetch battle data directly from your Google Sheets spreadsheet</p>
@@ -513,8 +485,8 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
             ❌ {{ sheetsState.fetchError }}
           </div>
           
-          <!-- Clear Data Button (Admin Only) -->
-          <div v-if="analysisState.analysisComplete && isAdmin()" class="clear-data-section">
+          <!-- Clear Data Button -->
+          <div v-if="analysisState.analysisComplete" class="clear-data-section">
             <button @click="resetAnalysis" class="clear-button">
               🗑️ Clear Saved Data
             </button>
