@@ -350,67 +350,89 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
 
           <!-- Boss Schedule Grid -->
           <div class="boss-schedule">
-            <!-- Row 1: Red Velvet Dragon -->
-            <div class="boss-row">
-              <div class="boss-cell" v-if="getBossForSeason(1, 1)">
-                <img :src="getBossForSeason(1, 1)?.image" :alt="getBossForSeason(1, 1)?.name" class="boss-image">
-                <div class="boss-name">{{ getBossForSeason(1, 1)?.name }}</div>
+            <!-- Desktop: Show all seasons -->
+            <div class="boss-schedule-desktop">
+              <!-- Row 1: Red Velvet Dragon -->
+              <div class="boss-row">
+                <div class="boss-cell" v-if="getBossForSeason(1, 1)">
+                  <img :src="getBossForSeason(1, 1)?.image" :alt="getBossForSeason(1, 1)?.name" class="boss-image">
+                  <div class="boss-name">{{ getBossForSeason(1, 1)?.name }}</div>
+                </div>
+                <div class="boss-cell empty" v-else></div>
+                
+                <div class="boss-cell" v-if="getBossForSeason(2, 1)">
+                  <img :src="getBossForSeason(2, 1)?.image" :alt="getBossForSeason(2, 1)?.name" class="boss-image">
+                  <div class="boss-name">{{ getBossForSeason(2, 1)?.name }}</div>
+                </div>
+                <div class="boss-cell empty" v-else></div>
+                
+                <div class="boss-cell" v-if="getBossForSeason(3, 1)">
+                  <img :src="getBossForSeason(3, 1)?.image" :alt="getBossForSeason(3, 1)?.name" class="boss-image">
+                  <div class="boss-name">{{ getBossForSeason(3, 1)?.name }}</div>
+                </div>
+                <div class="boss-cell empty" v-else></div>
               </div>
-              <div class="boss-cell empty" v-else></div>
-              
-              <div class="boss-cell" v-if="getBossForSeason(2, 1)">
-                <img :src="getBossForSeason(2, 1)?.image" :alt="getBossForSeason(2, 1)?.name" class="boss-image">
-                <div class="boss-name">{{ getBossForSeason(2, 1)?.name }}</div>
+
+              <!-- Row 2: Avatar of Destiny -->
+              <div class="boss-row">
+                <div class="boss-cell" v-if="getBossForSeason(1, 2)">
+                  <img :src="getBossForSeason(1, 2)?.image" :alt="getBossForSeason(1, 2)?.name" class="boss-image">
+                  <div class="boss-name">{{ getBossForSeason(1, 2)?.name }}</div>
+                </div>
+                <div class="boss-cell empty" v-else></div>
+                
+                <div class="boss-cell" v-if="getBossForSeason(2, 2)">
+                  <img :src="getBossForSeason(2, 2)?.image" :alt="getBossForSeason(2, 2)?.name" class="boss-image">
+                  <div class="boss-name">{{ getBossForSeason(2, 2)?.name }}</div>
+                </div>
+                <div class="boss-cell empty" v-else></div>
+                
+                <div class="boss-cell" v-if="getBossForSeason(3, 2)">
+                  <img :src="getBossForSeason(3, 2)?.image" :alt="getBossForSeason(3, 2)?.name" class="boss-image">
+                  <div class="boss-name">{{ getBossForSeason(3, 2)?.name }}</div>
+                </div>
+                <div class="boss-cell empty" v-else></div>
               </div>
-              <div class="boss-cell empty" v-else></div>
-              
-              <div class="boss-cell" v-if="getBossForSeason(3, 1)">
-                <img :src="getBossForSeason(3, 1)?.image" :alt="getBossForSeason(3, 1)?.name" class="boss-image">
-                <div class="boss-name">{{ getBossForSeason(3, 1)?.name }}</div>
+
+              <!-- Row 3: Living Abyss -->
+              <div class="boss-row">
+                <div class="boss-cell" v-if="getBossForSeason(1, 3)">
+                  <img :src="getBossForSeason(1, 3)?.image" :alt="getBossForSeason(1, 3)?.name" class="boss-image">
+                  <div class="boss-name">{{ getBossForSeason(1, 3)?.name }}</div>
+                </div>
+                <div class="boss-cell empty" v-else></div>
+                
+                <div class="boss-cell" v-if="getBossForSeason(2, 3)">
+                  <img :src="getBossForSeason(2, 3)?.image" :alt="getBossForSeason(2, 3)?.name" class="boss-image">
+                  <div class="boss-name">{{ getBossForSeason(2, 3)?.name }}</div>
+                </div>
+                <div class="boss-cell empty" v-else></div>
+                
+                <div class="boss-cell" v-if="getBossForSeason(3, 3)">
+                  <img :src="getBossForSeason(3, 3)?.image" :alt="getBossForSeason(3, 3)?.name" class="boss-image">
+                  <div class="boss-name">{{ getBossForSeason(3, 3)?.name }}</div>
+                </div>
+                <div class="boss-cell empty" v-else></div>
               </div>
-              <div class="boss-cell empty" v-else></div>
             </div>
 
-            <!-- Row 2: Avatar of Destiny -->
-            <div class="boss-row">
-              <div class="boss-cell" v-if="getBossForSeason(1, 2)">
-                <img :src="getBossForSeason(1, 2)?.image" :alt="getBossForSeason(1, 2)?.name" class="boss-image">
-                <div class="boss-name">{{ getBossForSeason(1, 2)?.name }}</div>
+            <!-- Mobile: Show only selected season -->
+            <div class="boss-schedule-mobile">
+              <div class="mobile-boss-list">
+                <div 
+                  v-for="position in 3" 
+                  :key="position"
+                  class="mobile-boss-item"
+                  v-if="getBossForSeason(activeSeason, position)"
+                >
+                  <img :src="getBossForSeason(activeSeason, position)?.image" :alt="getBossForSeason(activeSeason, position)?.name" class="mobile-boss-image">
+                  <div class="mobile-boss-name">{{ getBossForSeason(activeSeason, position)?.name }}</div>
+                </div>
+                <div v-if="!getBossForSeason(activeSeason, 1) && !getBossForSeason(activeSeason, 2) && !getBossForSeason(activeSeason, 3)" class="mobile-no-bosses">
+                  <div class="no-bosses-icon">📅</div>
+                  <div class="no-bosses-text">No bosses scheduled for this season</div>
+                </div>
               </div>
-              <div class="boss-cell empty" v-else></div>
-              
-              <div class="boss-cell" v-if="getBossForSeason(2, 2)">
-                <img :src="getBossForSeason(2, 2)?.image" :alt="getBossForSeason(2, 2)?.name" class="boss-image">
-                <div class="boss-name">{{ getBossForSeason(2, 2)?.name }}</div>
-              </div>
-              <div class="boss-cell empty" v-else></div>
-              
-              <div class="boss-cell" v-if="getBossForSeason(3, 2)">
-                <img :src="getBossForSeason(3, 2)?.image" :alt="getBossForSeason(3, 2)?.name" class="boss-image">
-                <div class="boss-name">{{ getBossForSeason(3, 2)?.name }}</div>
-              </div>
-              <div class="boss-cell empty" v-else></div>
-            </div>
-
-            <!-- Row 3: Living Abyss -->
-            <div class="boss-row">
-              <div class="boss-cell" v-if="getBossForSeason(1, 3)">
-                <img :src="getBossForSeason(1, 3)?.image" :alt="getBossForSeason(1, 3)?.name" class="boss-image">
-                <div class="boss-name">{{ getBossForSeason(1, 3)?.name }}</div>
-              </div>
-              <div class="boss-cell empty" v-else></div>
-              
-              <div class="boss-cell" v-if="getBossForSeason(2, 3)">
-                <img :src="getBossForSeason(2, 3)?.image" :alt="getBossForSeason(2, 3)?.name" class="boss-image">
-                <div class="boss-name">{{ getBossForSeason(2, 3)?.name }}</div>
-              </div>
-              <div class="boss-cell empty" v-else></div>
-              
-              <div class="boss-cell" v-if="getBossForSeason(3, 3)">
-                <img :src="getBossForSeason(3, 3)?.image" :alt="getBossForSeason(3, 3)?.name" class="boss-image">
-                <div class="boss-name">{{ getBossForSeason(3, 3)?.name }}</div>
-              </div>
-              <div class="boss-cell empty" v-else></div>
             </div>
           </div>
 
@@ -707,7 +729,9 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
               {{ showAllPlayers ? 'Show Top 5' : 'Show All Players' }}
             </button>
           </div>
-          <div class="table-container">
+          
+          <!-- Desktop Table -->
+          <div class="table-container desktop-table">
             <table>
               <thead>
                 <tr>
@@ -780,8 +804,61 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
               </tbody>
             </table>
           </div>
+
+          <!-- Mobile Cards -->
+          <div class="mobile-players">
+            <div v-for="player in displayedPlayers" :key="player.rank" class="mobile-player-card">
+              <div class="mobile-player-header">
+                <div class="mobile-rank-badge" :class="BattleAnalyzer.getRankBadgeClass(player.rank)">
+                  #{{ player.rank }}
+                </div>
+                <div class="mobile-player-name">{{ player.playerName }}</div>
+                <div class="mobile-guild-rank" :class="BattleAnalyzer.getGuildRankBadgeClass(getPlayerGuildRank(player.playerName))">
+                  {{ getPlayerGuildRank(player.playerName) }}
+                </div>
+              </div>
+              
+              <div class="mobile-boss-damage">
+                <div class="mobile-boss-damage-item">
+                  <div class="mobile-boss-icon">🐉</div>
+                  <div class="mobile-boss-damage-info">
+                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage) }}</div>
+                    <div class="mobile-battles-count">x{{ player.redVelvetDragon.battles }}</div>
+                  </div>
+                </div>
+                
+                <div class="mobile-boss-damage-item">
+                  <div class="mobile-boss-icon">👁️</div>
+                  <div class="mobile-boss-damage-info">
+                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(player.avatarOfDestiny.damage) }}</div>
+                    <div class="mobile-battles-count">x{{ player.avatarOfDestiny.battles }}</div>
+                  </div>
+                </div>
+                
+                <div class="mobile-boss-damage-item">
+                  <div class="mobile-boss-icon">🔷</div>
+                  <div class="mobile-boss-damage-info">
+                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(player.livingAbyss.damage) }}</div>
+                    <div class="mobile-battles-count">x{{ player.livingAbyss.battles }}</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mobile-total-section">
+                <div class="mobile-total-damage">
+                  <div class="mobile-total-label">Season Total:</div>
+                  <div class="mobile-total-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage) }}</div>
+                </div>
+                <div class="mobile-ticket-status" :class="getTicketStatusClass(player)">
+                  <div class="mobile-ticket-count">{{ player.redVelvetDragon.battles + player.avatarOfDestiny.battles + player.livingAbyss.battles }}/18</div>
+                  <div class="mobile-ticket-text">{{ getTicketStatusText(player) }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <p class="table-note">
-            {{ showAllPlayers ? `Showing all ${analysisState.battleData.length} players.` : 'Showing top 5 players.' }} Download the full Excel report for complete data.
+            {{ showAllPlayers ? `Showing all ${analysisState.battleData.length} players.` : 'Showing top 5 players.' }} 
           </p>
         </div>
       </div>

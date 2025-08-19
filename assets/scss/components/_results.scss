@@ -713,6 +713,200 @@ th {
   }
 }
 
+// Mobile Player Performance
+.desktop-table {
+  display: block;
+}
+
+.mobile-players {
+  display: none;
+}
+
+.mobile-player-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.mobile-player-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.mobile-rank-badge {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  min-width: 50px;
+  text-align: center;
+
+  &.rank-1 {
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    color: #1a1a2e;
+  }
+
+  &.rank-2 {
+    background: linear-gradient(45deg, #c0c0c0, #e5e5e5);
+    color: #1a1a2e;
+  }
+
+  &.rank-3 {
+    background: linear-gradient(45deg, #cd7f32, #daa520);
+    color: #1a1a2e;
+  }
+
+  &.rank-other {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+}
+
+.mobile-player-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: white;
+  flex: 1;
+}
+
+.mobile-guild-rank {
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+
+  &.guild-leader {
+    background: linear-gradient(45deg, #ff6b00, #ffd700);
+    color: #000;
+  }
+
+  &.guild-officer {
+    background: linear-gradient(45deg, #ff6b00, #ffd700);
+    color: #000;
+  }
+
+  &.guild-member {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+}
+
+.mobile-boss-damage {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.mobile-boss-damage-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.mobile-boss-icon {
+  font-size: 1.5rem;
+  width: 30px;
+  text-align: center;
+}
+
+.mobile-boss-damage-info {
+  flex: 1;
+}
+
+.mobile-damage-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 0.25rem;
+}
+
+.mobile-battles-count {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.mobile-total-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.mobile-total-damage {
+  text-align: left;
+}
+
+.mobile-total-label {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 0.25rem;
+}
+
+.mobile-total-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+}
+
+.mobile-ticket-status {
+  text-align: right;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+
+  &.ticket-excellent {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+  }
+
+  &.ticket-good {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+  }
+
+  &.ticket-warning {
+    background: rgba(255, 152, 0, 0.2);
+    color: #ff9800;
+    border: 1px solid rgba(255, 152, 0, 0.3);
+  }
+
+  &.ticket-poor {
+    background: rgba(244, 67, 54, 0.2);
+    color: #f44336;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+  }
+}
+
+.mobile-ticket-count {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.mobile-ticket-text {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
 // Responsive Design for Results
 @media (max-width: 768px) {
   .results-header {
@@ -723,10 +917,29 @@ th {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  // Hide desktop table, show mobile cards
+  .desktop-table {
+    display: none;
+  }
+
+  .mobile-players {
+    display: block;
+  }
 }
 
 @media (max-width: 480px) {
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .mobile-total-section {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .mobile-ticket-status {
+    text-align: center;
   }
 }

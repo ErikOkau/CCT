@@ -250,6 +250,67 @@
   }
 }
 
+// Mobile Boss Schedule
+.boss-schedule-desktop {
+  display: block;
+}
+
+.boss-schedule-mobile {
+  display: none;
+}
+
+.mobile-boss-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mobile-boss-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.mobile-boss-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.mobile-boss-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+}
+
+.mobile-no-bosses {
+  text-align: center;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  .no-bosses-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .no-bosses-text {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1rem;
+  }
+}
+
 // Responsive design
 @media (max-width: 768px) {
   .schedule-container {
@@ -279,6 +340,15 @@
         font-size: 0.8rem;
       }
     }
+  }
+
+  // Hide desktop boss schedule, show mobile
+  .boss-schedule-desktop {
+    display: none;
+  }
+
+  .boss-schedule-mobile {
+    display: block;
   }
 
   .boss-schedule {
