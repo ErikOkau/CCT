@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useBattleAnalysis } from '~/composables/useBattleAnalysis'
-import { useExcelExport } from '~/composables/useExcelExport'
 import { BattleAnalyzer } from '~/utils/battleAnalyzer'
 
 // Use composables
@@ -13,8 +12,6 @@ const {
   resetAnalysis,
   saveToDatabase
 } = useBattleAnalysis()
-
-const { exportToExcel } = useExcelExport()
 
 // GSAP animations
 onMounted(() => {
@@ -581,11 +578,6 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
       <div class="container">
         <div class="results-header">
           <h2 class="section-title">Battle Analysis Results - Season {{ getSeasonDisplayName(activeSeason) }}</h2>
-          <div class="action-buttons">
-            <button @click="exportToExcel(analysisState.battleData)" class="export-button">
-              📊 Export to Excel
-            </button>
-          </div>
         </div>
 
         <div class="stats-grid">
