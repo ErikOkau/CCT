@@ -289,24 +289,30 @@ const loadHallOfGloryData = async () => {
     // Calculate season champions
     const seasonChampions: any[] = []
     
-    validSeasonData.forEach(seasonData => {
-      // Find best player for this season
-      const bestPlayer = seasonData.players.reduce((best, player) => {
-        const totalDamage = player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage
-        const bestTotalDamage = best.redVelvetDragon.damage + best.avatarOfDestiny.damage + best.livingAbyss.damage
-        return totalDamage > bestTotalDamage ? player : best
-      })
-      
-      const totalDamage = bestPlayer.redVelvetDragon.damage + bestPlayer.avatarOfDestiny.damage + bestPlayer.livingAbyss.damage
-      const ticketsUsed = bestPlayer.redVelvetDragon.battles + bestPlayer.avatarOfDestiny.battles + bestPlayer.livingAbyss.battles
-      
-      seasonChampions.push({
-        seasonId: seasonData.seasonId,
-        seasonName: seasonData.seasonId,
-        playerName: bestPlayer.playerName,
-        totalDamage,
-        ticketsUsed
-      })
+              validSeasonData.forEach(seasonData => {
+       // Find best player for this season (player with highest total damage)
+       let bestPlayer: any = null
+       let bestTotalDamage = 0
+       
+       seasonData.players.forEach((player: any) => {
+         const playerTotalDamage = player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage
+         if (playerTotalDamage > bestTotalDamage) {
+           bestTotalDamage = playerTotalDamage
+           bestPlayer = player
+         }
+       })
+       
+       if (bestPlayer) {
+         const ticketsUsed = bestPlayer.redVelvetDragon.battles + bestPlayer.avatarOfDestiny.battles + bestPlayer.livingAbyss.battles
+         
+         seasonChampions.push({
+           seasonId: seasonData.seasonId,
+           seasonName: seasonData.seasonId,
+           playerName: bestPlayer.playerName,
+           totalDamage: bestTotalDamage,
+           ticketsUsed
+         })
+       }
       
       // Check for boss champions - look through ALL players in this season, not just the best overall
       seasonData.players.forEach(player => {
