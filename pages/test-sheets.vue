@@ -15,7 +15,6 @@ const uploadedImages = ref<Array<{ file: File; preview: string; id: string; proc
 const csvData = ref<string>('')
 const isProcessingScreenshot = ref(false)
 const screenshotError = ref('')
-const chatGptApiKey = ref(process.env.CHATGPT_API || '')
 const sortBy = ref<'name' | 'date' | 'status'>('name')
 const filterStatus = ref<'all' | 'processed' | 'unprocessed' | 'error'>('all')
 
@@ -49,11 +48,6 @@ const processScreenshotWithChatGPT = async (imageId: string) => {
     return
   }
 
-  if (!chatGptApiKey.value) {
-    screenshotError.value = 'ChatGPT API key not configured. Please set the CHATGPT_API environment variable.'
-    return
-  }
-
   const image = uploadedImages.value[imageIndex]
   uploadedImages.value[imageIndex].processed = true
   isProcessingScreenshot.value = true
@@ -63,58 +57,19 @@ const processScreenshotWithChatGPT = async (imageId: string) => {
     // Convert image to base64
     const base64Image = await fileToBase64(image.file)
     
-    // Prepare the prompt for ChatGPT
-    const prompt = `Please analyze this screenshot of a game leaderboard and extract the data in CSV format. The screenshot shows player performance data with columns for Player, Red Velvet Dragon, Avatar of Destiny, and Season Total. Each row should include:
-
-1. Player name
-2. Red Velvet Dragon damage (in billions) and battles count
-3. Avatar of Destiny damage (in billions) and battles count  
-4. Season Total damage (in billions) and battles count
-5. Player rank (Member/Officer/Leader)
-
-Please format the output as a CSV with the following structure:
-"Rank,Player Name,Red Velvet Dragon Damage (Billion),Red Velvet Dragon Battles,Avatar of Destiny Damage (Billion),Avatar of Destiny Battles,Season Total Damage (Billion),Season Total Battles,Guild Rank"
-
-If a player has no data for a specific boss, use "N/A" for damage and "0" for battles.`
-
-    // Call ChatGPT API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call our server API
+    const response = await $fetch<{ success: boolean; csvData: string }>('/api/process-screenshot', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${chatGptApiKey.value}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: prompt
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: base64Image
-                }
-              }
-            ]
-          }
-        ],
-        max_tokens: 2000
-      })
+      body: {
+        imageData: base64Image
+      }
     })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('API Response:', errorText)
-      throw new Error(`ChatGPT API error: ${response.status} ${response.statusText}`)
+    if (response.success) {
+      uploadedImages.value[imageIndex].csvData = response.csvData
+    } else {
+      throw new Error('Failed to process screenshot')
     }
-
-    const data = await response.json()
-    uploadedImages.value[imageIndex].csvData = data.choices[0].message.content
 
   } catch (err: any) {
     console.error('Error processing screenshot:', err)
@@ -288,15 +243,6 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
         <p class="section-subtitle">Upload screenshots and use ChatGPT to extract battle data in CSV format</p>
 
                  <div class="screenshot-form">
-           <!-- API Key Status -->
-           <div v-if="!chatGptApiKey" class="api-key-warning">
-             <div class="warning-icon">⚠️</div>
-             <div class="warning-content">
-               <h4>ChatGPT API Key Not Configured</h4>
-               <p>Please set the <code>CHATGPT_API</code> environment variable to use the screenshot analysis feature.</p>
-             </div>
-           </div>
-
            <div class="upload-area">
              <input 
                type="file" 
@@ -305,9 +251,9 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
                @change="handleImageUpload" 
                id="image-upload"
                class="file-input"
-               :disabled="isProcessingScreenshot || !chatGptApiKey"
+               :disabled="isProcessingScreenshot"
              >
-             <label for="image-upload" class="upload-label" :class="{ disabled: !chatGptApiKey }">
+             <label for="image-upload" class="upload-label">
                <div class="upload-content">
                  <div class="upload-icon">📸</div>
                  <div class="upload-text">
@@ -323,7 +269,7 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
              <div class="controls-header">
                <h3>📋 Screenshot Management ({{ uploadedImages.length }} images)</h3>
                                <div class="control-buttons">
-                  <button @click="processAllScreenshots" :disabled="isProcessingScreenshot || !chatGptApiKey" class="control-button process-all">
+                  <button @click="processAllScreenshots" :disabled="isProcessingScreenshot" class="control-button process-all">
                     🤖 Process All
                   </button>
                  <button @click="downloadAllCSV" :disabled="!uploadedImages.some(img => img.csvData)" class="control-button download-all">
@@ -377,7 +323,7 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
                                <div class="image-actions">
                   <button 
                     @click="() => processScreenshotWithChatGPT(image.id)"
-                    :disabled="isProcessingScreenshot || image.processed || !chatGptApiKey"
+                    :disabled="isProcessingScreenshot || image.processed"
                     class="process-button"
                   >
                     {{ isProcessingScreenshot && image.processed ? '🤖 Processing...' : '🤖 Extract Data' }}
