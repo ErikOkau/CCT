@@ -28,6 +28,22 @@ const seasonDates = {
   3: { start: new Date('2025-08-21T00:00:00+09:00'), end: new Date('2025-08-27T23:59:59+09:00') }
 }
 
+// All available seasons with their configurations
+const allSeasons = [
+  { id: '15-2', name: 'Season 15-2', hasData: true },
+  { id: '15-3', name: 'Season 15-3', hasData: true },
+  { id: '16-1', name: 'Season 16-1', hasData: true },
+  { id: '16-2', name: 'Season 16-2', hasData: true },
+  { id: '16-3', name: 'Season 16-3', hasData: true },
+  { id: '16-4', name: 'Season 16-4', hasData: true },
+  { id: '17-1', name: 'Season 17-1', hasData: true },
+  { id: '17-2', name: 'Season 17-2', hasData: true },
+  { id: '17-3', name: 'Season 17-3', hasData: true },
+  { id: '17-4', name: 'Season 17-4', hasData: true },
+  { id: '18-1', name: 'Season 18-1', hasData: true },
+  { id: '20-1', name: 'Season 20-1', hasData: true }
+]
+
 // Season-specific data availability and spreadsheet configurations
 const seasonConfigurations = {
   1: { 
@@ -228,6 +244,120 @@ const getPlayerGuildRank = (playerName: string) => {
   return 'Member'
 }
 
+// Hall of Glory data
+const hallOfGloryData = ref({
+  bossChampions: {
+    redVelvet: { player: null as string | null, damage: 0, season: '', tickets: 0 },
+    avatar: { player: null as string | null, damage: 0, season: '', tickets: 0 },
+    livingAbyss: { player: null as string | null, damage: 0, season: '', tickets: 0 }
+  },
+  seasonChampions: [] as any[],
+  isLoading: false
+})
+
+// Function to fetch data for a specific season
+const fetchSeasonDataForGlory = async (seasonId: string) => {
+  try {
+    const battlePlayers = await BattleAnalyzer.fetchFromGoogleSheets(
+      '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
+      `${seasonId}!A1:Z100`
+    )
+    
+    return {
+      seasonId,
+      players: battlePlayers,
+      totalDamage: battlePlayers.reduce((sum: number, player: any) => 
+        sum + player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage, 0
+      )
+    }
+  } catch (error) {
+    console.error(`Error fetching data for season ${seasonId}:`, error)
+    return null
+  }
+}
+
+// Function to load all Hall of Glory data
+const loadHallOfGloryData = async () => {
+  hallOfGloryData.value.isLoading = true
+  
+  try {
+    const seasonDataPromises = allSeasons.map(season => fetchSeasonDataForGlory(season.id))
+    const seasonResults = await Promise.all(seasonDataPromises)
+    const validSeasonData = seasonResults.filter(data => data !== null)
+    
+    // Calculate boss champions
+    const bossChampions = {
+      redVelvet: { player: null as string | null, damage: 0, season: '', tickets: 0 },
+      avatar: { player: null as string | null, damage: 0, season: '', tickets: 0 },
+      livingAbyss: { player: null as string | null, damage: 0, season: '', tickets: 0 }
+    }
+    
+    // Calculate season champions
+    const seasonChampions: any[] = []
+    
+    validSeasonData.forEach(seasonData => {
+      // Find best player for this season
+      const bestPlayer = seasonData.players.reduce((best, player) => {
+        const totalDamage = player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage
+        const bestTotalDamage = best.redVelvetDragon.damage + best.avatarOfDestiny.damage + best.livingAbyss.damage
+        return totalDamage > bestTotalDamage ? player : best
+      })
+      
+      const totalDamage = bestPlayer.redVelvetDragon.damage + bestPlayer.avatarOfDestiny.damage + bestPlayer.livingAbyss.damage
+      const ticketsUsed = bestPlayer.redVelvetDragon.battles + bestPlayer.avatarOfDestiny.battles + bestPlayer.livingAbyss.battles
+      
+      seasonChampions.push({
+        seasonId: seasonData.seasonId,
+        seasonName: seasonData.seasonId,
+        playerName: bestPlayer.playerName,
+        totalDamage,
+        ticketsUsed
+      })
+      
+      // Check for boss champions
+      if (bestPlayer.redVelvetDragon.damage > bossChampions.redVelvet.damage) {
+        bossChampions.redVelvet = {
+          player: bestPlayer.playerName,
+          damage: bestPlayer.redVelvetDragon.damage,
+          season: seasonData.seasonId,
+          tickets: bestPlayer.redVelvetDragon.battles
+        }
+      }
+      
+      if (bestPlayer.avatarOfDestiny.damage > bossChampions.avatar.damage) {
+        bossChampions.avatar = {
+          player: bestPlayer.playerName,
+          damage: bestPlayer.avatarOfDestiny.damage,
+          season: seasonData.seasonId,
+          tickets: bestPlayer.avatarOfDestiny.battles
+        }
+      }
+      
+      if (bestPlayer.livingAbyss.damage > bossChampions.livingAbyss.damage) {
+        bossChampions.livingAbyss = {
+          player: bestPlayer.playerName,
+          damage: bestPlayer.livingAbyss.damage,
+          season: seasonData.seasonId,
+          tickets: bestPlayer.livingAbyss.battles
+        }
+      }
+    })
+    
+    // Sort season champions by total damage
+    seasonChampions.sort((a, b) => b.totalDamage - a.totalDamage)
+    
+    hallOfGloryData.value = {
+      bossChampions,
+      seasonChampions: seasonChampions.slice(0, 3), // Top 3 seasons
+      isLoading: false
+    }
+    
+  } catch (error) {
+    console.error('Error loading Hall of Glory data:', error)
+    hallOfGloryData.value.isLoading = false
+  }
+}
+
 // Player preview expand/collapse
 const showAllPlayers = ref(false)
 const displayedPlayers = computed(() => showAllPlayers.value ? analysisState.battleData : analysisState.previewData)
@@ -252,28 +382,24 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
       </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero">
-      <div class="hero-content">
-        <div class="hero-text">
-          <div class="guild-badge">
-            <div class="guild-logo">
-              <img src="/img/cctLogo.png" alt="CCT Logo" class="guild-logo-img">
-            </div>
-            <div class="guild-name">Chaos Control Team</div>
-          </div>
-          <h1 class="hero-title">
-            <span class="gradient-text">Guild Battle</span>
-            <br>Analyzer
-          </h1>
-          <p class="hero-subtitle">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-            labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-            laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-            voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
-            non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-          </p>
-                     <div class="guild-info">
+                   <!-- Hero Section -->
+     <section class="hero">
+       <div class="hero-content">
+         <div class="hero-text">
+           <div class="guild-badge">
+             <div class="guild-logo">
+               <img src="/img/cctLogo.png" alt="CCT Logo" class="guild-logo-img">
+             </div>
+             <div class="guild-name">Chaos Control Team</div>
+           </div>
+           <h1 class="hero-title">
+             <span class="gradient-text">Guild Battle</span>
+             <br>Analyzer
+           </h1>
+            <p class="hero-subtitle">
+               Guild battle analyzer for the Chaos Control Team! 🦔🦊
+            </p>
+           <div class="guild-info">
              <div class="info-item">
                <span class="info-label">Leader:</span>
                <span class="info-value">Bestoutuber</span>
@@ -287,26 +413,258 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
                <span class="info-value">70</span>
              </div>
            </div>
-        </div>
-        <div class="hero-visual">
-          <div class="sonic-illustration">
-            <div class="sonic-character">🦔</div>
-            <div class="rings">
-              <div class="ring ring-1">💍</div>
-              <div class="ring ring-2">💍</div>
-              <div class="ring ring-3">💍</div>
-            </div>
-            <div class="chaos-emeralds">
-              <div class="emerald emerald-1">💎</div>
-              <div class="emerald emerald-2">💎</div>
-              <div class="emerald emerald-3">💎</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+         </div>
+         <div class="hero-visual">
+           <div class="sonic-illustration">
+             <div class="sonic-character">🦔</div>
+             <div class="rings">
+               <div class="ring ring-1">💍</div>
+               <div class="ring ring-2">💍</div>
+               <div class="ring ring-3">💍</div>
+             </div>
+             <div class="chaos-emeralds">
+               <div class="emerald emerald-1">💎</div>
+               <div class="emerald emerald-2">💎</div>
+               <div class="emerald emerald-3">💎</div>
+             </div>
+           </div>
+         </div>
+       </div>
+     </section>
 
-    <!-- Guild Battle Schedule Section -->
+     <!-- Guild Information & Requirements Section -->
+     <section class="guild-info-section">
+       <div class="container">
+         <div class="guild-info-header">
+           <h2 class="section-title">Guild Information & Requirements</h2>
+         </div>
+         
+         <div class="guild-info-grid">
+           <!-- Information Box -->
+           <div class="info-box">
+             <h3 class="box-title">📋 INFORMATION</h3>
+             <div class="info-list">
+               <div class="info-item">
+                 <span class="info-icon">🌐</span>
+                 <span class="info-text">HOLLYBERRY SERVER</span>
+               </div>
+               <div class="info-item">
+                 <span class="info-icon">⭐</span>
+                 <span class="info-text">LEVEL 70 GUILD</span>
+               </div>
+               <div class="info-item">
+                 <span class="info-icon">🏆</span>
+                 <span class="info-text">GRANDMASTER 3 - #40+</span>
+               </div>
+               <div class="info-item">
+                 <span class="info-icon">👑</span>
+                 <span class="info-text">TOP 1% ALLIANCE</span>
+               </div>
+               <div class="info-item">
+                 <span class="info-icon">💎</span>
+                 <span class="info-text">114/114 RELICS - LEVEL 11+</span>
+               </div>
+             </div>
+           </div>
+
+           <!-- Requirements Box -->
+           <div class="requirements-box">
+             <h3 class="box-title">🎯 REQUIREMENTS</h3>
+             <div class="requirements-list">
+                               <div class="requirement-item">
+                  <div class="requirement-icon">
+                    <img src="/img/Red_Velvet_Dragon.webp" alt="Red Velvet Dragon" />
+                  </div>
+                  <span class="requirement-text">8 BIL+ RED VELVET DRAGON</span>
+                </div>
+                <div class="requirement-item">
+                  <div class="requirement-icon">
+                    <img src="/img/Living_Licorice_Abyss.webp" alt="Living Licorice Abyss" />
+                  </div>
+                  <span class="requirement-text">16 BIL+ LIVING ABYSS</span>
+                </div>
+                <div class="requirement-item">
+                  <div class="requirement-icon">
+                    <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" alt="Avatar of Destiny" />
+                  </div>
+                  <span class="requirement-text">3.5 BIL+ AVATAR OF DESTINY</span>
+                </div>
+               <div class="requirement-item">
+                 <span class="requirement-icon">📊</span>
+                 <span class="requirement-text">MUST BE CONSISTENT AT 100+ LVLS</span>
+               </div>
+               <div class="requirement-item">
+                 <span class="requirement-icon">🏰</span>
+                 <span class="requirement-text">KINGDOM LEVEL 50+</span>
+               </div>
+               <div class="requirement-item">
+                 <span class="requirement-icon">🤝</span>
+                 <span class="requirement-text">PARTAKE IN ALLIANCE + DONATE RELICS</span>
+               </div>
+               <div class="requirement-item">
+                 <span class="requirement-icon">🎫</span>
+                 <span class="requirement-text">USE 15/18 TICKETS</span>
+               </div>
+               <div class="requirement-item">
+                 <span class="requirement-icon">⚔️</span>
+                 <span class="requirement-text">PARTICIPATE IN GUILD EVENTS</span>
+               </div>
+             </div>
+           </div>
+
+           <!-- Other Box -->
+           <div class="other-box">
+             <h3 class="box-title">💬 OTHER</h3>
+             <div class="other-content">
+               <div class="other-item">
+                 <span class="other-icon">⚠️</span>
+                 <span class="other-text">PLEASE LET US KNOW ABOUT YOUR SITUATION IF YOU WILL BE INACTIVE!</span>
+               </div>
+               <div class="other-item">
+                 <span class="other-icon">🤗</span>
+                 <span class="other-text">DON'T BE AFRAID TO APPLY EVEN IF YOU'RE A BIT BELOW THE REQUIREMENTS! WE'RE HERE TO HELP!</span>
+               </div>
+             </div>
+           </div>
+                   </div>
+        </div>
+      </section>
+
+                       <!-- Hall of Glory Section -->
+       <section class="hall-of-glory-section">
+         <div class="container">
+           <h2 class="section-title">🏆 Hall of Glory</h2>
+           <p class="section-subtitle">All-Time Highest Guild Battle Performers</p>
+           
+           <!-- Load Button -->
+           <div class="glory-load-section" v-if="!hallOfGloryData.isLoading && hallOfGloryData.seasonChampions.length === 0">
+             <button @click="loadHallOfGloryData" class="glory-load-button">
+               <span class="load-icon">📊</span>
+               <span>Load All-Time Champions</span>
+             </button>
+             <p class="load-note">Load data from all available seasons (15-2 to 20-1)</p>
+           </div>
+           
+           <!-- Loading State -->
+           <div class="glory-loading" v-if="hallOfGloryData.isLoading">
+             <div class="loading-spinner">
+               <div class="spinner"></div>
+             </div>
+             <h3>Loading Hall of Glory Data...</h3>
+             <p>Fetching data from {{ allSeasons.length }} seasons</p>
+           </div>
+           
+           <!-- Boss Champions Grid -->
+           <div class="glory-grid" v-if="!hallOfGloryData.isLoading && hallOfGloryData.seasonChampions.length > 0">
+             <!-- Red Velvet Dragon Champion -->
+             <div class="glory-card red-velvet" v-if="hallOfGloryData.bossChampions.redVelvet.player">
+               <div class="glory-header">
+                 <div class="boss-icon">
+                   <img src="/img/Red_Velvet_Dragon.webp" alt="Red Velvet Dragon" />
+                 </div>
+                 <h3>Red Velvet Dragon</h3>
+                 <div class="champion-badge">🥇 Champion</div>
+               </div>
+               <div class="champion-info">
+                 <div class="champion-name">{{ hallOfGloryData.bossChampions.redVelvet.player }}</div>
+                 <div class="champion-damage">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.redVelvet.damage) }}</div>
+                 <div class="champion-details">
+                   <span class="detail-item">🎯 {{ hallOfGloryData.bossChampions.redVelvet.tickets }}/18 Tickets</span>
+                   <span class="detail-item">📅 Season {{ hallOfGloryData.bossChampions.redVelvet.season }}</span>
+                 </div>
+               </div>
+               <div class="glory-stats">
+                 <div class="stat-item">
+                   <span class="stat-label">Guild Record:</span>
+                   <span class="stat-value">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.redVelvet.damage) }}</span>
+                 </div>
+                 <div class="stat-item">
+                   <span class="stat-label">Season:</span>
+                   <span class="stat-value">{{ hallOfGloryData.bossChampions.redVelvet.season }}</span>
+                 </div>
+               </div>
+             </div>
+
+             <!-- Avatar of Destiny Champion -->
+             <div class="glory-card avatar" v-if="hallOfGloryData.bossChampions.avatar.player">
+               <div class="glory-header">
+                 <div class="boss-icon">
+                   <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" alt="Avatar of Destiny" />
+                 </div>
+                 <h3>Avatar of Destiny</h3>
+                 <div class="champion-badge">🥇 Champion</div>
+               </div>
+               <div class="champion-info">
+                 <div class="champion-name">{{ hallOfGloryData.bossChampions.avatar.player }}</div>
+                 <div class="champion-damage">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.avatar.damage) }}</div>
+                 <div class="champion-details">
+                   <span class="detail-item">🎯 {{ hallOfGloryData.bossChampions.avatar.tickets }}/18 Tickets</span>
+                   <span class="detail-item">📅 Season {{ hallOfGloryData.bossChampions.avatar.season }}</span>
+                 </div>
+               </div>
+               <div class="glory-stats">
+                 <div class="stat-item">
+                   <span class="stat-label">Guild Record:</span>
+                   <span class="stat-value">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.avatar.damage) }}</span>
+                 </div>
+                 <div class="stat-item">
+                   <span class="stat-label">Season:</span>
+                   <span class="stat-value">{{ hallOfGloryData.bossChampions.avatar.season }}</span>
+                 </div>
+               </div>
+             </div>
+
+             <!-- Living Abyss Champion -->
+             <div class="glory-card living-abyss" v-if="hallOfGloryData.bossChampions.livingAbyss.player">
+               <div class="glory-header">
+                 <div class="boss-icon">
+                   <img src="/img/Living_Licorice_Abyss.webp" alt="Living Licorice Abyss" />
+                 </div>
+                 <h3>Living Abyss</h3>
+                 <div class="champion-badge">🥇 Champion</div>
+               </div>
+               <div class="champion-info">
+                 <div class="champion-name">{{ hallOfGloryData.bossChampions.livingAbyss.player }}</div>
+                 <div class="champion-damage">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.livingAbyss.damage) }}</div>
+                 <div class="champion-details">
+                   <span class="detail-item">🎯 {{ hallOfGloryData.bossChampions.livingAbyss.tickets }}/18 Tickets</span>
+                   <span class="detail-item">📅 Season {{ hallOfGloryData.bossChampions.livingAbyss.season }}</span>
+                 </div>
+               </div>
+               <div class="glory-stats">
+                 <div class="stat-item">
+                   <span class="stat-label">Guild Record:</span>
+                   <span class="stat-value">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.livingAbyss.damage) }}</span>
+                 </div>
+                 <div class="stat-item">
+                   <span class="stat-label">Season:</span>
+                   <span class="stat-value">{{ hallOfGloryData.bossChampions.livingAbyss.season }}</span>
+                 </div>
+               </div>
+             </div>
+           </div>
+
+           <!-- Overall Season Champions -->
+           <div class="season-champions" v-if="!hallOfGloryData.isLoading && hallOfGloryData.seasonChampions.length > 0">
+             <h3 class="champions-title">🏅 Season Champions</h3>
+             <div class="champions-grid">
+               <div class="season-champion" v-for="champion in hallOfGloryData.seasonChampions" :key="champion.seasonId">
+                 <div class="season-info">
+                   <div class="season-name">Season {{ champion.seasonName }}</div>
+                   <div class="champion-name">{{ champion.playerName }}</div>
+                 </div>
+                 <div class="champion-stats">
+                   <div class="total-damage">{{ BattleAnalyzer.formatDamage(champion.totalDamage) }}</div>
+                   <div class="ticket-usage">{{ champion.ticketsUsed }}/18</div>
+                 </div>
+                 <div class="champion-badge">👑</div>
+               </div>
+             </div>
+           </div>
+         </div>
+       </section>
+
+     <!-- Guild Battle Schedule Section -->
     <section class="schedule-section">
       <div class="schedule-container">
         <div class="schedule-header">
@@ -857,74 +1215,7 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
       </div>
     </section>
 
-    <!-- Guild Bosses Section -->
-    <section class="bosses-section">
-      <div class="container">
-        <h2 class="section-title">Guild Boss Requirements</h2>
-        <div class="bosses-grid">
-          <div class="boss-card red-velvet">
-            <div class="boss-icon">
-              <img src="/img/Red_Velvet_Dragon.webp" alt="Red Velvet Dragon" />
-            </div>
-            <h3>Red Velvet Dragon</h3>
-            <div class="boss-requirements">
-              <div class="requirement">
-                <span class="req-label">Damage Req:</span>
-                <span class="req-value">8.0B</span>
-              </div>
-              <div class="requirement">
-                <span class="req-label">Damage Goal:</span>
-                <span class="req-value">9.0B</span>
-              </div>
-              <div class="requirement">
-                <span class="req-label">Min Tickets:</span>
-                <span class="req-value">15</span>
-              </div>
-            </div>
-          </div>
-          <div class="boss-card avatar">
-            <div class="boss-icon">
-              <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" alt="Avatar of Destiny" />
-            </div>
-            <h3>Avatar of Destiny</h3>
-            <div class="boss-requirements">
-              <div class="requirement">
-                <span class="req-label">Damage Req:</span>
-                <span class="req-value">3.5B</span>
-              </div>
-              <div class="requirement">
-                <span class="req-label">Damage Goal:</span>
-                <span class="req-value">5.0B</span>
-              </div>
-              <div class="requirement">
-                <span class="req-label">Min Tickets:</span>
-                <span class="req-value">15</span>
-              </div>
-            </div>
-          </div>
-          <div class="boss-card living-abyss">
-            <div class="boss-icon">
-              <img src="/img/Living_Licorice_Abyss.webp" alt="Living Licorice Abyss" />
-            </div>
-            <h3>Living Abyss</h3>
-            <div class="boss-requirements">
-              <div class="requirement">
-                <span class="req-label">Damage Req:</span>
-                <span class="req-value">16.0B</span>
-              </div>
-              <div class="requirement">
-                <span class="req-label">Damage Goal:</span>
-                <span class="req-value">18.0B</span>
-              </div>
-              <div class="requirement">
-                <span class="req-label">Min Tickets:</span>
-                <span class="req-value">15</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    
 
     <!-- Footer -->
     <footer class="footer">
@@ -945,6 +1236,852 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
 .landing-page {
   margin: 0;
   padding: 0;
+}
+
+/* Hero Section */
+.hero {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  padding: 6rem 0;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.hero-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.guild-badge {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.guild-logo-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 215, 0, 0.3);
+}
+
+.guild-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.gradient-text {
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.guild-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.guild-info .info-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.info-label {
+  font-weight: 600;
+  color: #ffd700;
+  min-width: 80px;
+}
+
+.info-value {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.hero-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.sonic-illustration {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sonic-character {
+  font-size: 8rem;
+  animation: bounce 2s ease-in-out infinite;
+  z-index: 2;
+}
+
+.rings {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.ring {
+  position: absolute;
+  font-size: 2rem;
+  animation: rotate 4s linear infinite;
+}
+
+.ring-1 {
+  top: -50px;
+  left: -50px;
+  animation-delay: 0s;
+}
+
+.ring-2 {
+  top: -50px;
+  right: -50px;
+  animation-delay: 1s;
+}
+
+.ring-3 {
+  bottom: -50px;
+  left: -50px;
+  animation-delay: 2s;
+}
+
+.chaos-emeralds {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.emerald {
+  position: absolute;
+  font-size: 1.5rem;
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.emerald-1 {
+  top: -80px;
+  left: -80px;
+  animation-delay: 0s;
+}
+
+.emerald-2 {
+  top: -80px;
+  right: -80px;
+  animation-delay: 1s;
+}
+
+.emerald-3 {
+  bottom: -80px;
+  left: -80px;
+  animation-delay: 2s;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-20px);
+  }
+  60% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+}
+
+/* Guild Information & Requirements Section */
+.guild-info-section {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 20, 60, 0.95) 100%);
+  padding: 4rem 0;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Hall of Glory Section */
+.hall-of-glory-section {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(40, 20, 60, 0.95) 100%);
+  padding: 4rem 0;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.hall-of-glory-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="stars" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(255,215,0,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23stars)"/></svg>');
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.hall-of-glory-section .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.hall-of-glory-section .section-title {
+  text-align: center;
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.section-subtitle {
+  text-align: center;
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 3rem;
+  font-weight: 500;
+}
+
+.glory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  margin-bottom: 4rem;
+}
+
+.glory-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border-radius: 20px;
+  padding: 2rem;
+  backdrop-filter: blur(15px);
+  border: 2px solid rgba(255, 215, 0, 0.2);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  transition: all 0.4s ease;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.glory-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--boss-color), var(--boss-color-light));
+}
+
+.glory-card.red-velvet {
+  --boss-color: #ff4444;
+  --boss-color-light: #ff6666;
+}
+
+.glory-card.avatar {
+  --boss-color: #4444ff;
+  --boss-color-light: #6666ff;
+}
+
+.glory-card.living-abyss {
+  --boss-color: #44ff44;
+  --boss-color-light: #66ff66;
+}
+
+.glory-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border-color: var(--boss-color);
+}
+
+.glory-header {
+  margin-bottom: 1.5rem;
+}
+
+.glory-header .boss-icon {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 1rem;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 3px solid rgba(255, 215, 0, 0.3);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.glory-header .boss-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.glory-header h3 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #ffd700;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+.champion-badge {
+  display: inline-block;
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  color: #000;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-shadow: none;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+.champion-info {
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.champion-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffd700;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.champion-damage {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+.champion-details {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.detail-item {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.glory-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-label {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+}
+
+.stat-value {
+  font-weight: 700;
+  color: #ffd700;
+  font-size: 1rem;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+/* Glory Load Section */
+.glory-load-section {
+  text-align: center;
+  margin: 3rem 0;
+}
+
+.glory-load-button {
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  color: #000;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
+}
+
+.glory-load-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(255, 215, 0, 0.4);
+  background: linear-gradient(45deg, #ffed4e, #ffd700);
+}
+
+.load-icon {
+  font-size: 1.3rem;
+}
+
+.load-note {
+  margin-top: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+/* Glory Loading */
+.glory-loading {
+  text-align: center;
+  margin: 3rem 0;
+  padding: 2rem;
+}
+
+.glory-loading h3 {
+  font-size: 1.8rem;
+  color: #ffd700;
+  margin-bottom: 1rem;
+}
+
+.glory-loading p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+}
+
+/* Season Champions */
+.season-champions {
+  margin-top: 3rem;
+}
+
+.champions-title {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.champions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.season-champion {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%);
+  border-radius: 16px;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 215, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.season-champion:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(255, 215, 0, 0.2);
+  border-color: rgba(255, 215, 0, 0.4);
+}
+
+.season-info {
+  flex: 1;
+}
+
+.season-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0.5rem;
+}
+
+.season-champion .champion-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #ffd700;
+  margin-bottom: 0;
+}
+
+.champion-stats {
+  text-align: center;
+  margin: 0 1rem;
+}
+
+.total-damage {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.25rem;
+}
+
+.ticket-usage {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+.season-champion .champion-badge {
+  font-size: 2rem;
+  background: none;
+  color: #ffd700;
+  padding: 0;
+  box-shadow: none;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+.guild-info-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.guild-info-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  position: relative;
+  z-index: 1;
+}
+
+.guild-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.guild-logo-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 215, 0, 0.3);
+}
+
+.guild-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.section-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.guild-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.info-box, .requirements-box, .other-box {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.info-box:hover, .requirements-box:hover, .other-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.box-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #ffd700;
+  text-align: center;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.info-list, .requirements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.info-item, .requirement-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.info-item:hover, .requirement-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateX(5px);
+}
+
+.info-icon, .requirement-icon {
+  font-size: 1.2rem;
+  width: 30px;
+  text-align: center;
+}
+
+.requirement-icon img {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.info-text, .requirement-text {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+}
+
+.other-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.other-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.other-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.other-icon {
+  font-size: 1.2rem;
+  width: 30px;
+  text-align: center;
+  margin-top: 0.2rem;
+}
+
+.other-text {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero {
+    padding: 3rem 0;
+  }
+  
+  .hero-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 0 1rem;
+  }
+  
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .sonic-illustration {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .sonic-character {
+    font-size: 5rem;
+  }
+  
+  .guild-info-section {
+    padding: 2rem 0;
+  }
+  
+  .section-title {
+    font-size: 2rem;
+  }
+  
+  .guild-info-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 0 1rem;
+  }
+  
+  .info-box, .requirements-box, .other-box {
+    padding: 1.5rem;
+  }
+  
+  .info-text, .requirement-text, .other-text {
+    font-size: 0.85rem;
+  }
+  
+  .hall-of-glory-section {
+    padding: 2rem 0;
+  }
+  
+  .hall-of-glory-section .section-title {
+    font-size: 2.5rem;
+  }
+  
+  .section-subtitle {
+    font-size: 1rem;
+  }
+  
+  .glory-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .glory-card {
+    padding: 1.5rem;
+  }
+  
+  .glory-header .boss-icon {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .glory-header h3 {
+    font-size: 1.5rem;
+  }
+  
+  .champion-damage {
+    font-size: 2rem;
+  }
+  
+  .champions-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .season-champion {
+    padding: 1rem;
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .champion-stats {
+    margin: 0;
+  }
 }
 
 /* Ensure body has no margins */
