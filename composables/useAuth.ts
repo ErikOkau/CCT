@@ -77,18 +77,32 @@ export const useAuth = () => {
     try {
       loginForm.isLoggingIn = true
       loginForm.error = ''
+      
+      console.log('🔐 Attempting login with:', loginForm.email)
 
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Add timeout to prevent hanging
+      const loginPromise = supabase.auth.signInWithPassword({
         email: loginForm.email,
         password: loginForm.password
       })
 
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Login timeout')), 10000) // 10 second timeout
+      })
+
+      const { data, error } = await Promise.race([loginPromise, timeoutPromise]) as any
+
+      console.log('🔐 Supabase response:', { data, error })
+
       if (error) {
+        console.error('🔐 Login error:', error)
         loginForm.error = error.message
         return false
       }
 
       if (data.user) {
+        console.log('🔐 User authenticated:', data.user.id)
+        
         // Get user profile
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
@@ -96,22 +110,53 @@ export const useAuth = () => {
           .eq('id', data.user.id)
           .single()
 
-        if (profile) {
+        console.log('🔐 Profile response:', { profile, profileError })
+
+        if (profileError) {
+          console.error('🔐 Profile error:', profileError)
+          // Create profile if it doesn't exist
+          const { data: newProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert([
+              {
+                id: data.user.id,
+                username: data.user.email?.split('@')[0] || 'user',
+                role: 'member'
+              }
+            ])
+            .select()
+            .single()
+
+          if (createError) {
+            console.error('🔐 Profile creation error:', createError)
+            loginForm.error = 'Failed to create user profile'
+            return false
+          }
+
+          user.value = {
+            id: data.user.id,
+            username: newProfile.username || data.user.email || '',
+            role: newProfile.role === 'admin' ? 'ADMIN' : 'USER'
+          }
+        } else {
           user.value = {
             id: data.user.id,
             username: profile.username || data.user.email || '',
             role: profile.role === 'admin' ? 'ADMIN' : 'USER'
           }
-          isAuthenticated.value = true
-          loginForm.email = ''
-          loginForm.password = ''
-          return true
         }
+        
+        isAuthenticated.value = true
+        loginForm.email = ''
+        loginForm.password = ''
+        console.log('🔐 Login successful:', user.value)
+        return true
       }
       
+      console.log('🔐 No user data returned')
       return false
     } catch (error) {
-      console.error('Login error:', error)
+      console.error('🔐 Login error:', error)
       loginForm.error = 'Login failed. Please try again.'
       return false
     } finally {
@@ -190,6 +235,18 @@ export const useAuth = () => {
 
   // Initialize auth state
   checkSession()
+
+  // Test Supabase connection
+  const testConnection = async () => {
+    try {
+      const { data, error } = await supabase.from('profiles').select('count').limit(1)
+      console.log('🔗 Supabase connection test:', { data, error })
+    } catch (err) {
+      console.error('🔗 Supabase connection failed:', err)
+    }
+  }
+  
+  testConnection()
 
   // Listen for auth changes
   supabase.auth.onAuthStateChange(async (event, session) => {
