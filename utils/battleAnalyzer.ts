@@ -81,8 +81,17 @@ export class BattleAnalyzer {
         damage: sheetPlayer.livingAbyss.damage, // Already in actual damage format from API
         avgDamagePerTicket: sheetPlayer.livingAbyss.avgDamagePerTicket
       },
-      guildRank: 'Member' // Default value
+      guildRank: this.getPlayerGuildRank(sheetPlayer.playerName)
     }))
+  }
+
+  /**
+   * Get correct guild rank for specific players
+   */
+  private static getPlayerGuildRank(playerName: string): 'Leader' | 'Member' | 'Officer' {
+    if (playerName === 'Bestoutuber') return 'Leader'
+    if (playerName === 'brownmascara') return 'Officer'
+    return 'Member'
   }
 
 

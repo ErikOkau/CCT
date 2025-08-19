@@ -286,10 +286,6 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
                <span class="info-label">Guild Level:</span>
                <span class="info-value">70</span>
              </div>
-             <div class="info-item">
-               <span class="info-label">Guild Structure:</span>
-               <span class="info-value">1 Leader, 1 Officer, 28 Members</span>
-             </div>
            </div>
         </div>
         <div class="hero-visual">
