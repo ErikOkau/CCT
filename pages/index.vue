@@ -398,11 +398,11 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
              <div class="guild-name">Chaos Control Team</div>
            </div>
            <h1 class="hero-title">
-             <span class="gradient-text">Guild Battle</span>
+             <span class="gradient-text">Guild site & Battle</span>
              <br>Analyzer
            </h1>
             <p class="hero-subtitle">
-               Guild battle analyzer for the Chaos Control Team! 🦔🦊
+              Welcome to CCT! 🦔🦊
             </p>
            <div class="guild-info">
              <div class="info-item">
@@ -457,10 +457,12 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
                  <span class="info-icon">⭐</span>
                  <span class="info-text">LEVEL 70 GUILD</span>
                </div>
-               <div class="info-item">
-                 <span class="info-icon">🏆</span>
-                 <span class="info-text">GRANDMASTER 3 - #40+</span>
-               </div>
+                               <div class="info-item">
+                  <div class="info-icon">
+                    <img src="/img/logo_gm3.png" alt="GM3 Logo" />
+                  </div>
+                  <span class="info-text">GRANDMASTER 3 - #40+</span>
+                </div>
                <div class="info-item">
                  <span class="info-icon">👑</span>
                  <span class="info-text">TOP 1% ALLIANCE</span>
@@ -1947,6 +1949,15 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
   border-radius: 6px;
   object-fit: cover;
   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.info-icon img {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
 }
 
 .info-text, .requirement-text {
