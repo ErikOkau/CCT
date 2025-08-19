@@ -1,5 +1,7 @@
 import { defineEventHandler, readBody } from 'h3'
 import { google } from 'googleapis'
+import { readFileSync } from 'fs'
+import { join } from 'path'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -10,18 +12,22 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // Get runtime config
-    const config = useRuntimeConfig()
-    
-    if (!config.googleSheetsApiKey) {
-      throw new Error('GOOGLE_SHEETS_API_KEY environment variable is not set.')
+    // Get credentials path from environment variable
+    const credentialsPath = process.env.GOOGLE_SHEETS_CREDENTIALS_PATH
+    if (!credentialsPath) {
+      throw new Error('GOOGLE_SHEETS_CREDENTIALS_PATH environment variable is not set.')
     }
 
-    // Initialize Google Sheets API with API key
-    const sheets = google.sheets({ 
-      version: 'v4', 
-      auth: config.googleSheetsApiKey 
+    // Read service account credentials
+    const credentials = JSON.parse(readFileSync(credentialsPath, 'utf8'))
+    
+    // Initialize Google Sheets API with service account
+    const auth = new google.auth.GoogleAuth({
+      credentials,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
     })
+
+    const sheets = google.sheets({ version: 'v4', auth })
     
     // Fetch data from Google Sheets
     const response = await sheets.spreadsheets.values.get({
