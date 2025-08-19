@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // Server-side environment variables
     googleCloudVisionApiKey: process.env.GOOGLE_CLOUD_VISION_API_KEY,
-    googleSheetsCredentialsPath: process.env.GOOGLE_SHEETS_CREDENTIALS_PATH,
+    googleSheetsCredentials: process.env.GOOGLE_SHEETS_CREDENTIALS,
     // Public keys that are exposed to the client
     public: {
       hasGoogleVisionApi: false // Set to false since we're using hardcoded data

@@ -12,14 +12,14 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // Get credentials path from environment variable
-    const credentialsPath = process.env.GOOGLE_SHEETS_CREDENTIALS_PATH
-    if (!credentialsPath) {
-      throw new Error('GOOGLE_SHEETS_CREDENTIALS_PATH environment variable is not set.')
+    // Get credentials from environment variable
+    const credentialsJson = process.env.GOOGLE_SHEETS_CREDENTIALS
+    if (!credentialsJson) {
+      throw new Error('GOOGLE_SHEETS_CREDENTIALS environment variable is not set.')
     }
 
-    // Read service account credentials
-    const credentials = JSON.parse(readFileSync(credentialsPath, 'utf8'))
+    // Parse service account credentials
+    const credentials = JSON.parse(credentialsJson)
     
     // Initialize Google Sheets API with service account
     const auth = new google.auth.GoogleAuth({
