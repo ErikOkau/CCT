@@ -314,33 +314,38 @@ const loadHallOfGloryData = async () => {
         ticketsUsed
       })
       
-      // Check for boss champions
-      if (bestPlayer.redVelvetDragon.damage > bossChampions.redVelvet.damage) {
-        bossChampions.redVelvet = {
-          player: bestPlayer.playerName,
-          damage: bestPlayer.redVelvetDragon.damage,
-          season: seasonData.seasonId,
-          tickets: bestPlayer.redVelvetDragon.battles
+      // Check for boss champions - look through ALL players in this season, not just the best overall
+      seasonData.players.forEach(player => {
+        // Check Red Velvet Dragon champion
+        if (player.redVelvetDragon.damage > bossChampions.redVelvet.damage) {
+          bossChampions.redVelvet = {
+            player: player.playerName,
+            damage: player.redVelvetDragon.damage,
+            season: seasonData.seasonId,
+            tickets: player.redVelvetDragon.battles
+          }
         }
-      }
-      
-      if (bestPlayer.avatarOfDestiny.damage > bossChampions.avatar.damage) {
-        bossChampions.avatar = {
-          player: bestPlayer.playerName,
-          damage: bestPlayer.avatarOfDestiny.damage,
-          season: seasonData.seasonId,
-          tickets: bestPlayer.avatarOfDestiny.battles
+        
+        // Check Avatar of Destiny champion
+        if (player.avatarOfDestiny.damage > bossChampions.avatar.damage) {
+          bossChampions.avatar = {
+            player: player.playerName,
+            damage: player.avatarOfDestiny.damage,
+            season: seasonData.seasonId,
+            tickets: player.avatarOfDestiny.battles
+          }
         }
-      }
-      
-      if (bestPlayer.livingAbyss.damage > bossChampions.livingAbyss.damage) {
-        bossChampions.livingAbyss = {
-          player: bestPlayer.playerName,
-          damage: bestPlayer.livingAbyss.damage,
-          season: seasonData.seasonId,
-          tickets: bestPlayer.livingAbyss.battles
+        
+        // Check Living Abyss champion
+        if (player.livingAbyss.damage > bossChampions.livingAbyss.damage) {
+          bossChampions.livingAbyss = {
+            player: player.playerName,
+            damage: player.livingAbyss.damage,
+            season: seasonData.seasonId,
+            tickets: player.livingAbyss.battles
+          }
         }
-      }
+      })
     })
     
     // Sort season champions by total damage
