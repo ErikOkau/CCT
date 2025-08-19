@@ -232,6 +232,8 @@ const getPlayerGuildRank = (playerName: string) => {
 const showAllPlayers = ref(false)
 const displayedPlayers = computed(() => showAllPlayers.value ? analysisState.battleData : analysisState.previewData)
 const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.value }
+
+
 </script>
 
 <template>
@@ -416,18 +418,18 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
               </div>
             </div>
 
-            <!-- Mobile: Show only selected season -->
-            <div class="boss-schedule-mobile">
-              <div class="mobile-boss-list">
-                <div 
-                  v-for="position in 3" 
-                  :key="position"
-                  class="mobile-boss-item"
-                  v-if="getBossForSeason(activeSeason, position)"
-                >
-                  <img :src="getBossForSeason(activeSeason, position)?.image" :alt="getBossForSeason(activeSeason, position)?.name" class="mobile-boss-image">
-                  <div class="mobile-boss-name">{{ getBossForSeason(activeSeason, position)?.name }}</div>
-                </div>
+                          <!-- Mobile: Show only selected season -->
+              <div class="boss-schedule-mobile">
+                <div class="mobile-boss-list">
+                  <div
+                    v-for="position in [1, 2, 3]"
+                    :key="position"
+                    class="mobile-boss-item"
+                    v-if="getBossForSeason(activeSeason, position)"
+                  >
+                    <img :src="getBossForSeason(activeSeason, position)?.image" :alt="getBossForSeason(activeSeason, position)?.name" class="mobile-boss-image">
+                    <div class="mobile-boss-name">{{ getBossForSeason(activeSeason, position)?.name }}</div>
+                  </div>
                 <div v-if="!getBossForSeason(activeSeason, 1) && !getBossForSeason(activeSeason, 2) && !getBossForSeason(activeSeason, 3)" class="mobile-no-bosses">
                   <div class="no-bosses-icon">📅</div>
                   <div class="no-bosses-text">No bosses scheduled for this season</div>
