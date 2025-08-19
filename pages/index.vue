@@ -549,7 +549,7 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
                <span class="load-icon">📊</span>
                <span>Load All-Time Champions</span>
              </button>
-                           <p class="load-note">Load data from seasons after 16-4 (17-1 to 20-1)</p>
+                           <p class="load-note">Load data from seasons 17-1 to 20-1</p>
            </div>
            
            <!-- Loading State -->
@@ -794,18 +794,7 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
             </div>
           </div>
 
-          <!-- Pagination -->
-          <div class="schedule-pagination">
-            <button 
-              v-for="season in 3" 
-              :key="season"
-              @click="activeSeason = season"
-              class="page-button"
-              :class="{ active: activeSeason === season }"
-            >
-              {{ season }}
-            </button>
-          </div>
+          
         </div>
       </div>
     </section>
@@ -2114,6 +2103,68 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
 }
 
 
+
+/* Season Headers */
+.season-headers {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.season-header {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.season-header:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 215, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.season-header.active {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.4), rgba(255, 215, 0, 0.3));
+  border-color: rgba(255, 215, 0, 0.8);
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+}
+
+.season-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #ffd700;
+  margin-bottom: 0.5rem;
+}
+
+.season-dates {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.5rem;
+}
+
+.current-indicator, .coming-soon-indicator {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.current-indicator {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.coming-soon-indicator {
+  background: rgba(255, 152, 0, 0.2);
+  color: #ff9800;
+  border: 1px solid rgba(255, 152, 0, 0.3);
+}
 
 /* Navigation Header Styles */
 .nav-header {
