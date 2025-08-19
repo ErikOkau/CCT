@@ -28,14 +28,8 @@ const seasonDates = {
   3: { start: new Date('2025-08-21T00:00:00+09:00'), end: new Date('2025-08-27T23:59:59+09:00') }
 }
 
-// All available seasons with their configurations
+// All available seasons with their configurations (only after 16-4, excluding "Copy of 18-1")
 const allSeasons = [
-  { id: '15-2', name: 'Season 15-2', hasData: true },
-  { id: '15-3', name: 'Season 15-3', hasData: true },
-  { id: '16-1', name: 'Season 16-1', hasData: true },
-  { id: '16-2', name: 'Season 16-2', hasData: true },
-  { id: '16-3', name: 'Season 16-3', hasData: true },
-  { id: '16-4', name: 'Season 16-4', hasData: true },
   { id: '17-1', name: 'Season 17-1', hasData: true },
   { id: '17-2', name: 'Season 17-2', hasData: true },
   { id: '17-3', name: 'Season 17-3', hasData: true },
@@ -547,7 +541,7 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
                <span class="load-icon">📊</span>
                <span>Load All-Time Champions</span>
              </button>
-             <p class="load-note">Load data from all available seasons (15-2 to 20-1)</p>
+                           <p class="load-note">Load data from seasons after 16-4 (17-1 to 20-1)</p>
            </div>
            
            <!-- Loading State -->

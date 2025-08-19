@@ -65,34 +65,6 @@ export default defineEventHandler(async (event) => {
   }
 })
 
-function parseDamageText(damageText: string): number {
-  if (!damageText || damageText.trim() === '') return 0
-  
-  const text = damageText.trim()
-  
-  // Handle "Billion" format (e.g., "10.7 Billion")
-  if (text.includes('Billion')) {
-    const value = parseFloat(text.replace(' Billion', ''))
-    return value * 1000000000
-  }
-  
-  // Handle "Million" format (e.g., "800.0 Million")
-  if (text.includes('Million')) {
-    const value = parseFloat(text.replace(' Million', ''))
-    return value * 1000000
-  }
-  
-  // Handle "Thousand" format (e.g., "1.5 Thousand")
-  if (text.includes('Thousand')) {
-    const value = parseFloat(text.replace(' Thousand', ''))
-    return value * 1000
-  }
-  
-  // If no unit specified, try to parse as a number
-  const value = parseFloat(text)
-  return isNaN(value) ? 0 : value
-}
-
 function parseSpreadsheetData(rows: any[][]): any[] {
   const players: any[] = []
   
@@ -129,9 +101,9 @@ function parseSpreadsheetData(rows: any[][]): any[] {
     const playerName = row[1] || `Player ${rank}`
     
     // Parse Red Velvet Dragon data (columns A-F: 0-5)
-    // Column 2 (C) contains damage in "Billion" or "Million" format
+    // Column 2 (C) contains damage in "Billion" format
     const redVelvetDamageText = row[2] || ''
-    const redVelvetDamage = parseDamageText(redVelvetDamageText)
+    const redVelvetDamage = parseFloat(redVelvetDamageText.replace(' Billion', '')) * 1000000000 || 0 // Convert to actual number
     const redVelvetBattlesRaw = parseInt(row[4]) || 0 // Column E - "Battles Done" = tickets used
     // If no damage recorded, battles should be 0 (player didn't actually participate)
     const redVelvetBattles = redVelvetDamage > 0 ? redVelvetBattlesRaw : 0
@@ -139,7 +111,7 @@ function parseSpreadsheetData(rows: any[][]): any[] {
     
     // Parse Avatar of Destiny data (columns H-M: 7-12)
     const avatarDamageText = row[9] || '' // Column J
-    const avatarDamage = parseDamageText(avatarDamageText)
+    const avatarDamage = parseFloat(avatarDamageText.replace(' Billion', '')) * 1000000000 || 0 // Convert to actual number
     const avatarBattlesRaw = parseInt(row[11]) || 0 // Column L - "Battles Done" = tickets used
     // If no damage recorded, battles should be 0 (player didn't actually participate)
     const avatarBattles = avatarDamage > 0 ? avatarBattlesRaw : 0
@@ -147,7 +119,7 @@ function parseSpreadsheetData(rows: any[][]): any[] {
     
     // Parse Living Abyss data (columns O-T: 14-19)
     const livingAbyssDamageText = row[16] || '' // Column Q
-    const livingAbyssDamage = parseDamageText(livingAbyssDamageText)
+    const livingAbyssDamage = parseFloat(livingAbyssDamageText.replace(' Billion', '')) * 1000000000 || 0 // Convert to actual number
     const livingAbyssBattlesRaw = parseInt(row[18]) || 0 // Column S - "Battles Done" = tickets used
     // If no damage recorded, battles should be 0 (player didn't actually participate)
     const livingAbyssBattles = livingAbyssDamage > 0 ? livingAbyssBattlesRaw : 0
