@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useBattleAnalysis } from '~/composables/useBattleAnalysis'
-<<<<<<< HEAD
-=======
 import { useExcelExport } from '~/composables/useExcelExport'
->>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
 import { useAuth } from '~/composables/useAuth'
 import { BattleAnalyzer } from '~/utils/battleAnalyzer'
 
@@ -29,15 +26,12 @@ const {
   isAdmin
 } = useAuth()
 
+const { exportToExcel } = useExcelExport()
+
 // Check session on page load
 onMounted(() => {
   checkSession()
 })
-<<<<<<< HEAD
-=======
-
-const { exportToExcel } = useExcelExport()
->>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
 
 // GSAP animations
 onMounted(() => {
@@ -313,8 +307,6 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
               <span class="info-value">70</span>
             </div>
           </div>
-          
-
         </div>
         <div class="hero-visual">
           <div class="sonic-illustration">
@@ -334,7 +326,6 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
       </div>
     </section>
 
-<<<<<<< HEAD
     <!-- Guild Battle Schedule Section -->
     <section class="schedule-section">
       <div class="schedule-container">
@@ -345,39 +336,39 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
         </div>
 
         <div class="schedule-grid">
-                                <!-- Season Headers -->
-            <div class="season-headers">
-              <div 
-                class="season-header" 
-                :class="{ active: activeSeason === 1 }"
-                @click="activeSeason = 1"
-              >
-                <div class="season-name">Season 20-1</div>
-                <div class="season-dates">08.07.25 - 08.13.25</div>
-                                 <div v-if="activeSeason === 1" class="current-indicator">{{ getSeasonStatusIcon(1) }} {{ getSeasonStatusMessage(1) }}</div>
-                 <div v-if="!hasSeasonData(1)" class="coming-soon-indicator">{{ getSeasonStatusIcon(1) }} {{ getSeasonStatusMessage(1) }}</div>
-               </div>
-               <div 
-                 class="season-header" 
-                 :class="{ active: activeSeason === 2 }"
-                 @click="activeSeason = 2"
-               >
-                 <div class="season-name">Season 20-2</div>
-                 <div class="season-dates">08.14.25 - 08.20.25</div>
-                 <div v-if="activeSeason === 2" class="current-indicator">{{ getSeasonStatusIcon(2) }} {{ getSeasonStatusMessage(2) }}</div>
-                 <div v-if="!hasSeasonData(2)" class="coming-soon-indicator">{{ getSeasonStatusIcon(2) }} {{ getSeasonStatusMessage(2) }}</div>
-               </div>
-               <div 
-                 class="season-header" 
-                 :class="{ active: activeSeason === 3 }"
-                 @click="activeSeason = 3"
-               >
-                 <div class="season-name">Season 20-3</div>
-                 <div class="season-dates">08.21.25 - 08.27.25</div>
-                 <div v-if="activeSeason === 3" class="current-indicator">{{ getSeasonStatusIcon(3) }} {{ getSeasonStatusMessage(3) }}</div>
-                 <div v-if="!hasSeasonData(3)" class="coming-soon-indicator">{{ getSeasonStatusIcon(3) }} {{ getSeasonStatusMessage(3) }}</div>
-              </div>
+          <!-- Season Headers -->
+          <div class="season-headers">
+            <div 
+              class="season-header" 
+              :class="{ active: activeSeason === 1 }"
+              @click="activeSeason = 1"
+            >
+              <div class="season-name">Season 20-1</div>
+              <div class="season-dates">08.07.25 - 08.13.25</div>
+              <div v-if="activeSeason === 1" class="current-indicator">{{ getSeasonStatusIcon(1) }} {{ getSeasonStatusMessage(1) }}</div>
+              <div v-if="!hasSeasonData(1)" class="coming-soon-indicator">{{ getSeasonStatusIcon(1) }} {{ getSeasonStatusMessage(1) }}</div>
             </div>
+            <div 
+              class="season-header" 
+              :class="{ active: activeSeason === 2 }"
+              @click="activeSeason = 2"
+            >
+              <div class="season-name">Season 20-2</div>
+              <div class="season-dates">08.14.25 - 08.20.25</div>
+              <div v-if="activeSeason === 2" class="current-indicator">{{ getSeasonStatusIcon(2) }} {{ getSeasonStatusMessage(2) }}</div>
+              <div v-if="!hasSeasonData(2)" class="coming-soon-indicator">{{ getSeasonStatusIcon(2) }} {{ getSeasonStatusMessage(2) }}</div>
+            </div>
+            <div 
+              class="season-header" 
+              :class="{ active: activeSeason === 3 }"
+              @click="activeSeason = 3"
+            >
+              <div class="season-name">Season 20-3</div>
+              <div class="season-dates">08.21.25 - 08.27.25</div>
+              <div v-if="activeSeason === 3" class="current-indicator">{{ getSeasonStatusIcon(3) }} {{ getSeasonStatusMessage(3) }}</div>
+              <div v-if="!hasSeasonData(3)" class="coming-soon-indicator">{{ getSeasonStatusIcon(3) }} {{ getSeasonStatusMessage(3) }}</div>
+            </div>
+          </div>
 
           <!-- Boss Schedule Grid -->
           <div class="boss-schedule">
@@ -457,8 +448,9 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
               {{ season }}
             </button>
           </div>
-=======
-    
+        </div>
+      </div>
+    </section>
 
     <!-- Google Sheets Section (Admin Only) -->
     <section v-if="isAuthenticated && isAdmin()" class="sheets-section">
@@ -501,216 +493,198 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
             </div>
           </div>
           
-                     <!-- Success/Error Messages -->
-           <div v-if="sheetsState.fetchSuccess" class="success-message">
-             ✅ Successfully fetched data from Google Sheets!
-             <div class="data-info">
-               <small>Data is automatically saved and will persist across page refreshes.</small>
-             </div>
-           </div>
-           <div v-if="sheetsState.fetchError" class="error-message">
-             ❌ {{ sheetsState.fetchError }}
-           </div>
-           
-           <!-- Clear Data Button (Admin Only) -->
-           <div v-if="analysisState.analysisComplete && isAdmin()" class="clear-data-section">
-             <button @click="resetAnalysis" class="clear-button">
-               🗑️ Clear Saved Data
-             </button>
-             <small class="clear-note">This will remove all saved data and reset the form. (Admin only)</small>
-           </div>
->>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
+          <!-- Success/Error Messages -->
+          <div v-if="sheetsState.fetchSuccess" class="success-message">
+            ✅ Successfully fetched data from Google Sheets!
+            <div class="data-info">
+              <small>Data is automatically saved and will persist across page refreshes.</small>
+            </div>
+          </div>
+          <div v-if="sheetsState.fetchError" class="error-message">
+            ❌ {{ sheetsState.fetchError }}
+          </div>
+          
+          <!-- Clear Data Button (Admin Only) -->
+          <div v-if="analysisState.analysisComplete && isAdmin()" class="clear-data-section">
+            <button @click="resetAnalysis" class="clear-button">
+              🗑️ Clear Saved Data
+            </button>
+            <small class="clear-note">This will remove all saved data and reset the form. (Admin only)</small>
+          </div>
         </div>
       </div>
     </section>
 
-<<<<<<< HEAD
-                   <!-- Season Status Section -->
-      <section v-if="!hasSeasonData(activeSeason)" class="coming-soon-section">
-        <div class="container">
-          <div class="coming-soon-content">
-            <div class="coming-soon-icon">{{ getSeasonStatusIcon(activeSeason) }}</div>
-            <h2 class="coming-soon-title">{{ getSeasonType(activeSeason) === 'current' ? 'Coming Soon!' : getSeasonType(activeSeason) === 'upcoming' ? 'Upcoming Season' : 'No Data Available' }}</h2>
-            <p class="coming-soon-subtitle">
-              <span v-if="getSeasonType(activeSeason) === 'current'">
-                Battle analysis data for Season {{ getSeasonDisplayName(activeSeason) }} will be available soon.
-              </span>
-              <span v-else-if="getSeasonType(activeSeason) === 'upcoming'">
-                Season {{ getSeasonDisplayName(activeSeason) }} is an upcoming season. No data is available yet.
-              </span>
-              <span v-else>
-                No battle analysis data is available for Season {{ getSeasonDisplayName(activeSeason) }}.
-              </span>
-            </p>
-            <div class="coming-soon-info">
-              <div class="info-card" v-if="getSeasonType(activeSeason) === 'current'">
-                <div class="info-icon">📊</div>
-                <h3>Data Collection</h3>
-                <p>We're currently collecting battle data for this season. Check back later for detailed analysis.</p>
+    <!-- Season Status Section -->
+    <section v-if="!hasSeasonData(activeSeason)" class="coming-soon-section">
+      <div class="container">
+        <div class="coming-soon-content">
+          <div class="coming-soon-icon">{{ getSeasonStatusIcon(activeSeason) }}</div>
+          <h2 class="coming-soon-title">{{ getSeasonType(activeSeason) === 'current' ? 'Coming Soon!' : getSeasonType(activeSeason) === 'upcoming' ? 'Upcoming Season' : 'No Data Available' }}</h2>
+          <p class="coming-soon-subtitle">
+            <span v-if="getSeasonType(activeSeason) === 'current'">
+              Battle analysis data for Season {{ getSeasonDisplayName(activeSeason) }} will be available soon.
+            </span>
+            <span v-else-if="getSeasonType(activeSeason) === 'upcoming'">
+              Season {{ getSeasonDisplayName(activeSeason) }} is an upcoming season. No data is available yet.
+            </span>
+            <span v-else>
+              No battle analysis data is available for Season {{ getSeasonDisplayName(activeSeason) }}.
+            </span>
+          </p>
+          <div class="coming-soon-info">
+            <div class="info-card" v-if="getSeasonType(activeSeason) === 'current'">
+              <div class="info-icon">📊</div>
+              <h3>Data Collection</h3>
+              <p>We're currently collecting battle data for this season. Check back later for detailed analysis.</p>
+            </div>
+            <div class="info-card" v-if="getSeasonType(activeSeason) === 'current'">
+              <div class="info-icon">🎯</div>
+              <h3>Boss Schedule</h3>
+              <p>View the boss schedule above to see which bosses will appear in this season.</p>
+            </div>
+            <div class="info-card" v-if="getSeasonType(activeSeason) === 'current'">
+              <div class="info-icon">📈</div>
+              <h3>Performance Tracking</h3>
+              <p>Once data is available, you'll be able to track guild performance and ticket usage.</p>
+            </div>
+            <div class="info-card" v-if="getSeasonType(activeSeason) === 'upcoming'">
+              <div class="info-icon">🔮</div>
+              <h3>Future Season</h3>
+              <p>This season hasn't started yet. Check the boss schedule above to see what's planned.</p>
+            </div>
+            <div class="info-card" v-if="getSeasonType(activeSeason) === 'upcoming'">
+              <div class="info-icon">📅</div>
+              <h3>Season Dates</h3>
+              <p>Season {{ getSeasonDisplayName(activeSeason) }} will run from {{ getSeasonDates(activeSeason) }}.</p>
+            </div>
+            <div class="info-card" v-if="getSeasonType(activeSeason) === 'upcoming'">
+              <div class="info-icon">🎯</div>
+              <h3>Preparation</h3>
+              <p>Use this time to prepare your guild for the upcoming battles and strategize your approach.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results-section" v-if="hasSeasonData(activeSeason) && analysisState.analysisComplete">
+      <div class="container">
+        <div class="results-header">
+          <h2 class="section-title">Battle Analysis Results - Season {{ getSeasonDisplayName(activeSeason) }}</h2>
+          <div class="action-buttons">
+            <button @click="exportToExcel(analysisState.battleData)" class="export-button">
+              📊 Export to Excel
+            </button>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number">{{ analysisState.battleStats?.totalPlayers || 0 }}</div>
+            <div class="stat-label">Total Players</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.highestDamage || 0) }}</div>
+            <div class="stat-label">Highest Season Total</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.averageDamage || 0) }}</div>
+            <div class="stat-label">Average Season Total</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">{{ analysisState.battleStats?.totalBattlesDone || 0 }}</div>
+            <div class="stat-label">Total Battles Done</div>
+          </div>
+        </div>
+
+        <!-- Ticket Statistics Section -->
+        <div class="ticket-stats-section">
+          <h3>🎫 Ticket Usage Statistics</h3>
+          <div class="ticket-stats-grid">
+            <div class="ticket-stat-card">
+              <div class="ticket-stat-header">
+                <div class="ticket-icon">🎫</div>
+                <h4>Total Tickets</h4>
               </div>
-              <div class="info-card" v-if="getSeasonType(activeSeason) === 'current'">
-                <div class="info-icon">🎯</div>
-                <h3>Boss Schedule</h3>
-                <p>View the boss schedule above to see which bosses will appear in this season.</p>
+              <div class="ticket-stat-content">
+                <div class="ticket-stat-main">
+                  <span class="ticket-number">{{ analysisState.battleStats?.ticketStats.totalTicketsUsed || 0 }}</span>
+                  <span class="ticket-max">/ {{ (analysisState.battleStats?.totalPlayers || 0) * 18 }}</span>
+                </div>
+                <div class="ticket-stat-subtitle">Tickets Used</div>
               </div>
-              <div class="info-card" v-if="getSeasonType(activeSeason) === 'current'">
-                <div class="info-icon">📈</div>
-                <h3>Performance Tracking</h3>
-                <p>Once data is available, you'll be able to track guild performance and ticket usage.</p>
+            </div>
+
+            <div class="ticket-stat-card missed">
+              <div class="ticket-stat-header">
+                <div class="ticket-icon">⚠️</div>
+                <h4>Missed Tickets</h4>
               </div>
-              <div class="info-card" v-if="getSeasonType(activeSeason) === 'upcoming'">
-                <div class="info-icon">🔮</div>
-                <h3>Future Season</h3>
-                <p>This season hasn't started yet. Check the boss schedule above to see what's planned.</p>
+              <div class="ticket-stat-content">
+                <div class="ticket-stat-main">
+                  <span class="ticket-number">{{ analysisState.battleStats?.ticketStats.totalTicketsMissed || 0 }}</span>
+                </div>
+                <div class="ticket-stat-subtitle">Tickets Lost</div>
               </div>
-              <div class="info-card" v-if="getSeasonType(activeSeason) === 'upcoming'">
-                <div class="info-icon">📅</div>
-                <h3>Season Dates</h3>
-                <p>Season {{ getSeasonDisplayName(activeSeason) }} will run from {{ getSeasonDates(activeSeason) }}.</p>
+            </div>
+
+            <div class="ticket-stat-card below-min">
+              <div class="ticket-stat-header">
+                <div class="ticket-icon">📉</div>
+                <h4>Below Minimum</h4>
               </div>
-              <div class="info-card" v-if="getSeasonType(activeSeason) === 'upcoming'">
-                <div class="info-icon">🎯</div>
-                <h3>Preparation</h3>
-                <p>Use this time to prepare your guild for the upcoming battles and strategize your approach.</p>
+              <div class="ticket-stat-content">
+                <div class="ticket-stat-main">
+                  <span class="ticket-number">{{ analysisState.battleStats?.ticketStats.playersBelowMinimum || 0 }}</span>
+                </div>
+                <div class="ticket-stat-subtitle">Players (< 15 tickets)</div>
+              </div>
+            </div>
+
+            <div class="ticket-stat-card average">
+              <div class="ticket-stat-header">
+                <div class="ticket-icon">📊</div>
+                <h4>Average Usage</h4>
+              </div>
+              <div class="ticket-stat-content">
+                <div class="ticket-stat-main">
+                  <span class="ticket-number">{{ analysisState.battleStats?.ticketStats.averageTicketsUsed || 0 }}</span>
+                </div>
+                <div class="ticket-stat-subtitle">Tickets per Player</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ticket Usage by Boss -->
+          <div class="ticket-boss-breakdown">
+            <h4>Ticket Usage by Boss</h4>
+            <div class="ticket-boss-grid">
+              <div class="ticket-boss-item red-velvet">
+                <div class="boss-ticket-icon">🐉</div>
+                <div class="boss-ticket-info">
+                  <div class="boss-ticket-name">Red Velvet Dragon</div>
+                  <div class="boss-ticket-count">{{ analysisState.battleStats?.ticketStats.ticketsUsedByBoss.redVelvet || 0 }} tickets</div>
+                </div>
+              </div>
+              <div class="ticket-boss-item avatar">
+                <div class="boss-ticket-icon">👁️</div>
+                <div class="boss-ticket-info">
+                  <div class="boss-ticket-name">Avatar of Destiny</div>
+                  <div class="boss-ticket-count">{{ analysisState.battleStats?.ticketStats.ticketsUsedByBoss.avatar || 0 }} tickets</div>
+                </div>
+              </div>
+              <div class="ticket-boss-item living-abyss">
+                <div class="boss-ticket-icon">🔷</div>
+                <div class="boss-ticket-info">
+                  <div class="boss-ticket-name">Living Abyss</div>
+                  <div class="boss-ticket-count">{{ analysisState.battleStats?.ticketStats.ticketsUsedByBoss.livingAbyss || 0 }} tickets</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </section>
-
-           
-
-         <!-- Results Section -->
-     <section class="results-section" v-if="hasSeasonData(activeSeason)">
-      <div class="container">
-                 <div class="results-header">
-           <h2 class="section-title">Battle Analysis Results - Season {{ getSeasonDisplayName(activeSeason) }}</h2>
-=======
-    <!-- Results Section -->
-    <section class="results-section" v-if="analysisState.analysisComplete">
-      <div class="container">
-        <div class="results-header">
-          <h2 class="section-title">Battle Analysis Results</h2>
-          <div class="action-buttons">
-                         <button @click="exportToExcel(analysisState.battleData)" class="export-button">
-               📊 Export to Excel
-             </button>
-          </div>
->>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
-        </div>
-
-        
-
-                 <div class="stats-grid">
-           <div class="stat-card">
-             <div class="stat-number">{{ analysisState.battleStats?.totalPlayers || 0 }}</div>
-             <div class="stat-label">Total Players</div>
-           </div>
-           <div class="stat-card">
-             <div class="stat-number">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.highestDamage || 0) }}
-             </div>
-             <div class="stat-label">Highest Season Total</div>
-           </div>
-           <div class="stat-card">
-             <div class="stat-number">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.averageDamage || 0) }}
-             </div>
-             <div class="stat-label">Average Season Total</div>
-           </div>
-           <div class="stat-card">
-             <div class="stat-number">{{ analysisState.battleStats?.totalBattlesDone || 0 }}</div>
-             <div class="stat-label">Total Battles Done</div>
-           </div>
-         </div>
-<<<<<<< HEAD
-
-         <!-- Ticket Statistics Section -->
-         <div class="ticket-stats-section">
-           <h3>🎫 Ticket Usage Statistics</h3>
-           <div class="ticket-stats-grid">
-             <div class="ticket-stat-card">
-               <div class="ticket-stat-header">
-                 <div class="ticket-icon">🎫</div>
-                 <h4>Total Tickets</h4>
-               </div>
-               <div class="ticket-stat-content">
-                 <div class="ticket-stat-main">
-                   <span class="ticket-number">{{ analysisState.battleStats?.ticketStats.totalTicketsUsed || 0 }}</span>
-                   <span class="ticket-max">/ {{ (analysisState.battleStats?.totalPlayers || 0) * 18 }}</span>
-                 </div>
-                 <div class="ticket-stat-subtitle">Tickets Used</div>
-               </div>
-             </div>
-
-             <div class="ticket-stat-card missed">
-               <div class="ticket-stat-header">
-                 <div class="ticket-icon">⚠️</div>
-                 <h4>Missed Tickets</h4>
-               </div>
-               <div class="ticket-stat-content">
-                 <div class="ticket-stat-main">
-                   <span class="ticket-number">{{ analysisState.battleStats?.ticketStats.totalTicketsMissed || 0 }}</span>
-                 </div>
-                 <div class="ticket-stat-subtitle">Tickets Lost</div>
-               </div>
-             </div>
-
-             <div class="ticket-stat-card below-min">
-               <div class="ticket-stat-header">
-                 <div class="ticket-icon">📉</div>
-                 <h4>Below Minimum</h4>
-               </div>
-               <div class="ticket-stat-content">
-                 <div class="ticket-stat-main">
-                   <span class="ticket-number">{{ analysisState.battleStats?.ticketStats.playersBelowMinimum || 0 }}</span>
-                 </div>
-                 <div class="ticket-stat-subtitle">Players (< 15 tickets)</div>
-               </div>
-             </div>
-
-             <div class="ticket-stat-card average">
-               <div class="ticket-stat-header">
-                 <div class="ticket-icon">📊</div>
-                 <h4>Average Usage</h4>
-               </div>
-               <div class="ticket-stat-content">
-                 <div class="ticket-stat-main">
-                   <span class="ticket-number">{{ analysisState.battleStats?.ticketStats.averageTicketsUsed || 0 }}</span>
-                 </div>
-                 <div class="ticket-stat-subtitle">Tickets per Player</div>
-               </div>
-             </div>
-           </div>
-
-           <!-- Ticket Usage by Boss -->
-           <div class="ticket-boss-breakdown">
-             <h4>Ticket Usage by Boss</h4>
-             <div class="ticket-boss-grid">
-               <div class="ticket-boss-item red-velvet">
-                 <div class="boss-ticket-icon">🐉</div>
-                 <div class="boss-ticket-info">
-                   <div class="boss-ticket-name">Red Velvet Dragon</div>
-                   <div class="boss-ticket-count">{{ analysisState.battleStats?.ticketStats.ticketsUsedByBoss.redVelvet || 0 }} tickets</div>
-                 </div>
-               </div>
-               <div class="ticket-boss-item avatar">
-                 <div class="boss-ticket-icon">👁️</div>
-                 <div class="boss-ticket-info">
-                   <div class="boss-ticket-name">Avatar of Destiny</div>
-                   <div class="boss-ticket-count">{{ analysisState.battleStats?.ticketStats.ticketsUsedByBoss.avatar || 0 }} tickets</div>
-                 </div>
-               </div>
-               <div class="ticket-boss-item living-abyss">
-                 <div class="boss-ticket-icon">🔷</div>
-                 <div class="boss-ticket-info">
-                   <div class="boss-ticket-name">Living Abyss</div>
-                   <div class="boss-ticket-count">{{ analysisState.battleStats?.ticketStats.ticketsUsedByBoss.livingAbyss || 0 }} tickets</div>
-                 </div>
-               </div>
-             </div>
-           </div>
-         </div>
-=======
->>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
 
         <!-- Boss-specific stats -->
         <div class="boss-stats-grid">
@@ -722,19 +696,16 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
             <div class="boss-stat-content">
               <div class="boss-stat-item">
                 <span class="stat-label">Participants:</span>
-                                 <span class="stat-value">{{ analysisState.battleStats?.redVelvetStats.participants || 0 }}</span>
-               </div>
-               <div class="boss-stat-item">
-                 <span class="stat-label">Total Damage:</span>
-                 <span class="stat-value">{{
-                   BattleAnalyzer.formatDamage(analysisState.battleStats?.redVelvetStats.totalDamage || 0) }}</span>
-               </div>
-               <div class="boss-stat-item">
-                 <span class="stat-label">Average Damage:</span>
-                 <span class="stat-value">{{
-                   BattleAnalyzer.formatDamage(analysisState.battleStats?.redVelvetStats.averageDamage || 0)
-                   }}</span>
-               </div>
+                <span class="stat-value">{{ analysisState.battleStats?.redVelvetStats.participants || 0 }}</span>
+              </div>
+              <div class="boss-stat-item">
+                <span class="stat-label">Total Damage:</span>
+                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.redVelvetStats.totalDamage || 0) }}</span>
+              </div>
+              <div class="boss-stat-item">
+                <span class="stat-label">Average Damage:</span>
+                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.redVelvetStats.averageDamage || 0) }}</span>
+              </div>
             </div>
           </div>
 
@@ -746,18 +717,16 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
             <div class="boss-stat-content">
               <div class="boss-stat-item">
                 <span class="stat-label">Participants:</span>
-                                 <span class="stat-value">{{ analysisState.battleStats?.avatarStats.participants || 0 }}</span>
-               </div>
-               <div class="boss-stat-item">
-                 <span class="stat-label">Total Damage:</span>
-                 <span class="stat-value">{{
-                   BattleAnalyzer.formatDamage(analysisState.battleStats?.avatarStats.totalDamage || 0) }}</span>
-               </div>
-               <div class="boss-stat-item">
-                 <span class="stat-label">Average Damage:</span>
-                 <span class="stat-value">{{
-                   BattleAnalyzer.formatDamage(analysisState.battleStats?.avatarStats.averageDamage || 0) }}</span>
-               </div>
+                <span class="stat-value">{{ analysisState.battleStats?.avatarStats.participants || 0 }}</span>
+              </div>
+              <div class="boss-stat-item">
+                <span class="stat-label">Total Damage:</span>
+                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.avatarStats.totalDamage || 0) }}</span>
+              </div>
+              <div class="boss-stat-item">
+                <span class="stat-label">Average Damage:</span>
+                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.avatarStats.averageDamage || 0) }}</span>
+              </div>
             </div>
           </div>
 
@@ -769,74 +738,54 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
             <div class="boss-stat-content">
               <div class="boss-stat-item">
                 <span class="stat-label">Participants:</span>
-                                 <span class="stat-value">{{ analysisState.battleStats?.livingAbyssStats.participants || 0 }}</span>
-               </div>
-               <div class="boss-stat-item">
-                 <span class="stat-label">Total Damage:</span>
-                 <span class="stat-value">{{
-                   BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.totalDamage || 0) }}</span>
-               </div>
-               <div class="boss-stat-item">
-                 <span class="stat-label">Average Damage:</span>
-                 <span class="stat-value">{{
-                   BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.averageDamage || 0) }}</span>
-               </div>
+                <span class="stat-value">{{ analysisState.battleStats?.livingAbyssStats.participants || 0 }}</span>
+              </div>
+              <div class="boss-stat-item">
+                <span class="stat-label">Total Damage:</span>
+                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.totalDamage || 0) }}</span>
+              </div>
+              <div class="boss-stat-item">
+                <span class="stat-label">Average Damage:</span>
+                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.averageDamage || 0) }}</span>
+              </div>
             </div>
           </div>
         </div>
 
-                 <!-- Insights Section -->
-         <div class="insights-section" v-if="analysisState.insights.length > 0">
-           <h3>Performance Insights</h3>
-           <div class="insights-grid">
-             <div class="insight-card" v-for="(insight, index) in analysisState.insights" :key="index">
-               <div class="insight-icon">💡</div>
-               <p>{{ insight }}</p>
-             </div>
-           </div>
-         </div>
+        <!-- Insights Section -->
+        <div class="insights-section" v-if="analysisState.insights.length > 0">
+          <h3>Performance Insights</h3>
+          <div class="insights-grid">
+            <div class="insight-card" v-for="(insight, index) in analysisState.insights" :key="index">
+              <div class="insight-icon">💡</div>
+              <p>{{ insight }}</p>
+            </div>
+          </div>
+        </div>
 
-         <div class="results-table">
-           <h3>Player Performance Preview</h3>
-<<<<<<< HEAD
-           <div class="toggle-row">
-             <button @click="toggleShowAllPlayers" class="export-button">
-               {{ showAllPlayers ? 'Show Top 5' : 'Show All Players' }}
-             </button>
-           </div>
-           <div class="table-container">
-             <table>
-                                               <thead>
-                   <tr>
-                     <th>Rank</th>
-                     <th>Player</th>
-                     <th>Red Velvet Dragon</th>
-                     <th>Avatar of Destiny</th>
-                     <th>Living Abyss</th>
-                     <th>Season Total</th>
-                     <th>Tickets Used</th>
-                     <th>Guild Rank</th>
-                   </tr>
-                 </thead>
-               <tbody>
-                 <tr v-for="player in displayedPlayers" :key="player.rank">
-=======
-           <div class="table-container">
-             <table>
-                              <thead>
-                  <tr>
-                    <th>Rank</th>
-                    <th>Player</th>
-                    <th>Red Velvet Dragon</th>
-                    <th>Avatar of Destiny</th>
-                    <th>Living Abyss</th>
-                    <th>Season Total</th>
-                    <th>Guild Rank</th>
-                  </tr>
-                </thead>
-               <tbody>
-                 <tr v-for="player in analysisState.previewData" :key="player.rank">
->>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
+        <div class="results-table">
+          <h3>Player Performance Preview</h3>
+          <div class="toggle-row">
+            <button @click="toggleShowAllPlayers" class="export-button">
+              {{ showAllPlayers ? 'Show Top 5' : 'Show All Players' }}
+            </button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Player</th>
+                  <th>Red Velvet Dragon</th>
+                  <th>Avatar of Destiny</th>
+                  <th>Living Abyss</th>
+                  <th>Season Total</th>
+                  <th>Tickets Used</th>
+                  <th>Guild Rank</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="player in displayedPlayers" :key="player.rank">
                   <td class="rank-cell">
                     <span class="rank-badge" :class="BattleAnalyzer.getRankBadgeClass(player.rank)">
                       {{ player.rank }}
@@ -853,64 +802,43 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
                   </td>
                   <td class="damage-cell">
                     <div class="damage-info">
-                      <div class="damage-value">{{
-                        BattleAnalyzer.formatDamage(player.redVelvetDragon.damage) }}</div>
+                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage) }}</div>
                       <div class="battles-count">x{{ player.redVelvetDragon.battles }}</div>
                     </div>
                   </td>
-                                     <td class="damage-cell">
-                     <div class="damage-info">
-                       <div class="damage-value">{{
-                         BattleAnalyzer.formatDamage(player.avatarOfDestiny.damage) }}</div>
-                       <div class="battles-count">x{{ player.avatarOfDestiny.battles }}</div>
-                     </div>
-                   </td>
-                   <td class="damage-cell">
-                     <div class="damage-info">
-                       <div class="damage-value">{{
-                         BattleAnalyzer.formatDamage(player.livingAbyss.damage) }}</div>
-                       <div class="battles-count">x{{ player.livingAbyss.battles }}</div>
-                     </div>
-                   </td>
-<<<<<<< HEAD
-                                      <td class="damage-cell">
-                     <div class="damage-info">
-                       <div class="damage-value">{{
-                         BattleAnalyzer.formatDamage(player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage) }}</div>
-                       <div class="battles-count">x{{ player.redVelvetDragon.battles + player.livingAbyss.battles }}</div>
-                     </div>
-                   </td>
-                   <td class="ticket-cell">
-                     <div class="ticket-info">
-                       <div class="ticket-count" :class="getTicketStatusClass(player)">
-                         {{ player.redVelvetDragon.battles + player.livingAbyss.battles }}/18
-                       </div>
-                       <div class="ticket-status" :class="getTicketStatusClass(player)">
-                         {{ getTicketStatusText(player) }}
-                       </div>
-                     </div>
-                   </td>
-                   <td class="rank-cell">
-                     <span class="guild-rank-badge"
-                       :class="BattleAnalyzer.getGuildRankBadgeClass(getPlayerGuildRank(player.playerName))">
-                       {{ getPlayerGuildRank(player.playerName) }}
-                     </span>
-                   </td>
-=======
-                   <td class="damage-cell">
-                     <div class="damage-info">
-                       <div class="damage-value">{{
-                         BattleAnalyzer.formatDamage(player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage) }}</div>
-                       <div class="battles-count">x{{ player.redVelvetDragon.battles + player.avatarOfDestiny.battles + player.livingAbyss.battles }}</div>
-                     </div>
-                   </td>
+                  <td class="damage-cell">
+                    <div class="damage-info">
+                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(player.avatarOfDestiny.damage) }}</div>
+                      <div class="battles-count">x{{ player.avatarOfDestiny.battles }}</div>
+                    </div>
+                  </td>
+                  <td class="damage-cell">
+                    <div class="damage-info">
+                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(player.livingAbyss.damage) }}</div>
+                      <div class="battles-count">x{{ player.livingAbyss.battles }}</div>
+                    </div>
+                  </td>
+                  <td class="damage-cell">
+                    <div class="damage-info">
+                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage) }}</div>
+                      <div class="battles-count">x{{ player.redVelvetDragon.battles + player.avatarOfDestiny.battles + player.livingAbyss.battles }}</div>
+                    </div>
+                  </td>
+                  <td class="ticket-cell">
+                    <div class="ticket-info">
+                      <div class="ticket-count" :class="getTicketStatusClass(player)">
+                        {{ player.redVelvetDragon.battles + player.avatarOfDestiny.battles + player.livingAbyss.battles }}/18
+                      </div>
+                      <div class="ticket-status" :class="getTicketStatusClass(player)">
+                        {{ getTicketStatusText(player) }}
+                      </div>
+                    </div>
+                  </td>
                   <td class="rank-cell">
-                    <span class="guild-rank-badge"
-                      :class="BattleAnalyzer.getGuildRankBadgeClass(player.guildRank || 'Member')">
-                      {{ player.guildRank || 'Member' }}
+                    <span class="guild-rank-badge" :class="BattleAnalyzer.getGuildRankBadgeClass(getPlayerGuildRank(player.playerName))">
+                      {{ getPlayerGuildRank(player.playerName) }}
                     </span>
                   </td>
->>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
                 </tr>
               </tbody>
             </table>
@@ -1018,7 +946,6 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
   padding: 0;
 }
 
-<<<<<<< HEAD
 /* optional small layout tweak for toggle row */
 .toggle-row {
   display: flex;
@@ -1026,7 +953,6 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
   margin: 0 0 12px 0;
 }
 
-=======
 .sheets-section {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 4rem 0;
@@ -1165,7 +1091,6 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
   opacity: 0.7;
   font-size: 0.8rem;
 }
->>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
 
 /* Navigation Header Styles */
 .nav-header {

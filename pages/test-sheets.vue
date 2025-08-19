@@ -9,58 +9,6 @@ const parsedPlayers = ref<BattlePlayer[]>([])
 const error = ref('')
 const processing = ref(false)
 const processingMessage = ref('')
-
-<<<<<<< HEAD
-// Database save form
-const databaseForm = ref({
-  seasonName: '20-1',
-  guildName: 'Chaos Control Team',
-  isSavingToDatabase: false,
-  saveSuccess: false,
-  saveError: ''
-})
-
-const saveToDatabase = async () => {
-  if (!parsedPlayers.value.length) {
-    databaseForm.value.saveError = 'No data to save. Please fetch data from Google Sheets first.'
-    return
-  }
-
-  try {
-    databaseForm.value.isSavingToDatabase = true
-    databaseForm.value.saveError = ''
-    databaseForm.value.saveSuccess = false
-
-    const response = await fetch('/api/save-battle-analysis', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        seasonName: databaseForm.value.seasonName,
-        guildName: databaseForm.value.guildName,
-        players: parsedPlayers.value
-      })
-    })
-
-    const result = await response.json()
-
-    if (response.ok) {
-      databaseForm.value.saveSuccess = true
-      console.log('Successfully saved to database:', result)
-    } else {
-      databaseForm.value.saveError = result.message || 'Failed to save to database'
-    }
-  } catch (err: any) {
-    console.error('Error saving to database:', err)
-    databaseForm.value.saveError = `Error saving to database: ${err.message}`
-  } finally {
-    databaseForm.value.isSavingToDatabase = false
-  }
-}
-
-=======
->>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
 const fetchFromSheets = async () => {
   if (!spreadsheetId.value) {
     error.value = 'Please enter a Spreadsheet ID'
@@ -153,54 +101,6 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
     <div v-if="error" class="error">
       <p>{{ error }}</p>
     </div>
-
-<<<<<<< HEAD
-    <!-- Database Save Form -->
-    <div v-if="parsedPlayers.length > 0" class="database-form">
-      <h3>💾 Save to Database</h3>
-      <div class="form-row">
-        <div class="form-group">
-          <label for="seasonName">Season Name:</label>
-          <input 
-            id="seasonName"
-            v-model="databaseForm.seasonName" 
-            type="text" 
-            placeholder="e.g., 20-1"
-            class="form-input"
-          >
-        </div>
-        <div class="form-group">
-          <label for="guildName">Guild Name:</label>
-          <input 
-            id="guildName"
-            v-model="databaseForm.guildName" 
-            type="text" 
-            placeholder="e.g., Chaos Control Team"
-            class="form-input"
-          >
-        </div>
-        <div class="form-group">
-          <button 
-            @click="saveToDatabase" 
-            :disabled="databaseForm.isSavingToDatabase"
-            class="save-button"
-          >
-            {{ databaseForm.isSavingToDatabase ? 'Saving...' : '💾 Save to Database' }}
-          </button>
-        </div>
-      </div>
-      
-      <!-- Success/Error Messages -->
-      <div v-if="databaseForm.saveSuccess" class="success-message">
-        ✅ Successfully saved to database!
-      </div>
-      <div v-if="databaseForm.saveError" class="error-message">
-        ❌ {{ databaseForm.saveError }}
-      </div>
-    </div>
-
-=======
->>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
     <div v-if="parsedPlayers.length > 0" class="results">
       <h2>Players from Google Sheets ({{ parsedPlayers.length }})</h2>
       
@@ -252,19 +152,11 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
 }
 
 .sheets-section {
-<<<<<<< HEAD
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 4rem 0;
-  color: white;
-  margin: 2rem 0;
-  border-radius: 8px;
-=======
   margin: 2rem 0;
   padding: 2rem;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   background: #f9f9f9;
->>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
 }
 
 .input-group {
@@ -280,40 +172,6 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
 .input-group input {
   width: 100%;
   padding: 0.75rem;
-<<<<<<< HEAD
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-}
-
-.input-group input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.input-group input:focus {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.fetch-button {
-  background: #4CAF50;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background 0.3s ease;
-  margin-top: 1rem;
-}
-
-.fetch-button:hover:not(:disabled) {
-  background: #45a049;
-=======
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 1rem;
@@ -328,7 +186,6 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
   border-radius: 4px;
   cursor: pointer;
   font-size: 1rem;
->>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
 }
 
 .fetch-button:disabled {
@@ -435,99 +292,6 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
 .note {
   margin-top: 0.5rem;
   font-size: 0.875rem;
-<<<<<<< HEAD
-  color: rgba(255, 255, 255, 0.8);
-}
-
-/* Database Form Styles */
-.database-form {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 2rem;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  margin: 2rem 0;
-  color: white;
-}
-
-.form-row {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-end;
-  flex-wrap: wrap;
-}
-
-.form-group {
-  flex: 1;
-  min-width: 200px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  opacity: 0.9;
-}
-
-.form-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-}
-
-.form-input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.save-button {
-  background: #4CAF50;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background 0.3s ease;
-}
-
-.save-button:hover:not(:disabled) {
-  background: #45a049;
-}
-
-.save-button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.success-message {
-  background: rgba(76, 175, 80, 0.2);
-  color: #4CAF50;
-  padding: 1rem;
-  border-radius: 6px;
-  margin-top: 1rem;
-  border: 1px solid rgba(76, 175, 80, 0.3);
-}
-
-.error-message {
-  background: rgba(244, 67, 54, 0.2);
-  color: #f44336;
-  padding: 1rem;
-  border-radius: 6px;
-  margin-top: 1rem;
-  border: 1px solid rgba(244, 67, 54, 0.3);
-=======
   color: #666;
->>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
 }
 </style>
