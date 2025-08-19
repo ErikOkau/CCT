@@ -1,7 +1,6 @@
 import { ref, reactive } from 'vue'
 import type { BattlePlayer, BattleStats, FileValidationResult, UploadState, DatabaseFormData } from '~/types/battle'
 import { BattleAnalyzer } from '~/utils/battleAnalyzer'
-import { DatabaseService } from '~/utils/databaseService'
 
 export const useBattleAnalysis = () => {
   // Analysis state
@@ -31,59 +30,16 @@ export const useBattleAnalysis = () => {
     saveError: ''
   })
 
-  // Load saved data from database
+  // Load saved data from database (temporarily disabled for Supabase migration)
   const loadSavedData = async () => {
-    try {
-      const analysis = await DatabaseService.getLatestBattleAnalysis(
-        databaseForm.seasonName,
-        databaseForm.guildName
-      )
-      
-      if (analysis && analysis.playerData) {
-        const playerData = analysis.playerData as BattlePlayer[]
-        analysisState.battleData = playerData
-        analysisState.battleStats = {
-          totalPlayers: analysis.totalPlayers,
-          highestDamage: Number(analysis.highestDamage),
-          averageDamage: Number(analysis.averageDamage),
-          totalBattlesDone: analysis.totalBattlesDone,
-          topPerformers: playerData.slice(0, 5),
-          guildScore: analysis.guildScore,
-          redVelvetStats: analysis.redVelvetStats as any,
-          avatarStats: analysis.avatarStats as any,
-          livingAbyssStats: analysis.livingAbyssStats as any
-        }
-        analysisState.insights = analysis.insights || []
-        analysisState.previewData = playerData.slice(0, 5)
-        analysisState.analysisComplete = true
-        sheetsState.fetchSuccess = true
-        
-        console.log('✅ Loaded saved data from database')
-      }
-    } catch (error) {
-      console.error('❌ Error loading saved data:', error)
-    }
+    // TODO: Implement Supabase data loading
+    console.log('📝 Database loading temporarily disabled for Supabase migration')
   }
 
-  // Save data to database (universal for all users)
+  // Save data to database (temporarily disabled for Supabase migration)
   const saveDataToDatabase = async () => {
-    if (!analysisState.battleData.length || !analysisState.battleStats) {
-      console.error('No data to save')
-      return
-    }
-
-    try {
-      await DatabaseService.storeBattleAnalysis(
-        databaseForm.seasonName,
-        databaseForm.guildName,
-        analysisState.battleData,
-        analysisState.battleStats
-      )
-      console.log('💾 Saved data to database')
-    } catch (error) {
-      console.error('❌ Error saving data to database:', error)
-      throw error
-    }
+    // TODO: Implement Supabase data saving
+    console.log('📝 Database saving temporarily disabled for Supabase migration')
   }
 
   // Load saved data when composable is initialized
@@ -140,36 +96,9 @@ export const useBattleAnalysis = () => {
   }
 
   const saveToDatabase = async () => {
-    if (!analysisState.battleData.length || !analysisState.battleStats) {
-      alert('Please fetch battle results first')
-      return
-    }
-
-    if (!databaseForm.seasonName.trim() || !databaseForm.guildName.trim()) {
-      alert('Please enter both season name and guild name')
-      return
-    }
-
-    databaseForm.isSavingToDatabase = true
-    databaseForm.saveSuccess = false
-    databaseForm.saveError = ''
-
-    try {
-      const result = await DatabaseService.storeBattleResults(
-        databaseForm.seasonName.trim(),
-        databaseForm.guildName.trim(),
-        analysisState.battleData,
-        analysisState.battleStats
-      )
-      
-      databaseForm.saveSuccess = true
-      console.log('Saved to database:', result)
-    } catch (error) {
-      databaseForm.saveError = error instanceof Error ? error.message : 'Failed to save to database'
-      console.error('Database save error:', error)
-    } finally {
-      databaseForm.isSavingToDatabase = false
-    }
+    // TODO: Implement Supabase data saving
+    console.log('📝 Database saving temporarily disabled for Supabase migration')
+    alert('Database saving is temporarily disabled during Supabase migration')
   }
 
   return {
