@@ -273,20 +273,24 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
             voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
             non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
           </p>
-          <div class="guild-info">
-            <div class="info-item">
-              <span class="info-label">Leader:</span>
-              <span class="info-value">Bestoutuber</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Officer:</span>
-              <span class="info-value">brownmascara</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Guild Level:</span>
-              <span class="info-value">70</span>
-            </div>
-          </div>
+                     <div class="guild-info">
+             <div class="info-item">
+               <span class="info-label">Leader:</span>
+               <span class="info-value">Bestoutuber</span>
+             </div>
+             <div class="info-item">
+               <span class="info-label">Officer:</span>
+               <span class="info-value">brownmascara</span>
+             </div>
+             <div class="info-item">
+               <span class="info-label">Guild Level:</span>
+               <span class="info-value">70</span>
+             </div>
+             <div class="info-item">
+               <span class="info-label">Guild Structure:</span>
+               <span class="info-value">1 Leader, 1 Officer, 28 Members</span>
+             </div>
+           </div>
         </div>
         <div class="hero-visual">
           <div class="sonic-illustration">
