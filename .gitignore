@@ -26,3 +26,4 @@ logs
 # Google API credentials
 google-sheets-credentials.json
 chaos-control-team-7da253bebe40.json
+.vercel

@@ -130,8 +130,5 @@ CREATE TRIGGER handle_battle_data_updated_at
   BEFORE UPDATE ON public.battle_data
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
--- Insert some sample data for testing (optional)
-INSERT INTO public.profiles (id, username, role) VALUES 
-  ('00000000-0000-0000-0000-000000000001', 'Bestoutuber', 'admin'),
-  ('00000000-0000-0000-0000-000000000002', 'brownmascara', 'officer')
-ON CONFLICT (id) DO NOTHING;
+-- Note: Sample data will be created automatically when users sign up
+-- through the trigger function handle_new_user()
