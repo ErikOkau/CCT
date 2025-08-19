@@ -160,57 +160,54 @@
 .boss-schedule {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
   gap: 1rem;
 
-  .boss-row {
-    display: contents;
+  .boss-cell {
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+    position: relative;
 
-    .boss-cell {
-      min-height: 120px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.05);
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
+
+    &.empty {
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+
+    .boss-image {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      margin-bottom: 0.5rem;
+      object-fit: cover;
+      border: 2px solid rgba(255, 255, 255, 0.1);
       transition: all 0.3s ease;
-      position: relative;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(255, 255, 255, 0.1);
-        transform: translateY(-2px);
+        border-color: rgba(255, 255, 255, 0.3);
+        transform: scale(1.05);
       }
+    }
 
-      &.empty {
-        background: rgba(255, 255, 255, 0.01);
-        border: 1px dashed rgba(255, 255, 255, 0.1);
-      }
-
-      .boss-image {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        margin-bottom: 0.5rem;
-        object-fit: cover;
-        border: 2px solid rgba(255, 255, 255, 0.1);
-        transition: all 0.3s ease;
-
-        &:hover {
-          border-color: rgba(255, 255, 255, 0.3);
-          transform: scale(1.05);
-        }
-      }
-
-      .boss-name {
-        font-size: 0.9rem;
-        font-weight: 500;
-        text-align: center;
-        color: rgba(255, 255, 255, 0.9);
-        line-height: 1.2;
-      }
+    .boss-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.2;
     }
   }
 }
