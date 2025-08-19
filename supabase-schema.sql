@@ -50,12 +50,15 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.battle_data ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for profiles table
+DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
 CREATE POLICY "Users can view their own profile" ON public.profiles
   FOR SELECT USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
 CREATE POLICY "Users can update their own profile" ON public.profiles
   FOR UPDATE USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
 CREATE POLICY "Admins can view all profiles" ON public.profiles
   FOR SELECT USING (
     EXISTS (
@@ -65,9 +68,11 @@ CREATE POLICY "Admins can view all profiles" ON public.profiles
   );
 
 -- Create policies for battle_data table
+DROP POLICY IF EXISTS "Authenticated users can view battle data" ON public.battle_data;
 CREATE POLICY "Authenticated users can view battle data" ON public.battle_data
   FOR SELECT USING (auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Admins can insert battle data" ON public.battle_data;
 CREATE POLICY "Admins can insert battle data" ON public.battle_data
   FOR INSERT WITH CHECK (
     EXISTS (
@@ -76,6 +81,7 @@ CREATE POLICY "Admins can insert battle data" ON public.battle_data
     )
   );
 
+DROP POLICY IF EXISTS "Admins can update battle data" ON public.battle_data;
 CREATE POLICY "Admins can update battle data" ON public.battle_data
   FOR UPDATE USING (
     EXISTS (
@@ -84,6 +90,7 @@ CREATE POLICY "Admins can update battle data" ON public.battle_data
     )
   );
 
+DROP POLICY IF EXISTS "Admins can delete battle data" ON public.battle_data;
 CREATE POLICY "Admins can delete battle data" ON public.battle_data
   FOR DELETE USING (
     EXISTS (
@@ -122,10 +129,12 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Triggers for updated_at
+DROP TRIGGER IF EXISTS handle_profiles_updated_at ON public.profiles;
 CREATE TRIGGER handle_profiles_updated_at
   BEFORE UPDATE ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
+DROP TRIGGER IF EXISTS handle_battle_data_updated_at ON public.battle_data;
 CREATE TRIGGER handle_battle_data_updated_at
   BEFORE UPDATE ON public.battle_data
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
