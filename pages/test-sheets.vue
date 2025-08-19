@@ -56,42 +56,65 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
 
 <template>
   <div class="test-sheets-page">
-    <h1>Test Google Sheets Integration</h1>
+    <div class="hero-section">
+      <div class="container">
+        <h1 class="hero-title">📊 Test Google Sheets Integration</h1>
+        <p class="hero-subtitle">Connect to your Google Sheets and fetch battle data for testing</p>
+      </div>
+    </div>
     
     <div class="sheets-section">
-      <h2>📊 Connect to Google Sheets</h2>
-      <p>Enter your Google Sheets ID to fetch battle data directly from your spreadsheet.</p>
-      
-      <div class="input-group">
-        <label for="spreadsheet-id">Spreadsheet ID:</label>
-        <input 
-          id="spreadsheet-id"
-          v-model="spreadsheetId" 
-          type="text" 
-          placeholder="e.g., 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
-          :disabled="processing"
-        >
+      <div class="container">
+        <h2 class="section-title">📊 Connect to Google Sheets</h2>
+        <p class="section-subtitle">Fetch battle data directly from your Google Sheets spreadsheet</p>
+
+        <div class="sheets-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="spreadsheet-id">Spreadsheet ID:</label>
+              <input 
+                id="spreadsheet-id"
+                v-model="spreadsheetId" 
+                type="text" 
+                placeholder="e.g., 1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs"
+                :disabled="processing"
+                class="form-input"
+              >
+            </div>
+            <div class="form-group">
+              <label for="range">Range (optional):</label>
+              <input 
+                id="range"
+                v-model="range" 
+                type="text" 
+                placeholder="e.g., 20-1!A1:Z100"
+                :disabled="processing"
+                class="form-input"
+              >
+            </div>
+            <div class="form-group">
+              <button 
+                @click="fetchFromSheets" 
+                :disabled="!spreadsheetId || processing"
+                class="fetch-button"
+              >
+                {{ processing ? '📊 Fetching...' : '📊 Fetch from Google Sheets' }}
+              </button>
+            </div>
+          </div>
+          
+          <!-- Success/Error Messages -->
+          <div v-if="!processing && parsedPlayers.length > 0" class="success-message">
+            ✅ Successfully fetched data from Google Sheets!
+            <div class="data-info">
+              <small>Found {{ parsedPlayers.length }} players with battle data.</small>
+            </div>
+          </div>
+          <div v-if="error" class="error-message">
+            ❌ {{ error }}
+          </div>
+        </div>
       </div>
-      
-      <div class="input-group">
-        <label for="range">Range (optional):</label>
-        <input 
-          id="range"
-          v-model="range" 
-          type="text" 
-          placeholder="e.g., A1:Z100"
-          :disabled="processing"
-        >
-        <p class="note">Note: If you are using a Google Sheet with multiple sheets, please specify the sheet name (e.g., "Sheet1!A1:Z100" or "Sheet2!A1:Z100").</p>
-      </div>
-      
-      <button 
-        @click="fetchFromSheets" 
-        :disabled="!spreadsheetId || processing"
-        class="fetch-button"
-      >
-        {{ processing ? 'Fetching...' : '📊 Fetch from Google Sheets' }}
-      </button>
     </div>
 
     <div v-if="processing" class="processing">
@@ -101,42 +124,44 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
     <div v-if="error" class="error">
       <p>{{ error }}</p>
     </div>
-    <div v-if="parsedPlayers.length > 0" class="results">
-      <h2>Players from Google Sheets ({{ parsedPlayers.length }})</h2>
-      
-      <div class="players-grid">
-        <div v-for="player in parsedPlayers" :key="player.rank" class="player-card">
-          <div class="player-header">
-            <h3>#{{ player.rank }} {{ player.playerName }}</h3>
-            <span class="guild-rank">{{ player.guildRank || 'Member' }}</span>
-          </div>
-          
-          <div class="boss-stats">
-            <div class="boss-stat">
-              <h4>🐉 Red Velvet Dragon</h4>
-              <p>Damage: {{ formatDamage(player.redVelvetDragon.damage) }}</p>
-              <p>Battles: x{{ player.redVelvetDragon.battles }}</p>
-              <p>Avg/Ticket: {{ formatAvgDamage(player.redVelvetDragon.avgDamagePerTicket) }}</p>
+    <div v-if="parsedPlayers.length > 0" class="results-section">
+      <div class="container">
+        <h2 class="results-title">Players from Google Sheets ({{ parsedPlayers.length }})</h2>
+        
+        <div class="players-grid">
+          <div v-for="player in parsedPlayers" :key="player.rank" class="player-card">
+            <div class="player-header">
+              <h3>#{{ player.rank }} {{ player.playerName }}</h3>
+              <span class="guild-rank">{{ player.guildRank || 'Member' }}</span>
             </div>
             
-            <div class="boss-stat">
-              <h4>👁️ Avatar of Destiny</h4>
-              <p>Damage: {{ formatDamage(player.avatarOfDestiny.damage) }}</p>
-              <p>Battles: x{{ player.avatarOfDestiny.battles }}</p>
-              <p>Avg/Ticket: {{ formatAvgDamage(player.avatarOfDestiny.avgDamagePerTicket) }}</p>
+            <div class="boss-stats">
+              <div class="boss-stat">
+                <h4>🐉 Red Velvet Dragon</h4>
+                <p>Damage: {{ formatDamage(player.redVelvetDragon.damage) }}</p>
+                <p>Battles: x{{ player.redVelvetDragon.battles }}</p>
+                <p>Avg/Ticket: {{ formatAvgDamage(player.redVelvetDragon.avgDamagePerTicket) }}</p>
+              </div>
+              
+              <div class="boss-stat">
+                <h4>👁️ Avatar of Destiny</h4>
+                <p>Damage: {{ formatDamage(player.avatarOfDestiny.damage) }}</p>
+                <p>Battles: x{{ player.avatarOfDestiny.battles }}</p>
+                <p>Avg/Ticket: {{ formatAvgDamage(player.avatarOfDestiny.avgDamagePerTicket) }}</p>
+              </div>
+              
+              <div class="boss-stat">
+                <h4>🔷 Living Abyss</h4>
+                <p>Damage: {{ formatDamage(player.livingAbyss.damage) }}</p>
+                <p>Battles: x{{ player.livingAbyss.battles }}</p>
+                <p>Avg/Ticket: {{ formatAvgDamage(player.livingAbyss.avgDamagePerTicket) }}</p>
+              </div>
             </div>
             
-            <div class="boss-stat">
-              <h4>🔷 Living Abyss</h4>
-              <p>Damage: {{ formatDamage(player.livingAbyss.damage) }}</p>
-              <p>Battles: x{{ player.livingAbyss.battles }}</p>
-              <p>Avg/Ticket: {{ formatAvgDamage(player.livingAbyss.avgDamagePerTicket) }}</p>
+            <div class="total-stats">
+              <p><strong>Total Damage:</strong> {{ formatDamage(player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage) }}</p>
+              <p><strong>Total Battles:</strong> {{ player.redVelvetDragon.battles + player.avatarOfDestiny.battles + player.livingAbyss.battles }}</p>
             </div>
-          </div>
-          
-          <div class="total-stats">
-            <p><strong>Total Damage:</strong> {{ formatDamage(player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage) }}</p>
-            <p><strong>Total Battles:</strong> {{ player.redVelvetDragon.battles + player.avatarOfDestiny.battles + player.livingAbyss.battles }}</p>
           </div>
         </div>
       </div>
@@ -146,46 +171,122 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
 
 <style scoped>
 .test-sheets-page {
-  padding: 2rem;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.hero-section {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 4rem 0;
+  text-align: center;
+  color: white;
+}
+
+.container {
   max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.hero-title {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.hero-subtitle {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  max-width: 600px;
   margin: 0 auto;
 }
 
 .sheets-section {
-  margin: 2rem 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 4rem 0;
+  color: white;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.section-subtitle {
+  text-align: center;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+  font-size: 1.1rem;
+}
+
+.sheets-form {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   padding: 2rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  background: #f9f9f9;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.input-group {
-  margin: 1rem 0;
+.form-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
 }
 
-.input-group label {
+.form-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: bold;
+  font-weight: 500;
+  opacity: 0.9;
 }
 
-.input-group input {
+.form-input {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
   font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.form-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .fetch-button {
-  margin-top: 1rem;
-  padding: 0.75rem 1.5rem;
-  background: #4285f4;
+  background: #4CAF50;
   color: white;
   border: none;
-  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 1rem;
+  transition: background 0.3s ease;
+}
+
+.fetch-button:hover:not(:disabled) {
+  background: #45a049;
 }
 
 .fetch-button:disabled {
@@ -193,23 +294,40 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
   cursor: not-allowed;
 }
 
-.processing {
-  margin: 1rem 0;
+.success-message {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
   padding: 1rem;
-  background: #e3f2fd;
-  border-radius: 4px;
+  border-radius: 6px;
+  margin-top: 1rem;
+  border: 1px solid rgba(76, 175, 80, 0.3);
 }
 
-.error {
-  margin: 1rem 0;
+.error-message {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
   padding: 1rem;
-  background: #ffebee;
-  color: #c62828;
-  border-radius: 4px;
+  border-radius: 6px;
+  margin-top: 1rem;
+  border: 1px solid rgba(244, 67, 54, 0.3);
 }
 
-.results {
-  margin-top: 2rem;
+.data-info {
+  margin-top: 0.5rem;
+  opacity: 0.8;
+}
+
+.results-section {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4rem 0;
+  color: white;
+}
+
+.results-title {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  font-weight: 700;
 }
 
 .players-grid {
@@ -220,11 +338,17 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
 }
 
 .player-card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
   padding: 1.5rem;
-  background: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.player-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
 .player-header {
@@ -233,20 +357,21 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .player-header h3 {
   margin: 0;
-  color: #333;
+  color: white;
+  font-size: 1.2rem;
 }
 
 .guild-rank {
-  background: #f0f0f0;
+  background: rgba(255, 255, 255, 0.2);
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 0.875rem;
-  color: #666;
+  color: white;
 }
 
 .boss-stats {
@@ -258,40 +383,34 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
 
 .boss-stat {
   padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 6px;
-  border-left: 4px solid #007bff;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  border-left: 4px solid #4CAF50;
 }
 
 .boss-stat h4 {
   margin: 0 0 0.5rem 0;
-  color: #333;
+  color: white;
   font-size: 1rem;
 }
 
 .boss-stat p {
   margin: 0.25rem 0;
-  color: #666;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 0.875rem;
 }
 
 .total-stats {
   padding-top: 1rem;
-  border-top: 1px solid #eee;
-  background: #f8f9fa;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
   padding: 1rem;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 .total-stats p {
   margin: 0.5rem 0;
-  color: #333;
+  color: white;
   font-size: 0.875rem;
-}
-
-.note {
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
-  color: #666;
 }
 </style>
