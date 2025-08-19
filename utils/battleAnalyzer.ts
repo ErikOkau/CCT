@@ -68,17 +68,29 @@ export class BattleAnalyzer {
       playerTitle: undefined, // Not available in sheets data
       redVelvetDragon: {
         battles: sheetPlayer.redVelvetDragon.battles,
+<<<<<<< HEAD
         damage: sheetPlayer.redVelvetDragon.damage, // Already in actual damage format
+=======
+        damage: sheetPlayer.redVelvetDragon.damage * 1000000000, // Convert from billions to actual damage
+>>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
         avgDamagePerTicket: sheetPlayer.redVelvetDragon.avgDamagePerTicket
       },
       avatarOfDestiny: {
         battles: sheetPlayer.avatarOfDestiny.battles,
+<<<<<<< HEAD
         damage: sheetPlayer.avatarOfDestiny.damage, // Already in actual damage format
+=======
+        damage: sheetPlayer.avatarOfDestiny.damage * 1000000000, // Convert from billions to actual damage
+>>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
         avgDamagePerTicket: sheetPlayer.avatarOfDestiny.avgDamagePerTicket
       },
       livingAbyss: {
         battles: sheetPlayer.livingAbyss.battles,
+<<<<<<< HEAD
         damage: sheetPlayer.livingAbyss.damage, // Already in actual damage format
+=======
+        damage: sheetPlayer.livingAbyss.damage * 1000000000, // Convert from billions to actual damage
+>>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
         avgDamagePerTicket: sheetPlayer.livingAbyss.avgDamagePerTicket
       },
       guildRank: 'Member' // Default value
@@ -97,6 +109,7 @@ export class BattleAnalyzer {
     const totalBattlesDone = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + p.avatarOfDestiny.battles + p.livingAbyss.battles, 0)
     const topPerformers = players.slice(0, 5)
     const guildScore = players.reduce((sum, p) => sum + p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage, 0)
+<<<<<<< HEAD
 
     // Ticket calculations - Season 20-1 only has Red Velvet Dragon and Living Abyss
     const MAX_TICKETS_PER_SEASON = 18 // 9 tickets per boss, 2 bosses active
@@ -120,6 +133,8 @@ export class BattleAnalyzer {
       avatar: 0, // Avatar of Destiny not in Season 20-1
       livingAbyss: players.reduce((sum, p) => sum + p.livingAbyss.battles, 0)
     }
+=======
+>>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
 
     // Red Velvet Dragon stats
     const redVelvetPlayers = players.filter(p => p.redVelvetDragon.damage > 0)
@@ -182,6 +197,7 @@ export class BattleAnalyzer {
     const activePlayers = players.filter(p => p.redVelvetDragon.battles > 0 || p.avatarOfDestiny.battles > 0 || p.livingAbyss.battles > 0).length
     insights.push(`⚔️ ${activePlayers} out of ${players.length} players participated in battles this season`)
 
+<<<<<<< HEAD
     // Ticket usage insights - Season 20-1 only has Red Velvet Dragon and Living Abyss
     const MAX_TICKETS_PER_SEASON = 18
     const MIN_REQUIRED_TICKETS = 15
@@ -216,6 +232,24 @@ export class BattleAnalyzer {
       insights.push(`👥 Guild structure: ${leaders} Leader, ${officers} Officers, ${members} Members`)
     }
 
+=======
+    // Average level insights (if available)
+    const playersWithLevel = players.filter(p => p.playerLevel !== undefined)
+    if (playersWithLevel.length > 0) {
+      const avgLevel = Math.round(playersWithLevel.reduce((sum, p) => sum + (p.playerLevel || 0), 0) / playersWithLevel.length)
+      insights.push(`📊 Average player level: ${avgLevel}`)
+    }
+
+    // Guild rank distribution (if available)
+    const playersWithRank = players.filter(p => p.guildRank !== undefined)
+    if (playersWithRank.length > 0) {
+      const leaders = playersWithRank.filter(p => p.guildRank === 'Leader').length
+      const officers = playersWithRank.filter(p => p.guildRank === 'Officer').length
+      const members = playersWithRank.filter(p => p.guildRank === 'Member').length
+      insights.push(`👥 Guild structure: ${leaders} Leader, ${officers} Officers, ${members} Members`)
+    }
+
+>>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
     // Performance thresholds
     const highPerformers = players.filter(p => {
       const totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage

@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useBattleAnalysis } from '~/composables/useBattleAnalysis'
+<<<<<<< HEAD
+=======
+import { useExcelExport } from '~/composables/useExcelExport'
+>>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
 import { useAuth } from '~/composables/useAuth'
 import { BattleAnalyzer } from '~/utils/battleAnalyzer'
 
@@ -29,6 +33,11 @@ const {
 onMounted(() => {
   checkSession()
 })
+<<<<<<< HEAD
+=======
+
+const { exportToExcel } = useExcelExport()
+>>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
 
 // GSAP animations
 onMounted(() => {
@@ -325,6 +334,7 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
       </div>
     </section>
 
+<<<<<<< HEAD
     <!-- Guild Battle Schedule Section -->
     <section class="schedule-section">
       <div class="schedule-container">
@@ -447,10 +457,74 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
               {{ season }}
             </button>
           </div>
+=======
+    
+
+    <!-- Google Sheets Section (Admin Only) -->
+    <section v-if="isAuthenticated && isAdmin()" class="sheets-section">
+      <div class="container">
+        <h2 class="section-title">📊 Connect to Google Sheets</h2>
+        <p class="section-subtitle">Fetch battle data directly from your Google Sheets spreadsheet</p>
+
+        <div class="sheets-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="spreadsheet-id">Spreadsheet ID:</label>
+              <input 
+                id="spreadsheet-id"
+                v-model="sheetsState.spreadsheetId" 
+                type="text" 
+                placeholder="e.g., 1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs"
+                :disabled="sheetsState.isFetching"
+                class="form-input"
+              >
+            </div>
+            <div class="form-group">
+              <label for="range">Range (optional):</label>
+              <input 
+                id="range"
+                v-model="sheetsState.range" 
+                type="text" 
+                placeholder="e.g., 20-1!A1:Z100"
+                :disabled="sheetsState.isFetching"
+                class="form-input"
+              >
+            </div>
+            <div class="form-group">
+              <button 
+                @click="fetchFromGoogleSheets" 
+                :disabled="!sheetsState.spreadsheetId || sheetsState.isFetching"
+                class="fetch-button"
+              >
+                {{ sheetsState.isFetching ? '📊 Fetching...' : '📊 Fetch from Google Sheets' }}
+              </button>
+            </div>
+          </div>
+          
+                     <!-- Success/Error Messages -->
+           <div v-if="sheetsState.fetchSuccess" class="success-message">
+             ✅ Successfully fetched data from Google Sheets!
+             <div class="data-info">
+               <small>Data is automatically saved and will persist across page refreshes.</small>
+             </div>
+           </div>
+           <div v-if="sheetsState.fetchError" class="error-message">
+             ❌ {{ sheetsState.fetchError }}
+           </div>
+           
+           <!-- Clear Data Button (Admin Only) -->
+           <div v-if="analysisState.analysisComplete && isAdmin()" class="clear-data-section">
+             <button @click="resetAnalysis" class="clear-button">
+               🗑️ Clear Saved Data
+             </button>
+             <small class="clear-note">This will remove all saved data and reset the form. (Admin only)</small>
+           </div>
+>>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
         </div>
       </div>
     </section>
 
+<<<<<<< HEAD
                    <!-- Season Status Section -->
       <section v-if="!hasSeasonData(activeSeason)" class="coming-soon-section">
         <div class="container">
@@ -511,6 +585,18 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
       <div class="container">
                  <div class="results-header">
            <h2 class="section-title">Battle Analysis Results - Season {{ getSeasonDisplayName(activeSeason) }}</h2>
+=======
+    <!-- Results Section -->
+    <section class="results-section" v-if="analysisState.analysisComplete">
+      <div class="container">
+        <div class="results-header">
+          <h2 class="section-title">Battle Analysis Results</h2>
+          <div class="action-buttons">
+                         <button @click="exportToExcel(analysisState.battleData)" class="export-button">
+               📊 Export to Excel
+             </button>
+          </div>
+>>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
         </div>
 
         
@@ -535,6 +621,7 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
              <div class="stat-label">Total Battles Done</div>
            </div>
          </div>
+<<<<<<< HEAD
 
          <!-- Ticket Statistics Section -->
          <div class="ticket-stats-section">
@@ -622,6 +709,8 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
              </div>
            </div>
          </div>
+=======
+>>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
 
         <!-- Boss-specific stats -->
         <div class="boss-stats-grid">
@@ -709,6 +798,7 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
 
          <div class="results-table">
            <h3>Player Performance Preview</h3>
+<<<<<<< HEAD
            <div class="toggle-row">
              <button @click="toggleShowAllPlayers" class="export-button">
                {{ showAllPlayers ? 'Show Top 5' : 'Show All Players' }}
@@ -730,6 +820,23 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
                  </thead>
                <tbody>
                  <tr v-for="player in displayedPlayers" :key="player.rank">
+=======
+           <div class="table-container">
+             <table>
+                              <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Red Velvet Dragon</th>
+                    <th>Avatar of Destiny</th>
+                    <th>Living Abyss</th>
+                    <th>Season Total</th>
+                    <th>Guild Rank</th>
+                  </tr>
+                </thead>
+               <tbody>
+                 <tr v-for="player in analysisState.previewData" :key="player.rank">
+>>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
                   <td class="rank-cell">
                     <span class="rank-badge" :class="BattleAnalyzer.getRankBadgeClass(player.rank)">
                       {{ player.rank }}
@@ -765,6 +872,7 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
                        <div class="battles-count">x{{ player.livingAbyss.battles }}</div>
                      </div>
                    </td>
+<<<<<<< HEAD
                                       <td class="damage-cell">
                      <div class="damage-info">
                        <div class="damage-value">{{
@@ -788,6 +896,21 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
                        {{ getPlayerGuildRank(player.playerName) }}
                      </span>
                    </td>
+=======
+                   <td class="damage-cell">
+                     <div class="damage-info">
+                       <div class="damage-value">{{
+                         BattleAnalyzer.formatDamage(player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage) }}</div>
+                       <div class="battles-count">x{{ player.redVelvetDragon.battles + player.avatarOfDestiny.battles + player.livingAbyss.battles }}</div>
+                     </div>
+                   </td>
+                  <td class="rank-cell">
+                    <span class="guild-rank-badge"
+                      :class="BattleAnalyzer.getGuildRankBadgeClass(player.guildRank || 'Member')">
+                      {{ player.guildRank || 'Member' }}
+                    </span>
+                  </td>
+>>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
                 </tr>
               </tbody>
             </table>
@@ -895,6 +1018,7 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
   padding: 0;
 }
 
+<<<<<<< HEAD
 /* optional small layout tweak for toggle row */
 .toggle-row {
   display: flex;
@@ -902,6 +1026,146 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
   margin: 0 0 12px 0;
 }
 
+=======
+.sheets-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 4rem 0;
+  color: white;
+}
+
+.section-subtitle {
+  text-align: center;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+  font-size: 1.1rem;
+}
+
+.sheets-form {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.form-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.form-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.fetch-button {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s ease;
+}
+
+.fetch-button:hover:not(:disabled) {
+  background: #45a049;
+}
+
+.fetch-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.success-message {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.error-message {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.data-info {
+  margin-top: 0.5rem;
+  opacity: 0.8;
+}
+
+.clear-data-section {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+}
+
+.clear-button {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.clear-button:hover {
+  background: rgba(244, 67, 54, 0.3);
+  border-color: rgba(244, 67, 54, 0.5);
+}
+
+.clear-note {
+  display: block;
+  margin-top: 0.5rem;
+  opacity: 0.7;
+  font-size: 0.8rem;
+}
+>>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
 
 /* Navigation Header Styles */
 .nav-header {

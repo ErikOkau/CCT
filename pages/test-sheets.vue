@@ -10,6 +10,7 @@ const error = ref('')
 const processing = ref(false)
 const processingMessage = ref('')
 
+<<<<<<< HEAD
 // Database save form
 const databaseForm = ref({
   seasonName: '20-1',
@@ -58,6 +59,8 @@ const saveToDatabase = async () => {
   }
 }
 
+=======
+>>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
 const fetchFromSheets = async () => {
   if (!spreadsheetId.value) {
     error.value = 'Please enter a Spreadsheet ID'
@@ -151,6 +154,7 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
       <p>{{ error }}</p>
     </div>
 
+<<<<<<< HEAD
     <!-- Database Save Form -->
     <div v-if="parsedPlayers.length > 0" class="database-form">
       <h3>💾 Save to Database</h3>
@@ -195,6 +199,8 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
       </div>
     </div>
 
+=======
+>>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
     <div v-if="parsedPlayers.length > 0" class="results">
       <h2>Players from Google Sheets ({{ parsedPlayers.length }})</h2>
       
@@ -246,11 +252,19 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
 }
 
 .sheets-section {
+<<<<<<< HEAD
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 4rem 0;
   color: white;
   margin: 2rem 0;
   border-radius: 8px;
+=======
+  margin: 2rem 0;
+  padding: 2rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: #f9f9f9;
+>>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
 }
 
 .input-group {
@@ -266,6 +280,7 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
 .input-group input {
   width: 100%;
   padding: 0.75rem;
+<<<<<<< HEAD
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.1);
@@ -298,6 +313,22 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
 
 .fetch-button:hover:not(:disabled) {
   background: #45a049;
+=======
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.fetch-button {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+>>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
 }
 
 .fetch-button:disabled {
@@ -404,6 +435,7 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
 .note {
   margin-top: 0.5rem;
   font-size: 0.875rem;
+<<<<<<< HEAD
   color: rgba(255, 255, 255, 0.8);
 }
 
@@ -494,5 +526,8 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
   border-radius: 6px;
   margin-top: 1rem;
   border: 1px solid rgba(244, 67, 54, 0.3);
+=======
+  color: #666;
+>>>>>>> c43adee1ac259c3d0f50f12006f95c620807650b
 }
 </style>
