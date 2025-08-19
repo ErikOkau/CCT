@@ -163,6 +163,9 @@ const getSeasonDates = (season: number) => {
   return `${startDate} - ${endDate}`
 }
 
+// Loading state for season selection
+const isSeasonLoading = ref(false)
+
 // Function to automatically fetch data for selected season
 const fetchSeasonData = async (season: number) => {
   const config = seasonConfigurations[season as keyof typeof seasonConfigurations]
@@ -173,6 +176,9 @@ const fetchSeasonData = async (season: number) => {
     return
   }
   
+  // Set loading state
+  isSeasonLoading.value = true
+  
   // Set the spreadsheet configuration for the selected season
   sheetsState.spreadsheetId = config.spreadsheetId
   sheetsState.range = config.range
@@ -182,6 +188,9 @@ const fetchSeasonData = async (season: number) => {
     await fetchFromGoogleSheets()
   } catch (error) {
     console.error('Error fetching season data:', error)
+  } finally {
+    // Clear loading state
+    isSeasonLoading.value = false
   }
 }
 
@@ -515,8 +524,35 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
       </div>
     </section>
 
+    <!-- Season Loading Section -->
+    <section v-if="isSeasonLoading" class="loading-section">
+      <div class="container">
+        <div class="loading-content">
+          <div class="loading-spinner">
+            <div class="spinner"></div>
+          </div>
+          <h2 class="loading-title">Loading Season Data...</h2>
+          <p class="loading-subtitle">Fetching battle analysis data for Season {{ getSeasonDisplayName(activeSeason) }}</p>
+          <div class="loading-details">
+            <div class="loading-detail">
+              <span class="loading-icon">📊</span>
+              <span>Connecting to Google Sheets</span>
+            </div>
+            <div class="loading-detail">
+              <span class="loading-icon">⚔️</span>
+              <span>Processing battle data</span>
+            </div>
+            <div class="loading-detail">
+              <span class="loading-icon">📈</span>
+              <span>Calculating statistics</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Season Status Section -->
-    <section v-if="!hasSeasonData(activeSeason)" class="coming-soon-section">
+    <section v-if="!hasSeasonData(activeSeason) && !isSeasonLoading" class="coming-soon-section">
       <div class="container">
         <div class="coming-soon-content">
           <div class="coming-soon-icon">{{ getSeasonStatusIcon(activeSeason) }}</div>
@@ -1186,6 +1222,106 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
 .logout-button:hover {
   background: rgba(244, 67, 54, 0.3);
   border-color: rgba(244, 67, 54, 0.5);
+}
+
+/* Loading Section Styles */
+.loading-section {
+  padding: 4rem 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(20, 20, 40, 0.9) 100%);
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-content {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.loading-spinner {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top: 4px solid #4caf50;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #4caf50, #2196f3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.loading-subtitle {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 3rem;
+  line-height: 1.6;
+}
+
+.loading-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.loading-detail {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: fadeInUp 0.6s ease-out;
+  animation-fill-mode: both;
+}
+
+.loading-detail:nth-child(1) { animation-delay: 0.2s; }
+.loading-detail:nth-child(2) { animation-delay: 0.4s; }
+.loading-detail:nth-child(3) { animation-delay: 0.6s; }
+
+.loading-icon {
+  font-size: 1.5rem;
+  width: 30px;
+  text-align: center;
+}
+
+.loading-detail span:last-child {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 768px) {
