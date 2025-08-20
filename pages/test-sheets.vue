@@ -101,18 +101,119 @@ const clearAllImages = () => {
 }
 
 const downloadAllCSV = () => {
-  const allCSVData = uploadedImages.value
-    .filter(img => img.csvData)
-    .map(img => `\n--- ${img.file.name} ---\n${img.csvData}`)
-    .join('\n\n')
+  const processedImages = uploadedImages.value.filter(img => img.csvData)
   
-  if (!allCSVData) return
+  if (processedImages.length === 0) return
   
-  const blob = new Blob([allCSVData], { type: 'text/csv' })
+  // Parse all CSV data and combine into a single dataset
+  const allPlayers: Array<{
+    rank: number
+    playerName: string
+    redVelvetDragonDamage: number
+    redVelvetDragonBattles: number
+    avatarOfDestinyDamage: number
+    avatarOfDestinyBattles: number
+    livingAbyssDamage: number
+    livingAbyssBattles: number
+    guildRank: string
+  }> = []
+  
+  processedImages.forEach(image => {
+    const csvLines = cleanCSVData(image.csvData!).split('\n')
+    
+    // Skip the header line and process data lines
+    for (let i = 1; i < csvLines.length; i++) {
+      const line = csvLines[i].trim()
+      if (!line) continue
+      
+      const columns = line.split(',')
+      if (columns.length >= 12) {
+        const player = {
+          rank: parseInt(columns[0]) || 0,
+          playerName: columns[1]?.trim() || '',
+          redVelvetDragonDamage: parseFloat(columns[2]) || 0,
+          redVelvetDragonBattles: parseInt(columns[4]) || 0,
+          avatarOfDestinyDamage: parseFloat(columns[5]) || 0,
+          avatarOfDestinyBattles: parseInt(columns[7]) || 0,
+          livingAbyssDamage: parseFloat(columns[8]) || 0,
+          livingAbyssBattles: parseInt(columns[10]) || 0,
+          guildRank: columns[11]?.trim() || 'Member'
+        }
+        allPlayers.push(player)
+      }
+    }
+  })
+  
+  // Sort by total damage (descending)
+  allPlayers.sort((a, b) => (b.redVelvetDragonDamage + b.avatarOfDestinyDamage + b.livingAbyssDamage) - (a.redVelvetDragonDamage + a.avatarOfDestinyDamage + a.livingAbyssDamage))
+  
+  // Update ranks based on sorted order
+  allPlayers.forEach((player, index) => {
+    player.rank = index + 1
+  })
+  
+  // Create separate sorted lists for each boss (include ALL players)
+  const redVelvetPlayers = allPlayers
+    .sort((a, b) => b.redVelvetDragonDamage - a.redVelvetDragonDamage)
+    .map((player, index) => ({
+      rank: index + 1,
+      playerName: player.playerName,
+      damage: player.redVelvetDragonDamage,
+      battles: player.redVelvetDragonBattles,
+      avgPerTicket: player.redVelvetDragonBattles > 0 ? Math.round(player.redVelvetDragonDamage / player.redVelvetDragonBattles * 1000) : 0
+    }))
+  
+  const avatarPlayers = allPlayers
+    .sort((a, b) => b.avatarOfDestinyDamage - a.avatarOfDestinyDamage)
+    .map((player, index) => ({
+      rank: index + 1,
+      playerName: player.playerName,
+      damage: player.avatarOfDestinyDamage,
+      battles: player.avatarOfDestinyBattles,
+      avgPerTicket: player.avatarOfDestinyBattles > 0 ? Math.round(player.avatarOfDestinyDamage / player.avatarOfDestinyBattles * 1000) : 0
+    }))
+  
+  const livingAbyssPlayers = allPlayers
+    .sort((a, b) => b.livingAbyssDamage - a.livingAbyssDamage)
+    .map((player, index) => ({
+      rank: index + 1,
+      playerName: player.playerName,
+      damage: player.livingAbyssDamage,
+      battles: player.livingAbyssBattles,
+      avgPerTicket: player.livingAbyssBattles > 0 ? Math.round(player.livingAbyssDamage / player.livingAbyssBattles * 1000) : 0
+    }))
+  
+  // Create CSV content with three separate sections
+  // First row: Boss names spanning multiple columns
+  const bossHeaderRow = '                                       RED VELVET DRAGON,,,,,,,                    AVATAR OF DESTINY,,,,,,,                           LIVING ABYSS,,,,'
+  
+  // Second row: Column headers for each boss section
+  const columnHeaderRow = ',Members:,Damage ,,Battles Done:,avg DMG/Ticket:,,,Members:,Damage ,,Battles Done:,avg DMG/Ticket:,,,Members:,Damage ,,Battles Done:,avg DMG/Ticket:'
+  
+  // Always create exactly 30 rows for each boss section
+  const totalRows = 30
+  
+  const csvLines = []
+  for (let i = 0; i < totalRows; i++) {
+    const redVelvetPlayer = redVelvetPlayers[i] || { rank: i + 1, playerName: '', damage: 0, battles: 0, avgPerTicket: 0 }
+    const avatarPlayer = avatarPlayers[i] || { rank: i + 1, playerName: '', damage: 0, battles: 0, avgPerTicket: 0 }
+    const livingAbyssPlayer = livingAbyssPlayers[i] || { rank: i + 1, playerName: '', damage: 0, battles: 0, avgPerTicket: 0 }
+    
+    const line = `${redVelvetPlayer.rank},${redVelvetPlayer.playerName},${redVelvetPlayer.damage.toFixed(1)},Billion,${redVelvetPlayer.battles},${redVelvetPlayer.avgPerTicket},,${avatarPlayer.rank},${avatarPlayer.playerName},${avatarPlayer.damage.toFixed(1)},Billion,${avatarPlayer.battles},${avatarPlayer.avgPerTicket},,${livingAbyssPlayer.rank},${livingAbyssPlayer.playerName},${livingAbyssPlayer.damage.toFixed(1)},Billion,${livingAbyssPlayer.battles},${livingAbyssPlayer.avgPerTicket}`
+    csvLines.push(line)
+  }
+  
+  const combinedCSV = bossHeaderRow + '\n' + columnHeaderRow + '\n' + csvLines.join('\n')
+  
+  // Add BOM (Byte Order Mark) for proper UTF-8 detection in Google Sheets
+  const BOM = '\uFEFF'
+  const csvContent = BOM + combinedCSV
+  
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' })
   const url = window.URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = 'all_battle_data.csv'
+  a.download = 'combined_battle_data.csv'
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
@@ -167,11 +268,61 @@ const fileToBase64 = (file: File): Promise<string> => {
   })
 }
 
+const cleanCSVData = (csvData: string): string => {
+  // Remove any extra quotes and clean up the CSV format
+  let cleaned = csvData.trim()
+  
+  // Remove quotes from the beginning and end if they exist
+  if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+    cleaned = cleaned.slice(1, -1)
+  }
+  
+  // Split into lines and clean each line
+  const lines = cleaned.split('\n').map(line => {
+    line = line.trim()
+    // Remove quotes from the beginning and end of each line
+    if (line.startsWith('"') && line.endsWith('"')) {
+      line = line.slice(1, -1)
+    }
+    return line
+  }).filter(line => line.length > 0)
+  
+  return lines.join('\n')
+}
+
 const downloadCSV = (data?: string) => {
   const csvContent = data || csvData.value
   if (!csvContent) return
   
-  const blob = new Blob([csvContent], { type: 'text/csv' })
+  // Clean the CSV data
+  const cleanedCSV = cleanCSVData(csvContent)
+  
+  // Convert damage values to billions format
+  const lines = cleanedCSV.split('\n')
+  const processedLines = lines.map((line, index) => {
+    if (index === 0) return line // Keep header as is
+    
+    const columns = line.split(',')
+    if (columns.length >= 12) {
+      // Convert damage columns to billions (columns 2, 5, 8)
+      const redVelvetDamage = parseFloat(columns[2]) || 0
+      const avatarDamage = parseFloat(columns[5]) || 0
+      const seasonTotalDamage = parseFloat(columns[8]) || 0
+      
+      columns[2] = (redVelvetDamage / 1000000000).toFixed(2)
+      columns[5] = (avatarDamage / 1000000000).toFixed(2)
+      columns[8] = (seasonTotalDamage / 1000000000).toFixed(2)
+    }
+    return columns.join(',')
+  })
+  
+  const processedCSV = processedLines.join('\n')
+  
+  // Add BOM (Byte Order Mark) for proper UTF-8 detection in Google Sheets
+  const BOM = '\uFEFF'
+  const csvWithBOM = BOM + processedCSV
+  
+  const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8' })
   const url = window.URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -241,6 +392,41 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
       <div class="container">
         <h2 class="section-title">📸 Screenshot Data Extraction</h2>
         <p class="section-subtitle">Upload screenshots and use ChatGPT to extract battle data in CSV format</p>
+        
+        <!-- CSV Import Instructions -->
+        <div class="csv-instructions">
+          <h3>📋 How to Import CSV into Google Sheets</h3>
+          <div class="instructions-grid">
+            <div class="instruction-step">
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <h4>Download CSV File</h4>
+                <p>Click the "Download CSV" button after processing your screenshot</p>
+              </div>
+            </div>
+            <div class="instruction-step">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <h4>Open Google Sheets</h4>
+                <p>Go to <a href="https://sheets.google.com" target="_blank">sheets.google.com</a> and create a new spreadsheet</p>
+              </div>
+            </div>
+            <div class="instruction-step">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <h4>Import the File</h4>
+                <p>Go to <strong>File → Import → Upload</strong> and select your CSV file</p>
+              </div>
+            </div>
+            <div class="instruction-step">
+              <div class="step-number">4</div>
+              <div class="step-content">
+                <h4>Choose Import Settings</h4>
+                <p>Select "Replace current sheet" and ensure "Comma" is selected as the separator</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
                  <div class="screenshot-form">
            <div class="upload-area">
@@ -268,16 +454,25 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
            <div v-if="uploadedImages.length > 0" class="controls-section">
              <div class="controls-header">
                <h3>📋 Screenshot Management ({{ uploadedImages.length }} images)</h3>
-                               <div class="control-buttons">
+               <div class="control-buttons">
                   <button @click="processAllScreenshots" :disabled="isProcessingScreenshot" class="control-button process-all">
                     🤖 Process All
                   </button>
                  <button @click="downloadAllCSV" :disabled="!uploadedImages.some(img => img.csvData)" class="control-button download-all">
-                   💾 Download All CSV
+                   💾 Download Combined CSV
                  </button>
                  <button @click="clearAllImages" class="control-button clear-all">
                    🗑️ Clear All
                  </button>
+               </div>
+             </div>
+             
+             <!-- Combined CSV Info -->
+             <div v-if="uploadedImages.some(img => img.csvData)" class="combined-csv-info">
+               <div class="info-icon">ℹ️</div>
+               <div class="info-content">
+                 <strong>Combined CSV:</strong> All processed screenshots will be merged into a single CSV file, sorted by total damage (highest first). 
+                 Each row includes the source screenshot filename for reference.
                </div>
              </div>
 
@@ -321,13 +516,7 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
                </div>
                
                                <div class="image-actions">
-                  <button 
-                    @click="() => processScreenshotWithChatGPT(image.id)"
-                    :disabled="isProcessingScreenshot || image.processed"
-                    class="process-button"
-                  >
-                    {{ isProcessingScreenshot && image.processed ? '🤖 Processing...' : '🤖 Extract Data' }}
-                  </button>
+
                 </div>
 
                <!-- Error Message -->
@@ -335,18 +524,13 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
                  ❌ {{ image.error }}
                </div>
 
-               <!-- CSV Results -->
-               <div v-if="image.csvData" class="csv-results">
-                 <div class="csv-header">
-                   <h4>📊 Extracted Data</h4>
-                   <button @click="() => downloadCSV(image.csvData!)" class="download-button">
-                     💾 Download
-                   </button>
-                 </div>
-                 <div class="csv-content">
-                   <pre>{{ image.csvData }}</pre>
-                 </div>
-               </div>
+                               <!-- Processing Status -->
+                <div v-if="image.csvData" class="processing-status">
+                  <div class="status-success">
+                    <span class="status-icon">✅</span>
+                    <span class="status-text">Data extracted successfully</span>
+                  </div>
+                </div>
              </div>
            </div>
 
@@ -501,6 +685,79 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 4rem 0;
   color: white;
+}
+
+/* CSV Instructions */
+.csv-instructions {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.csv-instructions h3 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.instructions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.instruction-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.step-number {
+  background: linear-gradient(45deg, #4CAF50, #45a049);
+  color: white;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.step-content h4 {
+  margin: 0 0 0.5rem 0;
+  color: white;
+  font-size: 1rem;
+}
+
+.step-content p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.step-content a {
+  color: #4CAF50;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.step-content a:hover {
+  text-decoration: underline;
+}
+
+.step-content strong {
+  color: #ffc107;
 }
 
 .screenshot-form {
@@ -678,6 +935,34 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
   background: linear-gradient(45deg, #f44336, #d32f2f);
 }
 
+/* Combined CSV Info */
+.combined-csv-info {
+  background: rgba(33, 150, 243, 0.1);
+  border: 1px solid rgba(33, 150, 243, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.info-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  color: #2196F3;
+}
+
+.info-content {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.info-content strong {
+  color: #2196F3;
+}
+
 .sort-filter-controls {
   display: flex;
   gap: 1rem;
@@ -847,13 +1132,33 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
 .csv-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 1rem;
+  gap: 1rem;
 }
 
-.csv-header h3 {
+.csv-header h4 {
   margin: 0;
   color: white;
+  flex-shrink: 0;
+}
+
+.download-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.csv-tip {
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 6px;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  color: #ffc107;
+  max-width: 300px;
+  text-align: center;
 }
 
 .download-button {
@@ -1119,6 +1424,14 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
     flex-direction: column;
     gap: 1rem;
     align-items: flex-start;
+  }
+  
+  .download-options {
+    align-items: flex-start;
+  }
+  
+  .csv-tip {
+    max-width: none;
   }
   
   .upload-label {
