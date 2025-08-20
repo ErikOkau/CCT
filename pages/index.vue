@@ -35,7 +35,8 @@ const allSeasons = [
   { id: '17-3', name: 'Season 17-3', hasData: true },
   { id: '17-4', name: 'Season 17-4', hasData: true },
   { id: '18-1', name: 'Season 18-1', hasData: true },
-  { id: '20-1', name: 'Season 20-1', hasData: true }
+  { id: '20-1', name: 'Season 20-1', hasData: true },
+  { id: '20-2', name: 'Season 20-2', hasData: true }
 ]
 
 // Season-specific data availability and spreadsheet configurations
@@ -46,9 +47,9 @@ const seasonConfigurations = {
     range: '20-1!A1:Z100' // Season 20-1 range
   },
   2: { 
-    hasData: false, // Season 20-2 (current season) - no data yet
+    hasData: true, // Season 20-2 (current season) - now has data
     spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '20-2!A1:Z100' // Season 20-2 range (for when data becomes available)
+    range: '20-2!A1:Z100' // Season 20-2 range
   },
   3: { 
     hasData: false, // Season 20-3 (upcoming season) no data available
@@ -215,17 +216,41 @@ const getBossForSeason = (season: number, position: number) => {
   return seasonData[position as keyof typeof seasonData] || null
 }
 
-// Ticket status helper methods - Season 20-1 only has Red Velvet Dragon and Living Abyss
-const getTicketStatusClass = (player: any) => {
-  const ticketsUsed = player.redVelvetDragon.battles + player.livingAbyss.battles // Avatar of Destiny not in Season 20-1
+// Ticket status helper methods - Updated for different seasons
+const getTicketStatusClass = (player: any, season: number = activeSeason.value) => {
+  let ticketsUsed = 0
+  
+  if (season === 1) {
+    // Season 20-1: Red Velvet Dragon and Living Abyss
+    ticketsUsed = player.redVelvetDragon.battles + player.livingAbyss.battles
+  } else if (season === 2) {
+    // Season 20-2: Red Velvet Dragon and Avatar of Destiny
+    ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
+  } else {
+    // Season 20-3: Avatar of Destiny and Living Abyss
+    ticketsUsed = player.avatarOfDestiny.battles + player.livingAbyss.battles
+  }
+  
   if (ticketsUsed >= 18) return 'ticket-excellent'
   if (ticketsUsed >= 15) return 'ticket-good'
   if (ticketsUsed >= 10) return 'ticket-warning'
   return 'ticket-poor'
 }
 
-const getTicketStatusText = (player: any) => {
-  const ticketsUsed = player.redVelvetDragon.battles + player.livingAbyss.battles // Avatar of Destiny not in Season 20-1
+const getTicketStatusText = (player: any, season: number = activeSeason.value) => {
+  let ticketsUsed = 0
+  
+  if (season === 1) {
+    // Season 20-1: Red Velvet Dragon and Living Abyss
+    ticketsUsed = player.redVelvetDragon.battles + player.livingAbyss.battles
+  } else if (season === 2) {
+    // Season 20-2: Red Velvet Dragon and Avatar of Destiny
+    ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
+  } else {
+    // Season 20-3: Avatar of Destiny and Living Abyss
+    ticketsUsed = player.avatarOfDestiny.battles + player.livingAbyss.battles
+  }
+  
   if (ticketsUsed >= 18) return 'Yay'
   if (ticketsUsed >= 15) return 'Slothful'
   return 'At risk of disposal'
@@ -1134,11 +1159,13 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
                   </td>
                   <td class="ticket-cell">
                     <div class="ticket-info">
-                      <div class="ticket-count" :class="getTicketStatusClass(player)">
-                        {{ player.redVelvetDragon.battles + player.avatarOfDestiny.battles + player.livingAbyss.battles }}/18
+                      <div class="ticket-count" :class="getTicketStatusClass(player, activeSeason)">
+                        {{ activeSeason === 1 ? (player.redVelvetDragon.battles + player.livingAbyss.battles) : 
+                           activeSeason === 2 ? (player.redVelvetDragon.battles + player.avatarOfDestiny.battles) : 
+                           (player.avatarOfDestiny.battles + player.livingAbyss.battles) }}/18
                       </div>
-                      <div class="ticket-status" :class="getTicketStatusClass(player)">
-                        {{ getTicketStatusText(player) }}
+                      <div class="ticket-status" :class="getTicketStatusClass(player, activeSeason)">
+                        {{ getTicketStatusText(player, activeSeason) }}
                       </div>
                     </div>
                   </td>
@@ -1196,9 +1223,11 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
                   <div class="mobile-total-label">Season Total:</div>
                   <div class="mobile-total-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage) }}</div>
                 </div>
-                <div class="mobile-ticket-status" :class="getTicketStatusClass(player)">
-                  <div class="mobile-ticket-count">{{ player.redVelvetDragon.battles + player.avatarOfDestiny.battles + player.livingAbyss.battles }}/18</div>
-                  <div class="mobile-ticket-text">{{ getTicketStatusText(player) }}</div>
+                <div class="mobile-ticket-status" :class="getTicketStatusClass(player, activeSeason)">
+                  <div class="mobile-ticket-count">{{ activeSeason === 1 ? (player.redVelvetDragon.battles + player.livingAbyss.battles) : 
+                     activeSeason === 2 ? (player.redVelvetDragon.battles + player.avatarOfDestiny.battles) : 
+                     (player.avatarOfDestiny.battles + player.livingAbyss.battles) }}/18</div>
+                  <div class="mobile-ticket-text">{{ getTicketStatusText(player, activeSeason) }}</div>
                 </div>
               </div>
             </div>
