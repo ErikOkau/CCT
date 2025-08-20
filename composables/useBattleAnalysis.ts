@@ -59,7 +59,7 @@ export const useBattleAnalysis = () => {
     console.log('🗑️ Reset analysis state')
   }
 
-  const fetchFromGoogleSheets = async () => {
+  const fetchFromGoogleSheets = async (season: number = 1) => {
     if (!sheetsState.spreadsheetId) {
       sheetsState.fetchError = 'Please enter a Spreadsheet ID'
       return
@@ -74,8 +74,8 @@ export const useBattleAnalysis = () => {
       
       if (players.length > 0) {
         analysisState.battleData = players
-        analysisState.battleStats = BattleAnalyzer.calculateStats(players)
-        analysisState.insights = BattleAnalyzer.generateInsights(players)
+        analysisState.battleStats = BattleAnalyzer.calculateStats(players, season)
+        analysisState.insights = BattleAnalyzer.generateInsights(players, season)
         analysisState.previewData = players.slice(0, 5) // Show first 5 for preview
         analysisState.analysisComplete = true
         sheetsState.fetchSuccess = true

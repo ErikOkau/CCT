@@ -99,7 +99,7 @@ export class BattleAnalyzer {
   /**
    * Calculate battle statistics from player data
    */
-  static calculateStats(players: BattlePlayer[]): BattleStats {
+  static calculateStats(players: BattlePlayer[], season: number = 1): BattleStats {
     const totalPlayers = players.length
     const highestDamage = Math.max(...players.map(p => p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage))
     const averageDamage = Math.round(players.reduce((sum, p) => sum + p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage, 0) / totalPlayers)
@@ -107,28 +107,59 @@ export class BattleAnalyzer {
     const topPerformers = players.slice(0, 5)
     const guildScore = players.reduce((sum, p) => sum + p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage, 0)
 
-    // Ticket calculations - Season 20-1 only has Red Velvet Dragon and Living Abyss
+    // Ticket calculations - Season-aware
     const MAX_TICKETS_PER_SEASON = 18 // 9 tickets per boss, 2 bosses active
     const MIN_REQUIRED_TICKETS = 15
     
-    // Only count tickets for bosses that are actually in Season 20-1
-    const totalTicketsUsed = players.reduce((sum, p) => {
-      return sum + p.redVelvetDragon.battles + p.livingAbyss.battles // Avatar of Destiny not in Season 20-1
-    }, 0)
+    // Calculate tickets based on season
+    let totalTicketsUsed = 0
+    let playersBelowMinimum = 0
+    let ticketsUsedByBoss = {
+      redVelvet: 0,
+      avatar: 0,
+      livingAbyss: 0
+    }
+    
+    if (season === 1) {
+      // Season 20-1: Red Velvet Dragon and Living Abyss
+      totalTicketsUsed = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + p.livingAbyss.battles, 0)
+      playersBelowMinimum = players.filter(p => {
+        const playerTickets = p.redVelvetDragon.battles + p.livingAbyss.battles
+        return playerTickets < MIN_REQUIRED_TICKETS
+      }).length
+      ticketsUsedByBoss = {
+        redVelvet: players.reduce((sum, p) => sum + p.redVelvetDragon.battles, 0),
+        avatar: 0,
+        livingAbyss: players.reduce((sum, p) => sum + p.livingAbyss.battles, 0)
+      }
+    } else if (season === 2) {
+      // Season 20-2: Red Velvet Dragon and Avatar of Destiny
+      totalTicketsUsed = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + p.avatarOfDestiny.battles, 0)
+      playersBelowMinimum = players.filter(p => {
+        const playerTickets = p.redVelvetDragon.battles + p.avatarOfDestiny.battles
+        return playerTickets < MIN_REQUIRED_TICKETS
+      }).length
+      ticketsUsedByBoss = {
+        redVelvet: players.reduce((sum, p) => sum + p.redVelvetDragon.battles, 0),
+        avatar: players.reduce((sum, p) => sum + p.avatarOfDestiny.battles, 0),
+        livingAbyss: 0
+      }
+    } else {
+      // Season 20-3: Avatar of Destiny and Living Abyss
+      totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + p.livingAbyss.battles, 0)
+      playersBelowMinimum = players.filter(p => {
+        const playerTickets = p.avatarOfDestiny.battles + p.livingAbyss.battles
+        return playerTickets < MIN_REQUIRED_TICKETS
+      }).length
+      ticketsUsedByBoss = {
+        redVelvet: 0,
+        avatar: players.reduce((sum, p) => sum + p.avatarOfDestiny.battles, 0),
+        livingAbyss: players.reduce((sum, p) => sum + p.livingAbyss.battles, 0)
+      }
+    }
     
     const totalTicketsMissed = (totalPlayers * MAX_TICKETS_PER_SEASON) - totalTicketsUsed
-    const playersBelowMinimum = players.filter(p => {
-      const playerTickets = p.redVelvetDragon.battles + p.livingAbyss.battles // Avatar of Destiny not in Season 20-1
-      return playerTickets < MIN_REQUIRED_TICKETS
-    }).length
-    
     const averageTicketsUsed = totalPlayers > 0 ? Math.round(totalTicketsUsed / totalPlayers) : 0
-    
-    const ticketsUsedByBoss = {
-      redVelvet: players.reduce((sum, p) => sum + p.redVelvetDragon.battles, 0),
-      avatar: 0, // Avatar of Destiny not in Season 20-1
-      livingAbyss: players.reduce((sum, p) => sum + p.livingAbyss.battles, 0)
-    }
 
     // Red Velvet Dragon stats
     const redVelvetPlayers = players.filter(p => p.redVelvetDragon.damage > 0)
@@ -177,7 +208,7 @@ export class BattleAnalyzer {
   /**
    * Generate insights from battle data
    */
-  static generateInsights(players: BattlePlayer[]): string[] {
+  static generateInsights(players: BattlePlayer[], season: number = 1): string[] {
     const insights: string[] = []
 
     if (players.length === 0) return insights
@@ -191,15 +222,37 @@ export class BattleAnalyzer {
     const activePlayers = players.filter(p => p.redVelvetDragon.battles > 0 || p.avatarOfDestiny.battles > 0 || p.livingAbyss.battles > 0).length
     insights.push(`⚔️ ${activePlayers} out of ${players.length} players participated in battles this season`)
 
-    // Ticket usage insights - Season 20-1 only has Red Velvet Dragon and Living Abyss
+    // Ticket usage insights - Season-aware
     const MAX_TICKETS_PER_SEASON = 18
     const MIN_REQUIRED_TICKETS = 15
-    const totalTicketsUsed = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + p.livingAbyss.battles, 0) // Avatar of Destiny not in Season 20-1
+    
+    let totalTicketsUsed = 0
+    let playersBelowMinimum = 0
+    
+    if (season === 1) {
+      // Season 20-1: Red Velvet Dragon and Living Abyss
+      totalTicketsUsed = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + p.livingAbyss.battles, 0)
+      playersBelowMinimum = players.filter(p => {
+        const playerTickets = p.redVelvetDragon.battles + p.livingAbyss.battles
+        return playerTickets < MIN_REQUIRED_TICKETS
+      }).length
+    } else if (season === 2) {
+      // Season 20-2: Red Velvet Dragon and Avatar of Destiny
+      totalTicketsUsed = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + p.avatarOfDestiny.battles, 0)
+      playersBelowMinimum = players.filter(p => {
+        const playerTickets = p.redVelvetDragon.battles + p.avatarOfDestiny.battles
+        return playerTickets < MIN_REQUIRED_TICKETS
+      }).length
+    } else {
+      // Season 20-3: Avatar of Destiny and Living Abyss
+      totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + p.livingAbyss.battles, 0)
+      playersBelowMinimum = players.filter(p => {
+        const playerTickets = p.avatarOfDestiny.battles + p.livingAbyss.battles
+        return playerTickets < MIN_REQUIRED_TICKETS
+      }).length
+    }
+    
     const totalTicketsMissed = (players.length * MAX_TICKETS_PER_SEASON) - totalTicketsUsed
-    const playersBelowMinimum = players.filter(p => {
-      const playerTickets = p.redVelvetDragon.battles + p.livingAbyss.battles // Avatar of Destiny not in Season 20-1
-      return playerTickets < MIN_REQUIRED_TICKETS
-    }).length
 
     insights.push(`🎫 Total tickets used: ${totalTicketsUsed}/${players.length * MAX_TICKETS_PER_SEASON} (${totalTicketsMissed} missed)`)
     

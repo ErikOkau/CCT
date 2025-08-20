@@ -176,7 +176,7 @@ const fetchSeasonData = async (season: number) => {
   
   // Automatically fetch data for the season
   try {
-    await fetchFromGoogleSheets()
+    await fetchFromGoogleSheets(season)
   } catch (error) {
     console.error('Error fetching season data:', error)
   } finally {
