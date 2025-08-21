@@ -740,8 +740,8 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
             </div>
           </div>
 
-          <!-- Boss Schedule Grid -->
-          <div class="boss-schedule">
+          <!-- Desktop Boss Schedule Grid -->
+          <div class="boss-schedule desktop-only">
             <!-- Row 1: Red Velvet Dragon positions -->
             <div class="boss-cell" v-if="getBossForSeason(1, 1)">
               <img :src="getBossForSeason(1, 1)?.image" :alt="getBossForSeason(1, 1)?.name" class="boss-image">
@@ -798,23 +798,23 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
               <div class="boss-name">{{ getBossForSeason(3, 3)?.name }}</div>
             </div>
             <div class="boss-cell empty" v-else></div>
+          </div>
 
-                          <!-- Mobile: Show only selected season -->
-              <div class="boss-schedule-mobile">
-                <div class="mobile-boss-list">
-                  <div
-                    v-for="position in [1, 2, 3]"
-                    :key="position"
-                    class="mobile-boss-item"
-                    v-if="getBossForSeason(activeSeason, position)"
-                  >
-                    <img :src="getBossForSeason(activeSeason, position)?.image" :alt="getBossForSeason(activeSeason, position)?.name" class="mobile-boss-image">
-                    <div class="mobile-boss-name">{{ getBossForSeason(activeSeason, position)?.name }}</div>
-                  </div>
-                <div v-if="!getBossForSeason(activeSeason, 1) && !getBossForSeason(activeSeason, 2) && !getBossForSeason(activeSeason, 3)" class="mobile-no-bosses">
-                  <div class="no-bosses-icon">📅</div>
-                  <div class="no-bosses-text">No bosses scheduled for this season</div>
-                </div>
+          <!-- Mobile Boss Schedule - Show only selected season -->
+          <div class="boss-schedule-mobile mobile-only">
+            <div class="mobile-boss-list">
+              <div
+                v-for="position in [1, 2, 3]"
+                :key="position"
+                class="mobile-boss-item"
+                v-if="getBossForSeason(activeSeason, position)"
+              >
+                <img :src="getBossForSeason(activeSeason, position)?.image" :alt="getBossForSeason(activeSeason, position)?.name" class="mobile-boss-image">
+                <div class="mobile-boss-name">{{ getBossForSeason(activeSeason, position)?.name }}</div>
+              </div>
+              <div v-if="!getBossForSeason(activeSeason, 1) && !getBossForSeason(activeSeason, 2) && !getBossForSeason(activeSeason, 3)" class="mobile-no-bosses">
+                <div class="no-bosses-icon">📅</div>
+                <div class="no-bosses-text">No bosses scheduled for this season</div>
               </div>
             </div>
           </div>
@@ -2020,8 +2020,82 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
   line-height: 1.4;
 }
 
+/* Desktop/Mobile visibility classes */
+.desktop-only {
+  display: block;
+}
+
+.mobile-only {
+  display: none;
+}
+
+/* Mobile Boss Schedule Styles */
+.boss-schedule-mobile {
+  margin-top: 2rem;
+}
+
+.mobile-boss-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mobile-boss-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.mobile-boss-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.mobile-boss-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.mobile-boss-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffd700;
+}
+
+.mobile-no-bosses {
+  text-align: center;
+  padding: 2rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.no-bosses-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.no-bosses-text {
+  font-size: 1rem;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
+  /* Hide desktop, show mobile */
+  .desktop-only {
+    display: none !important;
+  }
+  
+  .mobile-only {
+    display: block !important;
+  }
+  
   .hero {
     padding: 3rem 0;
   }
