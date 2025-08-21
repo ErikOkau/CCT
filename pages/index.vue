@@ -2029,6 +2029,62 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
   display: none;
 }
 
+/* Desktop Boss Schedule Styles */
+.boss-schedule {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 2rem;
+  min-height: 300px;
+}
+
+.boss-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.boss-cell:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 215, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.boss-cell.empty {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.boss-cell.empty:hover {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: none;
+}
+
+.boss-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  object-fit: cover;
+  margin-bottom: 0.75rem;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.boss-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
 /* Mobile Boss Schedule Styles */
 .boss-schedule-mobile {
   margin-top: 2rem;
