@@ -2,6 +2,9 @@
   "name": "nuxt-app",
   "private": true,
   "type": "module",
+  "imports": {
+    "#internal/nuxt/paths": "./.nuxt/paths.mjs"
+  },
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -11,6 +14,7 @@
   },
   "devDependencies": {
     "@nuxt/devtools": "latest",
+    "@nuxtjs/pwa": "^3.3.2",
     "nuxt": "^3.18.1",
     "sass": "^1.90.0",
     "sass-loader": "^13.3.3",
