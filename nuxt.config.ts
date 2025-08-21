@@ -36,17 +36,28 @@ export default defineNuxtConfig({
       title: 'Chaos Control Team - Guild Battle Analyzer',
       meta: [
         { charset: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, user-scalable=no' },
         { name: 'description', content: 'Guild site & Battle Analyzer for Chaos Control Team' },
         { name: 'theme-color', content: '#1e3c72' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
-        { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
         { name: 'apple-mobile-web-app-title', content: 'CCT Analyzer' },
-        { name: 'mobile-web-app-capable', content: 'yes' }
+        { name: 'mobile-web-app-capable', content: 'yes' },
+        { name: 'application-name', content: 'CCT Analyzer' },
+        { name: 'msapplication-TileColor', content: '#1e3c72' },
+        { name: 'msapplication-tap-highlight', content: 'no' }
       ],
       link: [
         { rel: 'icon', type: 'image/png', href: '/img/cctLogo.png' },
         { rel: 'apple-touch-icon', href: '/img/cctLogo.png' },
+        { rel: 'apple-touch-icon', sizes: '72x72', href: '/img/cctLogo.png' },
+        { rel: 'apple-touch-icon', sizes: '96x96', href: '/img/cctLogo.png' },
+        { rel: 'apple-touch-icon', sizes: '128x128', href: '/img/cctLogo.png' },
+        { rel: 'apple-touch-icon', sizes: '144x144', href: '/img/cctLogo.png' },
+        { rel: 'apple-touch-icon', sizes: '152x152', href: '/img/cctLogo.png' },
+        { rel: 'apple-touch-icon', sizes: '192x192', href: '/img/cctLogo.png' },
+        { rel: 'apple-touch-icon', sizes: '384x384', href: '/img/cctLogo.png' },
+        { rel: 'apple-touch-icon', sizes: '512x512', href: '/img/cctLogo.png' },
         { rel: 'manifest', href: '/manifest.json' }
       ]
     }

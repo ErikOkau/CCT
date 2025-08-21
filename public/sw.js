@@ -1,7 +1,8 @@
 // Service Worker for CCT Guild Battle Analyzer
-const CACHE_NAME = 'cct-analyzer-v1';
+const CACHE_NAME = 'cct-analyzer-v2';
 const urlsToCache = [
   '/',
+  '/manifest.json',
   '/img/cctLogo.png',
   '/img/Red_Velvet_Dragon.webp',
   '/img/Living_Licorice_Abyss.webp',
@@ -18,6 +19,8 @@ self.addEventListener('install', (event) => {
         return cache.addAll(urlsToCache);
       })
   );
+  // Force the waiting service worker to become the active service worker
+  self.skipWaiting();
 });
 
 // Fetch event - serve from cache if available
@@ -45,4 +48,16 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
+  // Take control of all clients immediately
+  event.waitUntil(self.clients.claim());
+});
+
+// Handle app installation
+self.addEventListener('beforeinstallprompt', (event) => {
+  console.log('App can be installed');
+});
+
+// Handle app installation completion
+self.addEventListener('appinstalled', (event) => {
+  console.log('App was installed');
 });

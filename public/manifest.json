@@ -7,6 +7,7 @@
   "background_color": "#000000",
   "theme_color": "#1e3c72",
   "orientation": "portrait-primary",
+  "scope": "/",
   "icons": [
     {
       "src": "/img/cctLogo.png",
@@ -19,9 +20,46 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/img/cctLogo.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/cctLogo.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/cctLogo.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/cctLogo.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/cctLogo.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/cctLogo.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "categories": ["games", "productivity", "utilities"],
   "lang": "en",
-  "dir": "ltr"
+  "dir": "ltr",
+  "prefer_related_applications": false
 }

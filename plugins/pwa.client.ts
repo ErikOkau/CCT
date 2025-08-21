@@ -24,11 +24,33 @@ export default defineNuxtPlugin(() => {
       
       // Show install button or notification
       console.log('App can be installed');
+      
+      // Optionally show a custom install prompt
+      if (confirm('Install CCT Analyzer as an app for a better experience?')) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult: any) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted the install prompt');
+          } else {
+            console.log('User dismissed the install prompt');
+          }
+          deferredPrompt = null;
+        });
+      }
     });
 
     window.addEventListener('appinstalled', () => {
       console.log('App was installed');
       deferredPrompt = null;
     });
+
+    // Check if app is running in standalone mode
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                        (window.navigator as any).standalone === true;
+    
+    if (isStandalone) {
+      console.log('App is running in standalone mode');
+      // Add any standalone-specific logic here
+    }
   }
 });
