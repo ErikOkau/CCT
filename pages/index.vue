@@ -52,17 +52,17 @@ const seasonConfigurations = {
     range: '20-2!A1:Z100' // Season 20-2 range
   },
   3: { 
-    hasData: false, // Season 20-3 (upcoming season) no data available
+    hasData: true, // Season 20-3 (current season) - now has data
     spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '20-3!A1:Z100' // Season 20-3 range (for when data becomes available)
+    range: '20-3!A1:Z100' // Season 20-3 range
   }
 }
 
 // Season types for display purposes
 const seasonTypes = {
   1: 'previous',  // Season 20-1 - previous season
-  2: 'current',   // Season 20-2 - current season
-  3: 'upcoming'   // Season 20-3 - upcoming season
+  2: 'previous',  // Season 20-2 - previous season
+  3: 'current'    // Season 20-3 - current season
 }
 
 // Function to determine current season based on date
@@ -261,6 +261,54 @@ const getPlayerGuildRank = (playerName: string) => {
   if (playerName === 'Bestoutuber') return 'Leader'
   if (playerName === 'brownmascara') return 'Officer'
   return 'Member'
+}
+
+// Function to format damage with N/A handling
+const formatDamageWithNA = (damage: number, battles: number) => {
+  if (battles === 0 || damage === 0) return 'N/A'
+  return BattleAnalyzer.formatDamage(damage)
+}
+
+// Function to get season total damage (only active bosses)
+const getSeasonTotalDamage = (player: any, season: number) => {
+  if (season === 1) {
+    // Season 20-1: Red Velvet Dragon and Living Abyss
+    return player.redVelvetDragon.damage + player.livingAbyss.damage
+  } else if (season === 2) {
+    // Season 20-2: Red Velvet Dragon and Avatar of Destiny
+    return player.redVelvetDragon.damage + player.avatarOfDestiny.damage
+  } else {
+    // Season 20-3: Avatar of Destiny and Living Abyss
+    return player.avatarOfDestiny.damage + player.livingAbyss.damage
+  }
+}
+
+// Function to get season total battles (only active bosses)
+const getSeasonTotalBattles = (player: any, season: number) => {
+  if (season === 1) {
+    // Season 20-1: Red Velvet Dragon and Living Abyss
+    return player.redVelvetDragon.battles + player.livingAbyss.battles
+  } else if (season === 2) {
+    // Season 20-2: Red Velvet Dragon and Avatar of Destiny
+    return player.redVelvetDragon.battles + player.avatarOfDestiny.battles
+  } else {
+    // Season 20-3: Avatar of Destiny and Living Abyss
+    return player.avatarOfDestiny.battles + player.livingAbyss.battles
+  }
+}
+
+// Function to check if boss is active for current season
+const isBossActive = (bossName: string, season: number) => {
+  if (season === 1) {
+    // Season 20-1: Red Velvet Dragon and Living Abyss
+    return bossName === 'redVelvet' || bossName === 'livingAbyss'
+  } else if (season === 2) {
+    // Season 20-2: Red Velvet Dragon and Avatar of Destiny
+    return bossName === 'redVelvet' || bossName === 'avatar'
+  } else {
+    // Season 20-3: Avatar of Destiny and Living Abyss
+    return bossName === 'avatar' || bossName === 'livingAbyss'
+  }
 }
 
 // Hall of Glory data
@@ -1109,9 +1157,9 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
                 <tr>
                   <th>Rank</th>
                   <th>Player</th>
-                  <th>Red Velvet Dragon</th>
-                  <th>Avatar of Destiny</th>
-                  <th>Living Abyss</th>
+                  <th v-if="isBossActive('redVelvet', activeSeason)">Red Velvet Dragon</th>
+                  <th v-if="isBossActive('avatar', activeSeason)">Avatar of Destiny</th>
+                  <th v-if="isBossActive('livingAbyss', activeSeason)">Living Abyss</th>
                   <th>Season Total</th>
                   <th>Tickets Used</th>
                   <th>Guild Rank</th>
@@ -1133,28 +1181,28 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
                       </div>
                     </div>
                   </td>
-                  <td class="damage-cell">
+                  <td class="damage-cell" v-if="isBossActive('redVelvet', activeSeason)">
                     <div class="damage-info">
-                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage) }}</div>
+                      <div class="damage-value">{{ formatDamageWithNA(player.redVelvetDragon.damage, player.redVelvetDragon.battles) }}</div>
                       <div class="battles-count">x{{ player.redVelvetDragon.battles }}</div>
                     </div>
                   </td>
-                  <td class="damage-cell">
+                  <td class="damage-cell" v-if="isBossActive('avatar', activeSeason)">
                     <div class="damage-info">
-                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(player.avatarOfDestiny.damage) }}</div>
+                      <div class="damage-value">{{ formatDamageWithNA(player.avatarOfDestiny.damage, player.avatarOfDestiny.battles) }}</div>
                       <div class="battles-count">x{{ player.avatarOfDestiny.battles }}</div>
                     </div>
                   </td>
-                  <td class="damage-cell">
+                  <td class="damage-cell" v-if="isBossActive('livingAbyss', activeSeason)">
                     <div class="damage-info">
-                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(player.livingAbyss.damage) }}</div>
+                      <div class="damage-value">{{ formatDamageWithNA(player.livingAbyss.damage, player.livingAbyss.battles) }}</div>
                       <div class="battles-count">x{{ player.livingAbyss.battles }}</div>
                     </div>
                   </td>
                   <td class="damage-cell">
                     <div class="damage-info">
-                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage) }}</div>
-                      <div class="battles-count">x{{ player.redVelvetDragon.battles + player.avatarOfDestiny.battles + player.livingAbyss.battles }}</div>
+                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(getSeasonTotalDamage(player, activeSeason)) }}</div>
+                      <div class="battles-count">x{{ getSeasonTotalBattles(player, activeSeason) }}</div>
                     </div>
                   </td>
                   <td class="ticket-cell">
@@ -1193,26 +1241,26 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
               </div>
               
               <div class="mobile-boss-damage">
-                <div class="mobile-boss-damage-item">
+                <div class="mobile-boss-damage-item" v-if="isBossActive('redVelvet', activeSeason)">
                   <div class="mobile-boss-icon">🐉</div>
                   <div class="mobile-boss-damage-info">
-                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage) }}</div>
+                    <div class="mobile-damage-value">{{ formatDamageWithNA(player.redVelvetDragon.damage, player.redVelvetDragon.battles) }}</div>
                     <div class="mobile-battles-count">x{{ player.redVelvetDragon.battles }}</div>
                   </div>
                 </div>
                 
-                <div class="mobile-boss-damage-item">
+                <div class="mobile-boss-damage-item" v-if="isBossActive('avatar', activeSeason)">
                   <div class="mobile-boss-icon">👁️</div>
                   <div class="mobile-boss-damage-info">
-                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(player.avatarOfDestiny.damage) }}</div>
+                    <div class="mobile-damage-value">{{ formatDamageWithNA(player.avatarOfDestiny.damage, player.avatarOfDestiny.battles) }}</div>
                     <div class="mobile-battles-count">x{{ player.avatarOfDestiny.battles }}</div>
                   </div>
                 </div>
                 
-                <div class="mobile-boss-damage-item">
+                <div class="mobile-boss-damage-item" v-if="isBossActive('livingAbyss', activeSeason)">
                   <div class="mobile-boss-icon">🔷</div>
                   <div class="mobile-boss-damage-info">
-                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(player.livingAbyss.damage) }}</div>
+                    <div class="mobile-damage-value">{{ formatDamageWithNA(player.livingAbyss.damage, player.livingAbyss.battles) }}</div>
                     <div class="mobile-battles-count">x{{ player.livingAbyss.battles }}</div>
                   </div>
                 </div>
@@ -1221,7 +1269,7 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
               <div class="mobile-total-section">
                 <div class="mobile-total-damage">
                   <div class="mobile-total-label">Season Total:</div>
-                  <div class="mobile-total-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage) }}</div>
+                  <div class="mobile-total-value">{{ BattleAnalyzer.formatDamage(getSeasonTotalDamage(player, activeSeason)) }}</div>
                 </div>
                 <div class="mobile-ticket-status" :class="getTicketStatusClass(player, activeSeason)">
                   <div class="mobile-ticket-count">{{ activeSeason === 1 ? (player.redVelvetDragon.battles + player.livingAbyss.battles) : 
