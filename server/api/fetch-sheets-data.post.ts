@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Get credentials from environment variable
-    const credentialsJson = process.env.GOOGLE_SHEETS_CREDENTIALS_PATH
+    const credentialsJson = process.env.GOOGLE_SHEETS_CREDENTIALS
     if (!credentialsJson) {
       throw new Error('GOOGLE_SHEETS_CREDENTIALS environment variable is not set.')
     }
