@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useBattleAnalysis } from '~/composables/useBattleAnalysis'
 import { BattleAnalyzer } from '~/utils/battleAnalyzer'
 
@@ -36,7 +36,8 @@ const allSeasons = [
   { id: '17-4', name: 'Season 17-4', hasData: true },
   { id: '18-1', name: 'Season 18-1', hasData: true },
   { id: '20-1', name: 'Season 20-1', hasData: true },
-  { id: '20-2', name: 'Season 20-2', hasData: true }
+  { id: '20-2', name: 'Season 20-2', hasData: true },
+  { id: '20-3', name: 'Season 20-3', hasData: true }
 ]
 
 // Season-specific data availability and spreadsheet configurations
@@ -47,22 +48,22 @@ const seasonConfigurations = {
     range: '20-1!A1:Z100' // Season 20-1 range
   },
   2: { 
-    hasData: true, // Season 20-2 (current season) - now has data
+    hasData: true, // Season 20-2 (previous season) - now has data
     spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
     range: '20-2!A1:Z100' // Season 20-2 range
   },
   3: { 
-    hasData: false, // Season 20-3 (upcoming season) no data available
+    hasData: true, // Season 20-3 (season is over) - now has data
     spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '20-3!A1:Z100' // Season 20-3 range (for when data becomes available)
+    range: '20-3!A1:Z100' // Season 20-3 range
   }
 }
 
 // Season types for display purposes
 const seasonTypes = {
   1: 'previous',  // Season 20-1 - previous season
-  2: 'current',   // Season 20-2 - current season
-  3: 'upcoming'   // Season 20-3 - upcoming season
+  2: 'previous',  // Season 20-2 - previous season  
+  3: 'previous'   // Season 20-3 - previous season (now over)
 }
 
 // Function to determine current season based on date
@@ -88,7 +89,15 @@ activeSeason.value = getCurrentSeason()
 
 // Function to check if current season has data
 const hasSeasonData = (season: number) => {
-  return seasonConfigurations[season as keyof typeof seasonConfigurations]?.hasData || false
+  if (currentDestinysFlight.value === 21) {
+    if (season === 1) return false // Tallying, no data yet
+    if (season === 2) return false // Current season but no data yet
+    if (season === 3 || season === 4) return false // Upcoming, no data
+  } else {
+    // Destiny's Flight 20: All seasons are previous seasons with data available
+    if (season === 1 || season === 2 || season === 3) return true
+  }
+  return false
 }
 
 // Function to get season display name
@@ -103,36 +112,28 @@ const getSeasonType = (season: number) => {
 
 // Function to get season status message
 const getSeasonStatusMessage = (season: number) => {
-  const seasonType = getSeasonType(season)
-  const hasData = hasSeasonData(season)
-  
-  switch (seasonType) {
-    case 'previous':
-      return hasData ? 'Previous Season - Data Available' : 'Previous Season - No Data'
-    case 'current':
-      return hasData ? 'Current Season - Data Available' : 'Current Season - Coming Soon'
-    case 'upcoming':
-      return 'Upcoming Season - No Data Available'
-    default:
-      return 'Unknown Season'
+  if (currentDestinysFlight.value === 21) {
+    if (season === 1) return 'Data Soon Available'
+    if (season === 2) return 'Current Season - No Data Yet'
+    if (season === 3 || season === 4) return 'Upcoming Season - No Data Available'
+  } else {
+    // Destiny's Flight 20: All seasons are previous seasons with data available
+    if (season === 1 || season === 2 || season === 3) return 'Previous Season - Data Available'
   }
+  return 'Unknown Status'
 }
 
 // Function to get season status icon
 const getSeasonStatusIcon = (season: number) => {
-  const seasonType = getSeasonType(season)
-  const hasData = hasSeasonData(season)
-  
-  switch (seasonType) {
-    case 'previous':
-      return hasData ? '📊' : '📈'
-    case 'current':
-      return hasData ? '📊' : '⏳'
-    case 'upcoming':
-      return '🔮'
-    default:
-      return '❓'
+  if (currentDestinysFlight.value === 21) {
+    if (season === 1) return '📊' // Tallying
+    if (season === 2) return '⏳' // Current but no data
+    if (season === 3 || season === 4) return '⏳' // Upcoming
+  } else {
+    // Destiny's Flight 20: All seasons are previous seasons with data available
+    if (season === 1 || season === 2 || season === 3) return '📊' // Previous
   }
+  return '❓'
 }
 
 // Function to get season dates for display
@@ -190,30 +191,84 @@ watch(activeSeason, (newSeason) => {
   fetchSeasonData(newSeason)
 })
 
-// Boss schedule data based on the image
-const bossSchedule = {
-  1: { // Season 20-1
-    1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
-    2: null, // Empty
-    3: { name: 'Living Abyss', image: '/img/Living_Licorice_Abyss.webp' }
+// Current Destiny's Flight (main season)
+const currentDestinysFlight = ref(20)
+
+// Boss schedule data for different Destiny's Flights
+const bossSchedules = {
+  20: { // Destiny's Flight 20 (3x3 grid)
+    1: { // Season 20-1
+      1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
+      2: null, // Empty
+      3: { name: 'Living Abyss', image: '/img/Living_Licorice_Abyss.webp' }
+    },
+    2: { // Season 20-2
+      1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
+      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
+      3: null // Empty
+    },
+    3: { // Season 20-3
+      1: null, // Empty
+      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
+      3: { name: 'Living Abyss', image: '/img/Living_Licorice_Abyss.webp' }
+    }
   },
-  2: { // Season 20-2 (currently active)
-    1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
-    2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
-    3: null // Empty
-  },
-  3: { // Season 20-3
-    1: null, // Empty
-    2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
-    3: { name: 'Living Abyss', image: '/img/Living_Licorice_Abyss.webp' }
+  21: { // Destiny's Flight 21 (4x3 grid)
+    1: { // Season 21-1
+      1: null, // Empty
+      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
+      3: { name: 'Machine-God of the Eternal Void', image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' }
+    },
+    2: { // Season 21-2
+      1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
+      2: null, // Empty
+      3: { name: 'Machine-God of the Eternal Void', image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' }
+    },
+    3: { // Season 21-3
+      1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
+      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
+      3: null // Empty
+    },
+    4: { // Season 21-4
+      1: null, // Empty
+      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
+      3: { name: 'Machine-God of the Eternal Void', image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' }
+    }
   }
 }
 
-// Method to get boss for specific season and position
-const getBossForSeason = (season: number, position: number) => {
-  const seasonData = bossSchedule[season as keyof typeof bossSchedule]
+// Method to get boss for specific Destiny's Flight, season and position
+const getBossForSeason = (destinysFlight: number, season: number, position: number) => {
+  const flightData = bossSchedules[destinysFlight as keyof typeof bossSchedules]
+  if (!flightData) return null
+  const seasonData = flightData[season as keyof typeof flightData]
   if (!seasonData) return null
-  return seasonData[position as keyof typeof seasonData] || null
+  const boss = seasonData[position as keyof typeof seasonData] || null
+  console.log(`getBossForSeason(${destinysFlight}, ${season}, ${position}):`, boss)
+  return boss
+}
+
+// Method to get current Destiny's Flight boss schedule
+const getCurrentBossSchedule = () => {
+  return bossSchedules[currentDestinysFlight.value as keyof typeof bossSchedules]
+}
+
+// Method to get number of seasons for current Destiny's Flight
+const getSeasonCount = () => {
+  const schedule = getCurrentBossSchedule()
+  return schedule ? Object.keys(schedule).length : 3
+}
+
+// Navigation methods for Destiny's Flights
+const navigateToDestinysFlight = (flight: number) => {
+  if (bossSchedules[flight as keyof typeof bossSchedules]) {
+    currentDestinysFlight.value = flight
+    activeSeason.value = 1 // Reset to first season of new flight
+  }
+}
+
+const canNavigateToFlight = (flight: number) => {
+  return !!bossSchedules[flight as keyof typeof bossSchedules]
 }
 
 // Ticket status helper methods - Updated for different seasons
@@ -393,6 +448,30 @@ const showAllPlayers = ref(false)
 const displayedPlayers = computed(() => showAllPlayers.value ? analysisState.battleData : analysisState.previewData)
 const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.value }
 
+// Computed property for mobile boss list
+const mobileBossList = computed(() => {
+  const bosses = []
+  const seasonCount = getSeasonCount()
+  for (let i = 1; i <= seasonCount; i++) {
+    const boss = getBossForSeason(currentDestinysFlight.value, activeSeason.value, i)
+    if (boss) {
+      bosses.push({ ...boss, position: i })
+    }
+  }
+  return bosses
+})
+
+// Helper functions for season status display
+const getSeasonStatusClass = () => {
+  if (currentDestinysFlight.value === 21) {
+    if (activeSeason.value === 1) return 'tallying'
+    if (activeSeason.value === 2) return 'current'
+    if (activeSeason.value === 3 || activeSeason.value === 4) return 'upcoming'
+  } else if (currentDestinysFlight.value === 20 && activeSeason.value === 3) {
+    return 'previous'
+  }
+  return 'default'
+}
 
 </script>
 
@@ -574,7 +653,7 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
                <span class="load-icon">📊</span>
                <span>Load All-Time Champions</span>
              </button>
-                           <p class="load-note">Load data from seasons 17-1 to 20-1</p>
+                           <p class="load-note">Load data from seasons 17-1 to 20-3</p>
            </div>
            
            <!-- Loading State -->
@@ -701,125 +780,128 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
       <div class="schedule-container">
         <div class="schedule-header">
           <h2 class="schedule-title">Boss Schedule</h2>
-          <p class="schedule-subtitle">Destiny's Flight 20</p>
+          <p class="schedule-subtitle">Destiny's Flight {{ currentDestinysFlight }}</p>
           <p class="schedule-note">Season times are to GMT+9</p>
         </div>
 
         <div class="schedule-grid">
+          <!-- Destiny's Flight Navigation -->
+          <div class="destinys-flight-navigation">
+            <button 
+              class="flight-nav-arrow left" 
+              @click="navigateToDestinysFlight(currentDestinysFlight - 1)"
+              :disabled="!canNavigateToFlight(currentDestinysFlight - 1)"
+            >
+              ←
+            </button>
+            <div class="flight-indicator">
+              <span class="flight-number">{{ currentDestinysFlight }}</span>
+              <span class="flight-label">Destiny's Flight</span>
+            </div>
+            <button 
+              class="flight-nav-arrow right" 
+              @click="navigateToDestinysFlight(currentDestinysFlight + 1)"
+              :disabled="!canNavigateToFlight(currentDestinysFlight + 1)"
+            >
+              →
+            </button>
+          </div>
+
           <!-- Season Headers -->
-          <div class="season-headers">
+          <div class="season-headers" :style="{ gridTemplateColumns: `repeat(${getSeasonCount()}, 1fr)` }">
             <div 
+              v-for="season in getSeasonCount()" 
+              :key="season"
               class="season-header" 
-              :class="{ active: activeSeason === 1 }"
-              @click="activeSeason = 1"
+              :class="{ active: activeSeason === season }"
+              @click="activeSeason = season"
             >
-              <div class="season-name">Season 20-1</div>
-              <div class="season-dates">08.07.25 - 08.13.25</div>
-              <div v-if="activeSeason === 1" class="current-indicator">{{ getSeasonStatusIcon(1) }} {{ getSeasonStatusMessage(1) }}</div>
-              <div v-if="!hasSeasonData(1)" class="coming-soon-indicator">{{ getSeasonStatusIcon(1) }} {{ getSeasonStatusMessage(1) }}</div>
-            </div>
-            <div 
-              class="season-header" 
-              :class="{ active: activeSeason === 2 }"
-              @click="activeSeason = 2"
-            >
-              <div class="season-name">Season 20-2</div>
-              <div class="season-dates">08.14.25 - 08.20.25</div>
-              <div v-if="activeSeason === 2" class="current-indicator">{{ getSeasonStatusIcon(2) }} {{ getSeasonStatusMessage(2) }}</div>
-              <div v-if="!hasSeasonData(2)" class="coming-soon-indicator">{{ getSeasonStatusIcon(2) }} {{ getSeasonStatusMessage(2) }}</div>
-            </div>
-            <div 
-              class="season-header" 
-              :class="{ active: activeSeason === 3 }"
-              @click="activeSeason = 3"
-            >
-              <div class="season-name">Season 20-3</div>
-              <div class="season-dates">08.21.25 - 08.27.25</div>
-              <div v-if="activeSeason === 3" class="current-indicator">{{ getSeasonStatusIcon(3) }} {{ getSeasonStatusMessage(3) }}</div>
-              <div v-if="!hasSeasonData(3)" class="coming-soon-indicator">{{ getSeasonStatusIcon(3) }} {{ getSeasonStatusMessage(3) }}</div>
+              <div class="season-name">Season {{ currentDestinysFlight }}-{{ season }}</div>
+              <div class="season-dates">
+                <span v-if="currentDestinysFlight === 20">
+                  <span v-if="season === 1">08.07.25 - 08.13.25</span>
+                  <span v-else-if="season === 2">08.14.25 - 08.20.25</span>
+                  <span v-else-if="season === 3">08.21.25 - 08.27.25</span>
+                </span>
+                <span v-else-if="currentDestinysFlight === 21">
+                  <span v-if="season === 1">08.28.25 - 09.03.25</span>
+                  <span v-else-if="season === 2">09.04.25 - 09.10.25</span>
+                  <span v-else-if="season === 3">09.11.25 - 09.17.25</span>
+                  <span v-else-if="season === 4">09.18.25 - 09.24.25</span>
+                </span>
+              </div>
+              <div v-if="activeSeason === season" class="current-indicator">{{ getSeasonStatusIcon(season) }} {{ getSeasonStatusMessage(season) }}</div>
+              <div v-if="!hasSeasonData(season)" class="coming-soon-indicator">{{ getSeasonStatusIcon(season) }} {{ getSeasonStatusMessage(season) }}</div>
             </div>
           </div>
 
           <!-- Boss Schedule Grid -->
-          <div class="boss-schedule">
+          <div class="boss-schedule" :style="{ gridTemplateColumns: `repeat(${getSeasonCount()}, 1fr)` }">
             <!-- Row 1: Red Velvet Dragon positions -->
-            <div class="boss-cell" v-if="getBossForSeason(1, 1)">
-              <img :src="getBossForSeason(1, 1)?.image" :alt="getBossForSeason(1, 1)?.name" class="boss-image">
-              <div class="boss-name">{{ getBossForSeason(1, 1)?.name }}</div>
-            </div>
-            <div class="boss-cell empty" v-else></div>
-            
-            <div class="boss-cell" v-if="getBossForSeason(2, 1)">
-              <img :src="getBossForSeason(2, 1)?.image" :alt="getBossForSeason(2, 1)?.name" class="boss-image">
-              <div class="boss-name">{{ getBossForSeason(2, 1)?.name }}</div>
-            </div>
-            <div class="boss-cell empty" v-else></div>
-            
-            <div class="boss-cell" v-if="getBossForSeason(3, 1)">
-              <img :src="getBossForSeason(3, 1)?.image" :alt="getBossForSeason(3, 1)?.name" class="boss-image">
-              <div class="boss-name">{{ getBossForSeason(3, 1)?.name }}</div>
-            </div>
-            <div class="boss-cell empty" v-else></div>
+            <template v-for="season in getSeasonCount()" :key="`row1-${season}`">
+              <div 
+                v-if="getBossForSeason(currentDestinysFlight, season, 1)"
+                class="boss-cell"
+              >
+                <img :src="getBossForSeason(currentDestinysFlight, season, 1)?.image" :alt="getBossForSeason(currentDestinysFlight, season, 1)?.name" class="boss-image">
+                <div class="boss-name">{{ getBossForSeason(currentDestinysFlight, season, 1)?.name }}</div>
+              </div>
+              <div 
+                v-else
+                class="boss-cell empty"
+              ></div>
+            </template>
             
             <!-- Row 2: Avatar of Destiny positions -->
-            <div class="boss-cell" v-if="getBossForSeason(1, 2)">
-              <img :src="getBossForSeason(1, 2)?.image" :alt="getBossForSeason(1, 2)?.name" class="boss-image">
-              <div class="boss-name">{{ getBossForSeason(1, 2)?.name }}</div>
-            </div>
-            <div class="boss-cell empty" v-else></div>
+            <template v-for="season in getSeasonCount()" :key="`row2-${season}`">
+              <div 
+                v-if="getBossForSeason(currentDestinysFlight, season, 2)"
+                class="boss-cell"
+              >
+                <img :src="getBossForSeason(currentDestinysFlight, season, 2)?.image" :alt="getBossForSeason(currentDestinysFlight, season, 2)?.name" class="boss-image">
+                <div class="boss-name">{{ getBossForSeason(currentDestinysFlight, season, 2)?.name }}</div>
+              </div>
+              <div 
+                v-else
+                class="boss-cell empty"
+              ></div>
+            </template>
             
-            <div class="boss-cell" v-if="getBossForSeason(2, 2)">
-              <img :src="getBossForSeason(2, 2)?.image" :alt="getBossForSeason(2, 2)?.name" class="boss-image">
-              <div class="boss-name">{{ getBossForSeason(2, 2)?.name }}</div>
-            </div>
-            <div class="boss-cell empty" v-else></div>
-            
-            <div class="boss-cell" v-if="getBossForSeason(3, 2)">
-              <img :src="getBossForSeason(3, 2)?.image" :alt="getBossForSeason(3, 2)?.name" class="boss-image">
-              <div class="boss-name">{{ getBossForSeason(3, 2)?.name }}</div>
-            </div>
-            <div class="boss-cell empty" v-else></div>
-            
-            <!-- Row 3: Living Abyss positions -->
-            <div class="boss-cell" v-if="getBossForSeason(1, 3)">
-              <img :src="getBossForSeason(1, 3)?.image" :alt="getBossForSeason(1, 3)?.name" class="boss-image">
-              <div class="boss-name">{{ getBossForSeason(1, 3)?.name }}</div>
-            </div>
-            <div class="boss-cell empty" v-else></div>
-            
-            <div class="boss-cell" v-if="getBossForSeason(2, 3)">
-              <img :src="getBossForSeason(2, 3)?.image" :alt="getBossForSeason(2, 3)?.name" class="boss-image">
-              <div class="boss-name">{{ getBossForSeason(2, 3)?.name }}</div>
-            </div>
-            <div class="boss-cell empty" v-else></div>
-            
-            <div class="boss-cell" v-if="getBossForSeason(3, 3)">
-              <img :src="getBossForSeason(3, 3)?.image" :alt="getBossForSeason(3, 3)?.name" class="boss-image">
-              <div class="boss-name">{{ getBossForSeason(3, 3)?.name }}</div>
-            </div>
-            <div class="boss-cell empty" v-else></div>
+            <!-- Row 3: Living Abyss/Machine-God positions -->
+            <template v-for="season in getSeasonCount()" :key="`row3-${season}`">
+              <div 
+                v-if="getBossForSeason(currentDestinysFlight, season, 3)"
+                class="boss-cell"
+              >
+                <img :src="getBossForSeason(currentDestinysFlight, season, 3)?.image" :alt="getBossForSeason(currentDestinysFlight, season, 3)?.name" class="boss-image">
+                <div class="boss-name">{{ getBossForSeason(currentDestinysFlight, season, 3)?.name }}</div>
+              </div>
+              <div 
+                v-else
+                class="boss-cell empty"
+              ></div>
+            </template>
+          </div>
 
-                          <!-- Mobile: Show only selected season -->
-              <div class="boss-schedule-mobile">
-                <div class="mobile-boss-list">
-                  <div
-                    v-for="position in [1, 2, 3]"
-                    :key="position"
-                    class="mobile-boss-item"
-                    v-if="getBossForSeason(activeSeason, position)"
-                  >
-                    <img :src="getBossForSeason(activeSeason, position)?.image" :alt="getBossForSeason(activeSeason, position)?.name" class="mobile-boss-image">
-                    <div class="mobile-boss-name">{{ getBossForSeason(activeSeason, position)?.name }}</div>
-                  </div>
-                <div v-if="!getBossForSeason(activeSeason, 1) && !getBossForSeason(activeSeason, 2) && !getBossForSeason(activeSeason, 3)" class="mobile-no-bosses">
-                  <div class="no-bosses-icon">📅</div>
-                  <div class="no-bosses-text">No bosses scheduled for this season</div>
-                </div>
+
+
+          <!-- Mobile: Show only selected season -->
+          <div class="boss-schedule-mobile">
+            <div class="mobile-boss-list">
+              <div
+                v-for="boss in mobileBossList"
+                :key="boss.position"
+                class="mobile-boss-item"
+              >
+                <img :src="boss.image" :alt="boss.name" class="mobile-boss-image">
+                <div class="mobile-boss-name">{{ boss.name }}</div>
+              </div>
+              <div v-if="!getBossForSeason(currentDestinysFlight, activeSeason, 1) && !getBossForSeason(currentDestinysFlight, activeSeason, 2) && !getBossForSeason(currentDestinysFlight, activeSeason, 3)" class="mobile-no-bosses">
+                <div class="no-bosses-icon">📅</div>
+                <div class="no-bosses-text">No bosses scheduled for this season</div>
               </div>
             </div>
           </div>
-
-          
         </div>
       </div>
     </section>
@@ -852,53 +934,132 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
     </section>
 
     <!-- Season Status Section -->
-    <section v-if="!hasSeasonData(activeSeason) && !isSeasonLoading" class="coming-soon-section">
+    <section v-if="!hasSeasonData(activeSeason) && !isSeasonLoading" class="coming-soon-section" :class="getSeasonStatusClass()">
       <div class="container">
         <div class="coming-soon-content">
           <div class="coming-soon-icon">{{ getSeasonStatusIcon(activeSeason) }}</div>
-          <h2 class="coming-soon-title">{{ getSeasonType(activeSeason) === 'current' ? 'Coming Soon!' : getSeasonType(activeSeason) === 'upcoming' ? 'Upcoming Season' : 'No Data Available' }}</h2>
+          
+          <!-- Dynamic title and subtitle based on season status -->
+          <h2 class="coming-soon-title">
+            <span v-if="currentDestinysFlight === 21 && activeSeason === 1">Season Just Finished</span>
+            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 2">Current Season</span>
+            <span v-else-if="currentDestinysFlight === 21 && (activeSeason === 3 || activeSeason === 4)">Upcoming Season</span>
+            <span v-else-if="currentDestinysFlight === 20 && activeSeason === 3">Previous Season</span>
+            <span v-else>No Data Available</span>
+          </h2>
+          
           <p class="coming-soon-subtitle">
-            <span v-if="getSeasonType(activeSeason) === 'current'">
-              Battle analysis data for Season {{ getSeasonDisplayName(activeSeason) }} will be available soon.
-            </span>
-            <span v-else-if="getSeasonType(activeSeason) === 'upcoming'">
-              Season {{ getSeasonDisplayName(activeSeason) }} is an upcoming season. No data is available yet.
-            </span>
-            <span v-else>
-              No battle analysis data is available for Season {{ getSeasonDisplayName(activeSeason) }}.
-            </span>
+            <span v-if="currentDestinysFlight === 21 && activeSeason === 1">Season 21-1 has just ended and is currently being tallied.</span>
+            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 2">Season 21-2 is currently active but no battle data has been recorded yet.</span>
+            <span v-else-if="currentDestinysFlight === 21 && (activeSeason === 3 || activeSeason === 4)">Season {{ currentDestinysFlight }}-{{ activeSeason }} is an upcoming season. No data is available yet.</span>
+            <span v-else-if="currentDestinysFlight === 20 && activeSeason === 3">Season 20-3 is a previous season with battle data available.</span>
+            <span v-else>No battle analysis data is available for this season.</span>
           </p>
+          
+          <!-- Helpful Information Cards -->
           <div class="coming-soon-info">
-            <div class="info-card" v-if="getSeasonType(activeSeason) === 'current'">
-              <div class="info-icon">📊</div>
-              <h3>Data Collection</h3>
-              <p>We're currently collecting battle data for this season. Check back later for detailed analysis.</p>
-            </div>
-            <div class="info-card" v-if="getSeasonType(activeSeason) === 'current'">
-              <div class="info-icon">🎯</div>
-              <h3>Boss Schedule</h3>
-              <p>View the boss schedule above to see which bosses will appear in this season.</p>
-            </div>
-            <div class="info-card" v-if="getSeasonType(activeSeason) === 'current'">
-              <div class="info-icon">📈</div>
-              <h3>Performance Tracking</h3>
-              <p>Once data is available, you'll be able to track guild performance and ticket usage.</p>
-            </div>
-            <div class="info-card" v-if="getSeasonType(activeSeason) === 'upcoming'">
-              <div class="info-icon">🔮</div>
-              <h3>Future Season</h3>
-              <p>This season hasn't started yet. Check the boss schedule above to see what's planned.</p>
-            </div>
-            <div class="info-card" v-if="getSeasonType(activeSeason) === 'upcoming'">
-              <div class="info-icon">📅</div>
-              <h3>Season Dates</h3>
-              <p>Season {{ getSeasonDisplayName(activeSeason) }} will run from {{ getSeasonDates(activeSeason) }}.</p>
-            </div>
-            <div class="info-card" v-if="getSeasonType(activeSeason) === 'upcoming'">
-              <div class="info-icon">🎯</div>
-              <h3>Preparation</h3>
-              <p>Use this time to prepare your guild for the upcoming battles and strategize your approach.</p>
-            </div>
+            <!-- Season 21-1: Tallying -->
+            <template v-if="currentDestinysFlight === 21 && activeSeason === 1">
+              <div class="info-card tallying">
+                <div class="info-icon">📈</div>
+                <h3>Tallying Results</h3>
+                <p>Final scores and rankings are being calculated. Check back soon for the complete results.</p>
+              </div>
+              <div class="info-card tallying">
+                <div class="info-icon">🏆</div>
+                <h3>Champions</h3>
+                <p>Top performers and guild rankings will be available once tallying is complete.</p>
+              </div>
+              <div class="info-card tallying">
+                <div class="info-icon">📅</div>
+                <h3>Next Season</h3>
+                <p>Season 21-2 is currently active. Check the boss schedule above for current battles.</p>
+              </div>
+            </template>
+
+            <!-- Season 21-2: Current Season -->
+            <template v-if="currentDestinysFlight === 21 && activeSeason === 2">
+              <div class="info-card current">
+                <div class="info-icon">⚔️</div>
+                <h3>Battles in Progress</h3>
+                <p>This season is currently running. Battle data will appear here once players start fighting bosses.</p>
+              </div>
+              <div class="info-card current">
+                <div class="info-icon">📊</div>
+                <h3>Live Updates</h3>
+                <p>Check back regularly to see real-time battle results and player rankings.</p>
+              </div>
+              <div class="info-card current">
+                <div class="info-icon">🎯</div>
+                <h3>Get Ready</h3>
+                <p>Prepare your guild for the current boss battles and strategize your approach.</p>
+              </div>
+            </template>
+
+            <!-- Seasons 21-3 & 21-4: Upcoming -->
+            <template v-if="currentDestinysFlight === 21 && (activeSeason === 3 || activeSeason === 4)">
+              <div class="info-card upcoming">
+                <div class="info-icon">🔮</div>
+                <h3>Future Season</h3>
+                <p>This season hasn't started yet. Check the boss schedule above to see what's planned.</p>
+              </div>
+              <div class="info-card upcoming">
+                <div class="info-icon">📅</div>
+                <h3>Season Dates</h3>
+                <p>
+                  <span v-if="activeSeason === 3">Season 21-3 will run from 09.11.25 - 09.17.25.</span>
+                  <span v-else-if="activeSeason === 4">Season 21-4 will run from 09.18.25 - 09.24.25.</span>
+                </p>
+              </div>
+              <div class="info-card upcoming">
+                <div class="info-icon">🎯</div>
+                <h3>Preparation</h3>
+                <p>Use this time to prepare your guild for the upcoming battles and strategize your approach.</p>
+              </div>
+            </template>
+
+            <!-- Season 20-3: Previous with Data -->
+            <template v-if="currentDestinysFlight === 20 && activeSeason === 3">
+              <div class="info-card previous">
+                <div class="info-icon">📊</div>
+                <h3>Data Available</h3>
+                <p>This season has completed and all battle data is available for review.</p>
+              </div>
+              <div class="info-card previous">
+                <div class="info-icon">🏆</div>
+                <h3>Final Results</h3>
+                <p>Check the Hall of Glory below to see final rankings and champions.</p>
+              </div>
+              <div class="info-card previous">
+                <div class="info-icon">📈</div>
+                <h3>Performance Analysis</h3>
+                <p>Review your guild's performance and identify areas for improvement.</p>
+              </div>
+            </template>
+
+            <!-- Default: Generic current/upcoming info -->
+            <template v-if="!(currentDestinysFlight === 21 && [1, 2, 3, 4].includes(activeSeason)) && !(currentDestinysFlight === 20 && activeSeason === 3)">
+              <div class="info-card" v-if="getSeasonType(activeSeason) === 'current'">
+                <div class="info-icon">📊</div>
+                <h3>Data Collection</h3>
+                <p>We're currently collecting battle data for this season. Check back later for detailed analysis.</p>
+              </div>
+              <div class="info-card" v-if="getSeasonType(activeSeason) === 'current'">
+                <div class="info-icon">🎯</div>
+                <h3>Boss Schedule</h3>
+                <p>View the boss schedule above to see which bosses will appear in this season.</p>
+              </div>
+              <div class="info-card" v-if="getSeasonType(activeSeason) === 'upcoming'">
+                <div class="info-icon">🔮</div>
+                <h3>Future Season</h3>
+                <p>This season hasn't started yet. Check the boss schedule above to see what's planned.</p>
+              </div>
+              <div class="info-card" v-if="getSeasonType(activeSeason) === 'upcoming'">
+                <div class="info-icon">📅</div>
+                <h3>Season Dates</h3>
+                <p>Season {{ getSeasonDisplayName(activeSeason) }} will run from {{ getSeasonDates(activeSeason) }}.</p>
+              </div>
+            </template>
           </div>
         </div>
       </div>
@@ -2408,5 +2569,101 @@ const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.valu
     flex-direction: column;
     gap: 0.5rem;
   }
+}
+
+/* Informational Banners for Seasons Without Data */
+.info-banner {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.banner-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.banner-icon {
+  font-size: 2rem;
+  color: #ffd700;
+}
+
+.banner-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.banner-subtitle {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1rem;
+}
+
+.banner-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.info-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.card-icon {
+  font-size: 1.5rem;
+  color: #ffd700;
+  margin-right: 0.5rem;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.card-text {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+.tallying {
+  --boss-color: #ff4444;
+  --boss-color-light: #ff6666;
+}
+
+.current-no-data {
+  --boss-color: #4444ff;
+  --boss-color-light: #6666ff;
+}
+
+.upcoming {
+  --boss-color: #44ff44;
+  --boss-color-light: #66ff66;
+}
+
+.previous-with-data {
+  --boss-color: #ffaa44;
+  --boss-color-light: #ffcc66;
 }
 </style>
