@@ -93,37 +93,72 @@ function parseSpreadsheetData(rows: any[][]): any[] {
   const playerRows = dataRows.slice(0, endIndex)
   
   console.log(`Processing ${playerRows.length} player rows (stopped at row ${endIndex})`)
+  console.log('Sample row structure:', playerRows[0])
   
   playerRows.forEach((row, index) => {
-    if (row.length < 6) return // Skip incomplete rows
+    if (row.length < 20) {
+      console.log(`Skipping row ${index + 1}: insufficient columns (${row.length})`)
+      return
+    }
     
     const rank = index + 1
-    const playerName = row[1] || `Player ${rank}`
     
     // Parse Red Velvet Dragon data (columns A-F: 0-5)
-    // Column 2 (C) contains damage in "Billion" format
+    // Column 1 (B) contains member names, Column 2 (C) contains damage
+    const redVelvetMemberName = row[1] || `Player ${rank}`
     const redVelvetDamageText = row[2] || ''
-    const redVelvetDamage = parseFloat(redVelvetDamageText.replace(' Billion', '')) * 1000000000 || 0 // Convert to actual number
-    const redVelvetBattlesRaw = parseInt(row[4]) || 0 // Column E - "Battles Done" = tickets used
-    // If no damage recorded, battles should be 0 (player didn't actually participate)
+    const redVelvetDamage = parseFloat(redVelvetDamageText.replace(' Billion', '')) * 1000000000 || 0
+    const redVelvetBattlesRaw = parseInt(row[4]) || 0 // Column E - "Battles Done"
     const redVelvetBattles = redVelvetDamage > 0 ? redVelvetBattlesRaw : 0
     const redVelvetAvg = parseInt(row[5]) || 0 // Column F
     
     // Parse Avatar of Destiny data (columns H-M: 7-12)
-    const avatarDamageText = row[9] || '' // Column J
-    const avatarDamage = parseFloat(avatarDamageText.replace(' Billion', '')) * 1000000000 || 0 // Convert to actual number
-    const avatarBattlesRaw = parseInt(row[11]) || 0 // Column L - "Battles Done" = tickets used
-    // If no damage recorded, battles should be 0 (player didn't actually participate)
+    // Column 8 (I) contains member names, Column 9 (J) contains damage
+    const avatarMemberName = row[8] || `Player ${rank}`
+    const avatarDamageText = row[9] || ''
+    const avatarDamage = parseFloat(avatarDamageText.replace(' Billion', '')) * 1000000000 || 0
+    const avatarBattlesRaw = parseInt(row[10]) || 0 // Column K - "Battles Done"
     const avatarBattles = avatarDamage > 0 ? avatarBattlesRaw : 0
-    const avatarAvg = parseInt(row[12]) || 0 // Column M
+    const avatarAvg = parseInt(row[11]) || 0 // Column L
     
     // Parse Living Abyss data (columns O-T: 14-19)
-    const livingAbyssDamageText = row[16] || '' // Column Q
-    const livingAbyssDamage = parseFloat(livingAbyssDamageText.replace(' Billion', '')) * 1000000000 || 0 // Convert to actual number
-    const livingAbyssBattlesRaw = parseInt(row[18]) || 0 // Column S - "Battles Done" = tickets used
-    // If no damage recorded, battles should be 0 (player didn't actually participate)
+    // Column 15 (P) contains member names, Column 16 (Q) contains damage
+    const livingAbyssMemberName = row[15] || `Player ${rank}`
+    const livingAbyssDamageText = row[16] || ''
+    const livingAbyssDamage = parseFloat(livingAbyssDamageText.replace(' Billion', '')) * 1000000000 || 0
+    const livingAbyssBattlesRaw = parseInt(row[17]) || 0 // Column R - "Battles Done"
     const livingAbyssBattles = livingAbyssDamage > 0 ? livingAbyssBattlesRaw : 0
-    const livingAbyssAvg = parseInt(row[19]) || 0 // Column T
+    const livingAbyssAvg = parseInt(row[18]) || 0 // Column S
+    
+    // Use the member name from the boss section that has actual data
+    // Priority: Avatar of Destiny > Living Abyss > Red Velvet Dragon
+    let playerName = avatarMemberName
+    if (!avatarMemberName || avatarMemberName === `Player ${rank}` || avatarMemberName === rank.toString()) {
+      playerName = livingAbyssMemberName
+    }
+    if (!playerName || playerName === `Player ${rank}` || playerName === rank.toString()) {
+      playerName = redVelvetMemberName
+    }
+    
+    // Additional fallback: if all names are just numbers, try to find a meaningful name
+    if (playerName === rank.toString() || playerName === `Player ${rank}`) {
+      // Look for any non-numeric name in the row
+      for (let col = 0; col < row.length; col++) {
+        const cellValue = row[col]
+        if (cellValue && typeof cellValue === 'string' && 
+            cellValue.length > 2 && 
+            !cellValue.match(/^\d+$/) && 
+            !cellValue.includes('Billion') && 
+            !cellValue.includes('Battles') &&
+            !cellValue.includes('avg')) {
+          playerName = cellValue
+          console.log(`Found alternative name for rank ${rank}: ${playerName} in column ${col}`)
+          break
+        }
+      }
+    }
+    
+    console.log(`Rank ${rank}: ${playerName} | RVD: ${redVelvetDamageText} | AoD: ${avatarDamageText} | LA: ${livingAbyssDamageText}`)
     
     players.push({
       rank,
