@@ -1,4 +1,4 @@
-import { defineEventHandler, readBody } from 'h3'
+import { defineEventHandler, readBody, createError } from 'h3'
 import { google } from 'googleapis'
 import { readFileSync } from 'fs'
 import { join } from 'path'

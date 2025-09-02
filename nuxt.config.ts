@@ -6,13 +6,9 @@ export default defineNuxtConfig({
   // Enable SSR for both website and web app modes
   ssr: true,
   
-  // Optimize for Vercel deployment with both modes
+  // Optimize for Vercel deployment
   nitro: {
-    preset: 'vercel',
-    prerender: {
-      routes: ['/'],
-      crawlLinks: true
-    }
+    preset: 'vercel'
   },
   
   runtimeConfig: {
