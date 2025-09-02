@@ -109,7 +109,7 @@ function parseSpreadsheetData(rows: any[][]): any[] {
     const redVelvetDamageText = row[2] || ''
     const redVelvetDamage = parseFloat(redVelvetDamageText.replace(' Billion', '')) * 1000000000 || 0
     const redVelvetBattlesRaw = parseInt(row[4]) || 0 // Column E - "Battles Done"
-    const redVelvetBattles = redVelvetBattlesRaw // Remove damage check - battles can exist even with 0 damage
+    const redVelvetBattles = redVelvetDamage > 0 ? redVelvetBattlesRaw : 0 // Only count tickets if damage > 0
     const redVelvetAvg = parseInt(row[5]) || 0 // Column F
     
     // Parse Avatar of Destiny data (columns H-M: 7-12)
@@ -118,7 +118,7 @@ function parseSpreadsheetData(rows: any[][]): any[] {
     const avatarDamageText = row[9] || ''
     const avatarDamage = parseFloat(avatarDamageText.replace(' Billion', '')) * 1000000000 || 0
     const avatarBattlesRaw = parseInt(row[10]) || 0 // Column K - "Battles Done"
-    const avatarBattles = avatarBattlesRaw // Remove damage check - battles can exist even with 0 damage
+    const avatarBattles = avatarDamage > 0 ? avatarBattlesRaw : 0 // Only count tickets if damage > 0
     const avatarAvg = parseInt(row[11]) || 0 // Column L
     
     // Parse Living Abyss data (columns O-T: 14-19)
@@ -127,7 +127,7 @@ function parseSpreadsheetData(rows: any[][]): any[] {
     const livingAbyssDamageText = row[16] || ''
     const livingAbyssDamage = parseFloat(livingAbyssDamageText.replace(' Billion', '')) * 1000000000 || 0
     const livingAbyssBattlesRaw = parseInt(row[17]) || 0 // Column R - "Battles Done"
-    const livingAbyssBattles = livingAbyssBattlesRaw // Remove damage check - battles can exist even with 0 damage
+    const livingAbyssBattles = livingAbyssDamage > 0 ? livingAbyssBattlesRaw : 0 // Only count tickets if damage > 0
     const livingAbyssAvg = parseInt(row[18]) || 0 // Column S
     
     // Use the member name from the boss section that has actual data
