@@ -8,7 +8,15 @@ export default defineNuxtConfig({
   
   // Optimize for Vercel deployment
   nitro: {
-    preset: 'vercel'
+    preset: 'vercel',
+    prerender: {
+      crawlLinks: false
+    }
+  },
+  
+  // Experimental features for better Vercel compatibility
+  experimental: {
+    payloadExtraction: false
   },
   
   runtimeConfig: {

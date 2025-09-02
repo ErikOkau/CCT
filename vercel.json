@@ -61,6 +61,14 @@
     {
       "source": "/manifest.json",
       "destination": "/manifest.json"
+    },
+    {
+      "source": "/_nuxt/(.*)",
+      "destination": "/_nuxt/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
