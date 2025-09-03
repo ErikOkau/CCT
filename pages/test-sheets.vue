@@ -100,7 +100,7 @@ const clearAllImages = () => {
   uploadedImages.value = []
 }
 
-const downloadSimplifiedCSV = () => {
+const downloadTableCSV = () => {
   const processedImages = uploadedImages.value.filter(img => img.csvData)
   
   if (processedImages.length === 0) return
@@ -118,8 +118,6 @@ const downloadSimplifiedCSV = () => {
     
     // Parse the new 4-row format
     let currentRow = 0
-    let firstBossName = ''
-    let secondBossName = ''
     let firstBossPlayers: Array<{ playerName: string; damage: number }> = []
     let secondBossPlayers: Array<{ playerName: string; damage: number }> = []
     let seasonTotalPlayers: Array<{ playerName: string; damage: number }> = []
@@ -134,21 +132,17 @@ const downloadSimplifiedCSV = () => {
       const columns = line.split(',')
       if (columns.length >= 2) {
         const playerName = columns[0]?.trim() || ''
-        const damage = parseFloat(columns[1]?.replace(/,/g, '') || '0')
+        // Keep the exact damage value as a string to preserve precision
+        const damageText = columns[1]?.trim() || '0'
+        // Convert to number but preserve the original text for display
+        const damage = parseFloat(damageText.replace(/,/g, '')) || 0
         
         if (playerName && playerName !== 'PlayerName') {
           if (currentRow === 0) {
             // First boss row
-            if (!firstBossName && i === 0) {
-              // Try to extract boss name from the first line or use default
-              firstBossName = '1st Boss'
-            }
             firstBossPlayers.push({ playerName, damage })
           } else if (currentRow === 1) {
             // Second boss row
-            if (!secondBossName && i === 0) {
-              secondBossName = '2nd Boss'
-            }
             secondBossPlayers.push({ playerName, damage })
           } else if (currentRow === 2) {
             // Season total row
@@ -182,41 +176,16 @@ const downloadSimplifiedCSV = () => {
   // Sort by season total damage (descending)
   allPlayers.sort((a, b) => b.seasonTotalDamage - a.seasonTotalDamage)
   
-  // Create CSV content with the new simplified format
+  // Create CSV content with proper table format
   const csvLines = []
   
-  // Row 1: First boss data
-  csvLines.push('PlayerName, DamageValue')
+  // Header row with column titles
+  csvLines.push('Member, Dmg Boss 1, Dmg Boss 2, Season Total')
+  
+  // Data rows - one row per player with all three values
   allPlayers.forEach(player => {
-    if (player.firstBossDamage > 0) {
-      csvLines.push(`${player.playerName}, ${player.firstBossDamage.toLocaleString()}`)
-    }
+    csvLines.push(`${player.playerName}, ${player.firstBossDamage}, ${player.secondBossDamage}, ${player.seasonTotalDamage}`)
   })
-  
-  // Blank row for separation
-  csvLines.push('')
-  
-  // Row 2: Second boss data
-  csvLines.push('PlayerName, DamageValue')
-  allPlayers.forEach(player => {
-    if (player.secondBossDamage > 0) {
-      csvLines.push(`${player.playerName}, ${player.secondBossDamage.toLocaleString()}`)
-    }
-  })
-  
-  // Blank row for separation
-  csvLines.push('')
-  
-  // Row 3: Season total data
-  csvLines.push('PlayerName, DamageValue')
-  allPlayers.forEach(player => {
-    if (player.seasonTotalDamage > 0) {
-      csvLines.push(`${player.playerName}, ${player.seasonTotalDamage.toLocaleString()}`)
-    }
-  })
-  
-  // Row 4: Blank row for separation
-  csvLines.push('')
   
   const combinedCSV = csvLines.join('\n')
   
@@ -228,7 +197,7 @@ const downloadSimplifiedCSV = () => {
   const url = window.URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = 'simplified_battle_data.csv'
+  a.download = 'battle_data_table.csv'
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
@@ -473,8 +442,8 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
                   <button @click="processAllScreenshots" :disabled="isProcessingScreenshot" class="control-button process-all">
                     🤖 Process All
                   </button>
-                                    <button @click="downloadSimplifiedCSV" :disabled="!uploadedImages.some(img => img.csvData)" class="control-button download-all">
-                   💾 Download Simplified CSV
+                                    <button @click="downloadTableCSV" :disabled="!uploadedImages.some(img => img.csvData)" class="control-button download-all">
+                                       💾 Download Table CSV
                  </button>
                  <button @click="clearAllImages" class="control-button clear-all">
                    🗑️ Clear All
@@ -486,7 +455,7 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
              <div v-if="uploadedImages.some(img => img.csvData)" class="simplified-csv-info">
                <div class="info-icon">ℹ️</div>
                <div class="info-content">
-                 <strong>Simplified CSV:</strong> All processed screenshots will be merged into a single CSV file with 4 rows: 1st boss damage, 2nd boss damage, season total, and blank separation rows.
+                                   <strong>Simplified CSV:</strong> All processed screenshots will be merged into a single CSV file with a table format: Member, Dmg Boss 1, Dmg Boss 2, Season Total.
                </div>
              </div>
 

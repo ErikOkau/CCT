@@ -45,6 +45,8 @@ CRITICAL INSTRUCTIONS:
 - Sort players by damage from highest to lowest within each row
 - If a player has no damage for a specific boss, use "0" for damage
 - Make sure the boss names in your output match exactly what you see in the screenshot headers
+- IMPORTANT: Extract the EXACT damage values as shown in the screenshot - do NOT round, truncate, or modify the numbers
+- Preserve all digits and commas in the damage values exactly as they appear
 
 Example format (replace boss names with actual names from your screenshot):
 PlayerName, DamageValue
