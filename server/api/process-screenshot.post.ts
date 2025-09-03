@@ -45,27 +45,31 @@ CRITICAL INSTRUCTIONS:
 - Sort players by damage from highest to lowest within each row
 - If a player has no damage for a specific boss, use "0" for damage
 - Make sure the boss names in your output match exactly what you see in the screenshot headers
-- IMPORTANT: Extract the EXACT damage values as shown in the screenshot - do NOT round, truncate, or modify the numbers
-- Preserve all digits and commas in the damage values exactly as they appear
+- IMPORTANT: Extract the EXACT damage values as shown in the screenshot
+- CRITICAL: Convert all damage values to billions format with 2 decimal places automatically
+  * If damage is 53,701,335,417 → convert to 53.70
+  * If damage is 229,966,815,174 → convert to 229.97
+  * If damage is 283,668,150,591 → convert to 283.67
+- The damage values in your output should already be in billions format (e.g., 53.70, not 53,701,335,417)
 - CRITICAL: You MUST extract data for ALL THREE sections: 1st boss, 2nd boss, AND season total
 - Each section should start with "PlayerName, DamageValue" header
 - Make sure there are blank lines between each section for clear separation
 
 Example format (replace boss names with actual names from your screenshot):
 PlayerName, DamageValue
-brownmascara, 53,701,335,417
-goonhak, 51,651,235,846
-pavlovapookie, 49,925,434,664
+brownmascara, 53.70
+goonhak, 51.65
+pavlovapookie, 49.93
 
 PlayerName, DamageValue  
-brownmascara, 229,966,815,174
-goonhak, 217,358,214,628
-pavlovapookie, 210,540,029,892
+brownmascara, 229.97
+goonhak, 217.36
+pavlovapookie, 210.54
 
 PlayerName, DamageValue
-brownmascara, 283,668,150,591
-goonhak, 269,009,450,474
-pavlovapookie, 260,465,464,556
+brownmascara, 283.67
+goonhak, 269.01
+pavlovapookie, 260.47
 
 (blank row)`
 

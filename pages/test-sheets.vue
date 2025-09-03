@@ -232,16 +232,12 @@ const downloadTableCSV = () => {
   const csvLines = []
   
      // Header row with column titles
-   csvLines.push('Member, Dmg Boss 1 (Billions), Dmg Boss 2 (Billions), Season Total (Billions)')
+   csvLines.push('Member, Dmg Boss 1, Dmg Boss 2, Season Total')
   
      // Data rows - one row per player with all three values
    allPlayers.forEach(player => {
-     // Convert damage values to billions format with 2 decimal places
-     const firstBossBillions = (player.firstBossDamage / 1000000000).toFixed(2)
-     const secondBossBillions = (player.secondBossDamage / 1000000000).toFixed(2)
-     const seasonTotalBillions = (player.seasonTotalDamage / 1000000000).toFixed(2)
-     
-     csvLines.push(`${player.playerName}, ${firstBossBillions}, ${secondBossBillions}, ${seasonTotalBillions}`)
+     // ChatGPT now outputs values already in billions format, so we can use them directly
+     csvLines.push(`${player.playerName}, ${player.firstBossDamageText}, ${player.secondBossDamageText}, ${player.seasonTotalDamageText}`)
    })
   
   const combinedCSV = csvLines.join('\n')
@@ -512,7 +508,7 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
              <div v-if="uploadedImages.some(img => img.csvData)" class="simplified-csv-info">
                <div class="info-icon">ℹ️</div>
                <div class="info-content">
-                                   <strong>Simplified CSV:</strong> All processed screenshots will be merged into a single CSV file with a table format: Member, Dmg Boss 1 (Billions), Dmg Boss 2 (Billions), Season Total (Billions).
+                                   <strong>Simplified CSV:</strong> All processed screenshots will be merged into a single CSV file with a table format: Member, Dmg Boss 1, Dmg Boss 2, Season Total. Damage values are automatically converted to billions format.
                </div>
              </div>
 
