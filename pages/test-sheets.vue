@@ -105,23 +105,26 @@ const downloadTableCSV = () => {
   
   if (processedImages.length === 0) return
   
-  // Parse all CSV data and combine into a single dataset
-  const allPlayers: Array<{
-    playerName: string
-    firstBossDamage: number
-    secondBossDamage: number
-    seasonTotalDamage: number
-  }> = []
+     // Parse all CSV data and combine into a single dataset
+   const allPlayers: Array<{
+     playerName: string
+     firstBossDamage: number
+     firstBossDamageText: string
+     secondBossDamage: number
+     secondBossDamageText: string
+     seasonTotalDamage: number
+     seasonTotalDamageText: string
+   }> = []
   
   processedImages.forEach(image => {
     console.log(`Raw CSV data from ${image.file.name}:`, image.csvData)
     const csvLines = cleanCSVData(image.csvData!).split('\n')
     console.log(`Cleaned CSV lines:`, csvLines)
     
-    // Parse the new 4-row format more robustly
-    let firstBossPlayers: Array<{ playerName: string; damage: number }> = []
-    let secondBossPlayers: Array<{ playerName: string; damage: number }> = []
-    let seasonTotalPlayers: Array<{ playerName: string; damage: number }> = []
+         // Parse the new 4-row format more robustly
+     let firstBossPlayers: Array<{ playerName: string; damage: number; damageText: string }> = []
+     let secondBossPlayers: Array<{ playerName: string; damage: number; damageText: string }> = []
+     let seasonTotalPlayers: Array<{ playerName: string; damage: number; damageText: string }> = []
     
     // Find the sections by looking for "PlayerName" headers
     let currentSection = 0 // 0 = first boss, 1 = second boss, 2 = season total
@@ -143,37 +146,37 @@ const downloadTableCSV = () => {
           continue
         }
         
-        // Check if this is a data line (player name + damage)
-        if (firstColumn && firstColumn !== 'PlayerName' && secondColumn) {
-          // Parse damage value, preserving exact format
-          const damageText = secondColumn
-          const damage = parseFloat(damageText.replace(/,/g, '')) || 0
-          
-          if (damage > 0) { // Only add players with actual damage
-            if (currentSection === 1) {
-              // First boss section
-              firstBossPlayers.push({ playerName: firstColumn, damage })
-            } else if (currentSection === 2) {
-              // Second boss section
-              secondBossPlayers.push({ playerName: firstColumn, damage })
-            } else if (currentSection === 3) {
-              // Season total section
-              seasonTotalPlayers.push({ playerName: firstColumn, damage })
-            }
-          }
-        }
+                 // Check if this is a data line (player name + damage)
+         if (firstColumn && firstColumn !== 'PlayerName' && secondColumn) {
+           // Parse damage value, preserving exact format
+           const damageText = secondColumn
+           const damage = parseFloat(damageText.replace(/,/g, '')) || 0
+           
+           if (damage > 0) { // Only add players with actual damage
+             if (currentSection === 1) {
+               // First boss section
+               firstBossPlayers.push({ playerName: firstColumn, damage, damageText })
+             } else if (currentSection === 2) {
+               // Second boss section
+               secondBossPlayers.push({ playerName: firstColumn, damage, damageText })
+             } else if (currentSection === 3) {
+               // Season total section
+               seasonTotalPlayers.push({ playerName: firstColumn, damage, damageText })
+             }
+           }
+         }
       }
     }
     
-    // Debug logging
-    console.log(`Parsed ${image.file.name}:`, {
-      firstBoss: firstBossPlayers.length,
-      secondBoss: secondBossPlayers.length,
-      seasonTotal: seasonTotalPlayers.length,
-      firstBossSample: firstBossPlayers.slice(0, 2),
-      secondBossSample: secondBossPlayers.slice(0, 2),
-      seasonTotalSample: seasonTotalPlayers.slice(0, 2)
-    })
+         // Debug logging
+     console.log(`Parsed ${image.file.name}:`, {
+       firstBoss: firstBossPlayers.length,
+       secondBoss: secondBossPlayers.length,
+       seasonTotal: seasonTotalPlayers.length,
+       firstBossSample: firstBossPlayers.slice(0, 2).map(p => ({ name: p.playerName, damage: p.damage, damageText: p.damageText })),
+       secondBossSample: secondBossPlayers.slice(0, 2).map(p => ({ name: p.playerName, damage: p.damage, damageText: p.damageText })),
+       seasonTotalSample: seasonTotalPlayers.slice(0, 2).map(p => ({ name: p.playerName, damage: p.damage, damageText: p.damageText }))
+     })
     
     // Validate that we got data from all three sections
     if (firstBossPlayers.length === 0 || secondBossPlayers.length === 0 || seasonTotalPlayers.length === 0) {
@@ -191,42 +194,55 @@ const downloadTableCSV = () => {
       ...seasonTotalPlayers.map(p => p.playerName)
     ])
     
-    allPlayerNames.forEach(playerName => {
-      const firstBossData = firstBossPlayers.find(p => p.playerName === playerName)
-      const secondBossData = secondBossPlayers.find(p => p.playerName === playerName)
-      const seasonTotalData = seasonTotalPlayers.find(p => p.playerName === playerName)
-      
-      allPlayers.push({
-        playerName,
-        firstBossDamage: firstBossData?.damage || 0,
-        secondBossDamage: secondBossData?.damage || 0,
-        seasonTotalDamage: seasonTotalData?.damage || 0
-      })
-    })
+         allPlayerNames.forEach(playerName => {
+       const firstBossData = firstBossPlayers.find(p => p.playerName === playerName)
+       const secondBossData = secondBossPlayers.find(p => p.playerName === playerName)
+       const seasonTotalData = seasonTotalPlayers.find(p => p.playerName === playerName)
+       
+       allPlayers.push({
+         playerName,
+         firstBossDamage: firstBossData?.damage || 0,
+         firstBossDamageText: firstBossData?.damageText || '0',
+         secondBossDamage: secondBossData?.damage || 0,
+         secondBossDamageText: secondBossData?.damageText || '0',
+         seasonTotalDamage: seasonTotalData?.damage || 0,
+         seasonTotalDamageText: seasonTotalData?.damageText || '0'
+       })
+     })
   })
   
   // Sort by season total damage (descending)
   allPlayers.sort((a, b) => b.seasonTotalDamage - a.seasonTotalDamage)
   
-  // Debug summary
-  console.log('Final processing summary:', {
-    totalPlayers: allPlayers.length,
-    playersWithFirstBoss: allPlayers.filter(p => p.firstBossDamage > 0).length,
-    playersWithSecondBoss: allPlayers.filter(p => p.secondBossDamage > 0).length,
-    playersWithSeasonTotal: allPlayers.filter(p => p.seasonTotalDamage > 0).length,
-    samplePlayer: allPlayers[0]
-  })
+     // Debug summary
+   console.log('Final processing summary:', {
+     totalPlayers: allPlayers.length,
+     playersWithFirstBoss: allPlayers.filter(p => p.firstBossDamage > 0).length,
+     playersWithSecondBoss: allPlayers.filter(p => p.secondBossDamage > 0).length,
+     playersWithSeasonTotal: allPlayers.filter(p => p.seasonTotalDamage > 0).length,
+     samplePlayer: allPlayers[0],
+     sampleDamageTexts: {
+       firstBoss: allPlayers[0]?.firstBossDamageText,
+       secondBoss: allPlayers[0]?.secondBossDamageText,
+       seasonTotal: allPlayers[0]?.seasonTotalDamageText
+     }
+   })
   
   // Create CSV content with proper table format
   const csvLines = []
   
-  // Header row with column titles
-  csvLines.push('Member, Dmg Boss 1, Dmg Boss 2, Season Total')
+     // Header row with column titles
+   csvLines.push('Member, Dmg Boss 1 (Billions), Dmg Boss 2 (Billions), Season Total (Billions)')
   
-  // Data rows - one row per player with all three values
-  allPlayers.forEach(player => {
-    csvLines.push(`${player.playerName}, ${player.firstBossDamage}, ${player.secondBossDamage}, ${player.seasonTotalDamage}`)
-  })
+     // Data rows - one row per player with all three values
+   allPlayers.forEach(player => {
+     // Convert damage values to billions format with 2 decimal places
+     const firstBossBillions = (player.firstBossDamage / 1000000000).toFixed(2)
+     const secondBossBillions = (player.secondBossDamage / 1000000000).toFixed(2)
+     const seasonTotalBillions = (player.seasonTotalDamage / 1000000000).toFixed(2)
+     
+     csvLines.push(`${player.playerName}, ${firstBossBillions}, ${secondBossBillions}, ${seasonTotalBillions}`)
+   })
   
   const combinedCSV = csvLines.join('\n')
   
@@ -496,7 +512,7 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
              <div v-if="uploadedImages.some(img => img.csvData)" class="simplified-csv-info">
                <div class="info-icon">ℹ️</div>
                <div class="info-content">
-                                   <strong>Simplified CSV:</strong> All processed screenshots will be merged into a single CSV file with a table format: Member, Dmg Boss 1, Dmg Boss 2, Season Total.
+                                   <strong>Simplified CSV:</strong> All processed screenshots will be merged into a single CSV file with a table format: Member, Dmg Boss 1 (Billions), Dmg Boss 2 (Billions), Season Total (Billions).
                </div>
              </div>
 
