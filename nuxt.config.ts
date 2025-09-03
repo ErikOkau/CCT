@@ -16,7 +16,19 @@ export default defineNuxtConfig({
   
   // Experimental features for better Vercel compatibility
   experimental: {
-    payloadExtraction: false
+    payloadExtraction: false,
+    inlineSSRStyles: false
+  },
+  
+  // Vercel-specific optimizations
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: undefined
+        }
+      }
+    }
   },
   
   runtimeConfig: {
