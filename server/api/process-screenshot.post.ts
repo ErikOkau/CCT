@@ -20,44 +20,46 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Prepare the prompt for ChatGPT
-    const prompt = `Please analyze this screenshot of a game leaderboard and extract the data in CSV format. The screenshot shows player performance data with columns for Player, Red Velvet Dragon, Avatar of Destiny, and Living Abyss. Each row should include:
+    // Prepare the prompt for ChatGPT with simplified format
+    const prompt = `Please analyze this screenshot of a game leaderboard and extract the data in a simple 4-row format. 
 
-1. Player name (EXTRACT ONLY REAL PLAYER NAMES FROM THE SCREENSHOT - DO NOT GENERATE FAKE NAMES)
-2. Red Velvet Dragon damage (in billions) and battles count
-3. Avatar of Destiny damage (in billions) and battles count  
-4. Living Abyss damage (in billions) and battles count
-5. Player rank (Member/Officer/Leader)
+FIRST, identify the boss names from the column headers at the top of the screenshot. Look for the main damage columns (usually the 2nd and 3rd columns after the Player column).
 
-Please format the output as a properly formatted CSV with the following structure:
-Rank,Player Name,Red Velvet Dragon Damage,Red Velvet Dragon Unit,Red Velvet Dragon Battles,Avatar of Destiny Damage,Avatar of Destiny Unit,Avatar of Destiny Battles,Living Abyss Damage,Living Abyss Unit,Living Abyss Battles,Guild Rank
+Then, extract the data in exactly this format with 4 rows separated by blank columns:
 
-CRITICAL INSTRUCTIONS: 
+Row 1: Member names and 1st boss damage (extract the first boss name you see in the headers)
+Row 2: Member names and 2nd boss damage (extract the second boss name you see in the headers)  
+Row 3: Member names and season total damage
+Row 4: (blank row for separation)
+
+CRITICAL INSTRUCTIONS:
+- Look at the column headers to identify the actual boss names (e.g., "Avatar of Destiny", "Living Abyss", etc.)
+- DO NOT use generic names like "Boss 1" or "Boss 2" - use the actual names from the screenshot
 - Extract ONLY real player names that are visible in the screenshot
-- DO NOT generate fake player names like "Player Name", "PlayerName", or placeholder names
-- If you cannot read a player name clearly, use "Unknown Player" instead of making up names
+- DO NOT generate fake player names
+- If you cannot read a player name clearly, use "Unknown Player"
+- Format each row as: "PlayerName, DamageValue" (e.g., "brownmascara, 53,701,335,417")
 - Use commas as delimiters
-- Do NOT include quotes around the header row
-- Do NOT include quotes around data values unless they contain commas
-- Ensure each row has exactly 12 columns
-- If a player has no damage for a specific boss, use "0" for damage and "0" for battles
-- If a player has no battles for a specific boss, use "0" for battles
-- Make sure the CSV is properly formatted for import into Google Sheets or Excel
-- Add "Billions" in the unit columns (columns 4, 7, and 10) to indicate the unit of measurement
-- IGNORE ANY "Season Total" COLUMN - do NOT use Season Total data for any boss
-- ONLY extract data from the three specific boss columns: Red Velvet Dragon, Avatar of Destiny, and Living Abyss
-- If there is a "Season Total" column in the screenshot, completely ignore it and do not include its data
-- The third boss column should be "Living Abyss" - if a player has no Living Abyss data, use "0" for both damage and battles
-- SORT PLAYERS BY DAMAGE: For each boss column, sort players from highest damage to lowest damage
-- Update the rank numbers (column 1) to reflect the sorted order for each boss
-- Players with 0 damage should be ranked last
-- INCLUDE ALL PLAYERS: Make sure to include ALL players visible in the screenshot, even if they have 0 damage for all bosses
-- COUNT VERIFICATION: Count the total number of players in the screenshot and ensure your CSV has exactly that many rows
-- ZERO DAMAGE PLAYERS: If a player shows "N/A" or "0" damage for all bosses, still include them with "0" damage and "0" battles
+- Do NOT include quotes around values
+- Include ALL players visible in the screenshot
+- Sort players by damage from highest to lowest within each row
+- If a player has no damage for a specific boss, use "0" for damage
+- Make sure the boss names in your output match exactly what you see in the screenshot headers
 
-Example format:
-Rank,Player Name,Red Velvet Dragon Damage,Red Velvet Dragon Unit,Red Velvet Dragon Battles,Avatar of Destiny Damage,Avatar of Destiny Unit,Avatar of Destiny Battles,Living Abyss Damage,Living Abyss Unit,Living Abyss Battles,Guild Rank
-1,RealPlayerName,123.4,Billions,5,67.8,Billions,3,45.6,Billions,2,Member`
+Example format (replace boss names with actual names from your screenshot):
+PlayerName, DamageValue
+goonhak, 51,651,235,846
+pavlovapookie, 49,925,434,664
+
+PlayerName, DamageValue  
+brownmascara, 229,966,815,174
+goonhak, 217,358,214,628
+
+PlayerName, DamageValue
+brownmascara, 283,668,150,591
+goonhak, 269,009,450,474
+
+(blank row)`
 
     // Call ChatGPT API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {

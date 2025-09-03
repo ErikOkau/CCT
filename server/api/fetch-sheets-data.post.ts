@@ -108,27 +108,27 @@ function parseSpreadsheetData(rows: any[][]): any[] {
     const redVelvetMemberName = row[1] || `Player ${rank}`
     const redVelvetDamageText = row[2] || ''
     const redVelvetDamage = parseFloat(redVelvetDamageText.replace(' Billion', '')) * 1000000000 || 0
-    const redVelvetBattlesRaw = parseInt(row[4]) || 0 // Column E - "Battles Done"
+    const redVelvetBattlesRaw = parseInt(row[4]) || 0 // Column E - "Battles Done" (correct mapping)
     const redVelvetBattles = redVelvetDamage > 0 ? redVelvetBattlesRaw : 0 // Only count tickets if damage > 0
-    const redVelvetAvg = parseInt(row[5]) || 0 // Column F
+    const redVelvetAvg = parseInt(row[5]) || 0 // Column F (correct mapping)
     
     // Parse Avatar of Destiny data (columns H-M: 7-12)
     // Column 8 (I) contains member names, Column 9 (J) contains damage
     const avatarMemberName = row[8] || `Player ${rank}`
     const avatarDamageText = row[9] || ''
     const avatarDamage = parseFloat(avatarDamageText.replace(' Billion', '')) * 1000000000 || 0
-    const avatarBattlesRaw = parseInt(row[10]) || 0 // Column K - "Battles Done"
+    const avatarBattlesRaw = parseInt(row[11]) || 0 // Column L - "Battles Done" (correct: index 11)
     const avatarBattles = avatarDamage > 0 ? avatarBattlesRaw : 0 // Only count tickets if damage > 0
-    const avatarAvg = parseInt(row[11]) || 0 // Column L
+    const avatarAvg = parseInt(row[12]) || 0 // Column M (correct: index 12)
     
     // Parse Living Abyss data (columns O-T: 14-19)
     // Column 15 (P) contains member names, Column 16 (Q) contains damage
     const livingAbyssMemberName = row[15] || `Player ${rank}`
     const livingAbyssDamageText = row[16] || ''
     const livingAbyssDamage = parseFloat(livingAbyssDamageText.replace(' Billion', '')) * 1000000000 || 0
-    const livingAbyssBattlesRaw = parseInt(row[17]) || 0 // Column R - "Battles Done"
+    const livingAbyssBattlesRaw = parseInt(row[18]) || 0 // Column S - "Battles Done" (correct: index 18)
     const livingAbyssBattles = livingAbyssDamage > 0 ? livingAbyssBattlesRaw : 0 // Only count tickets if damage > 0
-    const livingAbyssAvg = parseInt(row[18]) || 0 // Column S
+    const livingAbyssAvg = parseInt(row[19]) || 0 // Column T (correct: index 19)
     
     // Use the member name from the boss section that has actual data
     // Priority: Avatar of Destiny > Living Abyss > Red Velvet Dragon

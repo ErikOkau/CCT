@@ -100,110 +100,125 @@ const clearAllImages = () => {
   uploadedImages.value = []
 }
 
-const downloadAllCSV = () => {
+const downloadSimplifiedCSV = () => {
   const processedImages = uploadedImages.value.filter(img => img.csvData)
   
   if (processedImages.length === 0) return
   
   // Parse all CSV data and combine into a single dataset
   const allPlayers: Array<{
-    rank: number
     playerName: string
-    redVelvetDragonDamage: number
-    redVelvetDragonBattles: number
-    avatarOfDestinyDamage: number
-    avatarOfDestinyBattles: number
-    livingAbyssDamage: number
-    livingAbyssBattles: number
-    guildRank: string
+    firstBossDamage: number
+    secondBossDamage: number
+    seasonTotalDamage: number
   }> = []
   
   processedImages.forEach(image => {
     const csvLines = cleanCSVData(image.csvData!).split('\n')
     
-    // Skip the header line and process data lines
-    for (let i = 1; i < csvLines.length; i++) {
+    // Parse the new 4-row format
+    let currentRow = 0
+    let firstBossName = ''
+    let secondBossName = ''
+    let firstBossPlayers: Array<{ playerName: string; damage: number }> = []
+    let secondBossPlayers: Array<{ playerName: string; damage: number }> = []
+    let seasonTotalPlayers: Array<{ playerName: string; damage: number }> = []
+    
+    for (let i = 0; i < csvLines.length; i++) {
       const line = csvLines[i].trim()
-      if (!line) continue
+      if (!line) {
+        currentRow++
+        continue
+      }
       
       const columns = line.split(',')
-      if (columns.length >= 12) {
-        const player = {
-          rank: parseInt(columns[0]) || 0,
-          playerName: columns[1]?.trim() || '',
-          redVelvetDragonDamage: parseFloat(columns[2]) || 0,
-          redVelvetDragonBattles: parseInt(columns[4]) || 0,
-          avatarOfDestinyDamage: parseFloat(columns[5]) || 0,
-          avatarOfDestinyBattles: parseInt(columns[7]) || 0,
-          livingAbyssDamage: parseFloat(columns[8]) || 0,
-          livingAbyssBattles: parseInt(columns[10]) || 0,
-          guildRank: columns[11]?.trim() || 'Member'
+      if (columns.length >= 2) {
+        const playerName = columns[0]?.trim() || ''
+        const damage = parseFloat(columns[1]?.replace(/,/g, '') || '0')
+        
+        if (playerName && playerName !== 'PlayerName') {
+          if (currentRow === 0) {
+            // First boss row
+            if (!firstBossName && i === 0) {
+              // Try to extract boss name from the first line or use default
+              firstBossName = '1st Boss'
+            }
+            firstBossPlayers.push({ playerName, damage })
+          } else if (currentRow === 1) {
+            // Second boss row
+            if (!secondBossName && i === 0) {
+              secondBossName = '2nd Boss'
+            }
+            secondBossPlayers.push({ playerName, damage })
+          } else if (currentRow === 2) {
+            // Season total row
+            seasonTotalPlayers.push({ playerName, damage })
+          }
         }
-        allPlayers.push(player)
       }
+    }
+    
+    // Combine all unique players
+    const allPlayerNames = new Set([
+      ...firstBossPlayers.map(p => p.playerName),
+      ...secondBossPlayers.map(p => p.playerName),
+      ...seasonTotalPlayers.map(p => p.playerName)
+    ])
+    
+    allPlayerNames.forEach(playerName => {
+      const firstBossData = firstBossPlayers.find(p => p.playerName === playerName)
+      const secondBossData = secondBossPlayers.find(p => p.playerName === playerName)
+      const seasonTotalData = seasonTotalPlayers.find(p => p.playerName === playerName)
+      
+      allPlayers.push({
+        playerName,
+        firstBossDamage: firstBossData?.damage || 0,
+        secondBossDamage: secondBossData?.damage || 0,
+        seasonTotalDamage: seasonTotalData?.damage || 0
+      })
+    })
+  })
+  
+  // Sort by season total damage (descending)
+  allPlayers.sort((a, b) => b.seasonTotalDamage - a.seasonTotalDamage)
+  
+  // Create CSV content with the new simplified format
+  const csvLines = []
+  
+  // Row 1: First boss data
+  csvLines.push('PlayerName, DamageValue')
+  allPlayers.forEach(player => {
+    if (player.firstBossDamage > 0) {
+      csvLines.push(`${player.playerName}, ${player.firstBossDamage.toLocaleString()}`)
     }
   })
   
-  // Sort by total damage (descending)
-  allPlayers.sort((a, b) => (b.redVelvetDragonDamage + b.avatarOfDestinyDamage + b.livingAbyssDamage) - (a.redVelvetDragonDamage + a.avatarOfDestinyDamage + a.livingAbyssDamage))
+  // Blank row for separation
+  csvLines.push('')
   
-  // Update ranks based on sorted order
-  allPlayers.forEach((player, index) => {
-    player.rank = index + 1
+  // Row 2: Second boss data
+  csvLines.push('PlayerName, DamageValue')
+  allPlayers.forEach(player => {
+    if (player.secondBossDamage > 0) {
+      csvLines.push(`${player.playerName}, ${player.secondBossDamage.toLocaleString()}`)
+    }
   })
   
-  // Create separate sorted lists for each boss (include ALL players)
-  const redVelvetPlayers = allPlayers
-    .sort((a, b) => b.redVelvetDragonDamage - a.redVelvetDragonDamage)
-    .map((player, index) => ({
-      rank: index + 1,
-      playerName: player.playerName,
-      damage: player.redVelvetDragonDamage,
-      battles: player.redVelvetDragonBattles,
-      avgPerTicket: player.redVelvetDragonBattles > 0 ? Math.round(player.redVelvetDragonDamage / player.redVelvetDragonBattles * 1000) : 0
-    }))
+  // Blank row for separation
+  csvLines.push('')
   
-  const avatarPlayers = allPlayers
-    .sort((a, b) => b.avatarOfDestinyDamage - a.avatarOfDestinyDamage)
-    .map((player, index) => ({
-      rank: index + 1,
-      playerName: player.playerName,
-      damage: player.avatarOfDestinyDamage,
-      battles: player.avatarOfDestinyBattles,
-      avgPerTicket: player.avatarOfDestinyBattles > 0 ? Math.round(player.avatarOfDestinyDamage / player.avatarOfDestinyBattles * 1000) : 0
-    }))
+  // Row 3: Season total data
+  csvLines.push('PlayerName, DamageValue')
+  allPlayers.forEach(player => {
+    if (player.seasonTotalDamage > 0) {
+      csvLines.push(`${player.playerName}, ${player.seasonTotalDamage.toLocaleString()}`)
+    }
+  })
   
-  const livingAbyssPlayers = allPlayers
-    .sort((a, b) => b.livingAbyssDamage - a.livingAbyssDamage)
-    .map((player, index) => ({
-      rank: index + 1,
-      playerName: player.playerName,
-      damage: player.livingAbyssDamage,
-      battles: player.livingAbyssBattles,
-      avgPerTicket: player.livingAbyssBattles > 0 ? Math.round(player.livingAbyssDamage / player.livingAbyssBattles * 1000) : 0
-    }))
+  // Row 4: Blank row for separation
+  csvLines.push('')
   
-  // Create CSV content with three separate sections
-  // First row: Boss names spanning multiple columns
-  const bossHeaderRow = '                                       RED VELVET DRAGON,,,,,,,                    AVATAR OF DESTINY,,,,,,,                           LIVING ABYSS,,,,'
-  
-  // Second row: Column headers for each boss section
-  const columnHeaderRow = ',Members:,Damage ,,Battles Done:,avg DMG/Ticket:,,,Members:,Damage ,,Battles Done:,avg DMG/Ticket:,,,Members:,Damage ,,Battles Done:,avg DMG/Ticket:'
-  
-  // Always create exactly 30 rows for each boss section
-  const totalRows = 30
-  
-  const csvLines = []
-  for (let i = 0; i < totalRows; i++) {
-    const redVelvetPlayer = redVelvetPlayers[i] || { rank: i + 1, playerName: '', damage: 0, battles: 0, avgPerTicket: 0 }
-    const avatarPlayer = avatarPlayers[i] || { rank: i + 1, playerName: '', damage: 0, battles: 0, avgPerTicket: 0 }
-    const livingAbyssPlayer = livingAbyssPlayers[i] || { rank: i + 1, playerName: '', damage: 0, battles: 0, avgPerTicket: 0 }
-    
-    const line = `${redVelvetPlayer.rank},${redVelvetPlayer.playerName},${redVelvetPlayer.damage.toFixed(1)},Billion,${redVelvetPlayer.battles},${redVelvetPlayer.avgPerTicket},,${avatarPlayer.rank},${avatarPlayer.playerName},${avatarPlayer.damage.toFixed(1)},Billion,${avatarPlayer.battles},${avatarPlayer.avgPerTicket},,${livingAbyssPlayer.rank},${livingAbyssPlayer.playerName},${livingAbyssPlayer.damage.toFixed(1)},Billion,${livingAbyssPlayer.battles},${livingAbyssPlayer.avgPerTicket}`
-    csvLines.push(line)
-  }
-  
-  const combinedCSV = bossHeaderRow + '\n' + columnHeaderRow + '\n' + csvLines.join('\n')
+  const combinedCSV = csvLines.join('\n')
   
   // Add BOM (Byte Order Mark) for proper UTF-8 detection in Google Sheets
   const BOM = '\uFEFF'
@@ -213,7 +228,7 @@ const downloadAllCSV = () => {
   const url = window.URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = 'combined_battle_data.csv'
+  a.download = 'simplified_battle_data.csv'
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
@@ -458,8 +473,8 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
                   <button @click="processAllScreenshots" :disabled="isProcessingScreenshot" class="control-button process-all">
                     🤖 Process All
                   </button>
-                 <button @click="downloadAllCSV" :disabled="!uploadedImages.some(img => img.csvData)" class="control-button download-all">
-                   💾 Download Combined CSV
+                                    <button @click="downloadSimplifiedCSV" :disabled="!uploadedImages.some(img => img.csvData)" class="control-button download-all">
+                   💾 Download Simplified CSV
                  </button>
                  <button @click="clearAllImages" class="control-button clear-all">
                    🗑️ Clear All
@@ -467,12 +482,11 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
                </div>
              </div>
              
-             <!-- Combined CSV Info -->
-             <div v-if="uploadedImages.some(img => img.csvData)" class="combined-csv-info">
+             <!-- Simplified CSV Info -->
+             <div v-if="uploadedImages.some(img => img.csvData)" class="simplified-csv-info">
                <div class="info-icon">ℹ️</div>
                <div class="info-content">
-                 <strong>Combined CSV:</strong> All processed screenshots will be merged into a single CSV file, sorted by total damage (highest first). 
-                 Each row includes the source screenshot filename for reference.
+                 <strong>Simplified CSV:</strong> All processed screenshots will be merged into a single CSV file with 4 rows: 1st boss damage, 2nd boss damage, season total, and blank separation rows.
                </div>
              </div>
 
@@ -935,8 +949,8 @@ const formatAvgDamage = (avgDamage: number | undefined) => {
   background: linear-gradient(45deg, #f44336, #d32f2f);
 }
 
-/* Combined CSV Info */
-.combined-csv-info {
+/* Simplified CSV Info */
+.simplified-csv-info {
   background: rgba(33, 150, 243, 0.1);
   border: 1px solid rgba(33, 150, 243, 0.3);
   border-radius: 8px;
