@@ -1,34 +1,19 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  devtools: { enabled: true },
+  devtools: { enabled: false }, // Disable in production
   css: ['~/assets/scss/main.scss'],
   
-  // Enable SSR for both website and web app modes
-  ssr: true,
+  // Generate static site for Vercel to avoid dynamic import issues
+  ssr: false,
   
   // Optimize for Vercel deployment
   nitro: {
-    preset: 'vercel',
-    prerender: {
-      crawlLinks: false
-    }
+    preset: 'vercel'
   },
   
-  // Experimental features for better Vercel compatibility
+  // Disable experimental features that cause issues
   experimental: {
-    payloadExtraction: false,
-    inlineSSRStyles: false
-  },
-  
-  // Vercel-specific optimizations
-  vite: {
-    build: {
-      rollupOptions: {
-        output: {
-          manualChunks: undefined
-        }
-      }
-    }
+    payloadExtraction: false
   },
   
   runtimeConfig: {
