@@ -172,13 +172,12 @@ const isSeasonLoading = ref(false)
 const fetchSeasonData = async (season: number) => {
   let config: any
   
-  // Handle Season 21-1 specifically
-  if (season === 21) {
+  // Handle Destiny's Flight 21 seasons
+  if (currentDestinysFlight.value === 21) {
+    // For Destiny's Flight 21, use the 21-1 data for all seasons (since we only have 21-1 data)
     config = seasonConfigurations[21]
-    currentDestinysFlight.value = 21 // Set Destiny's Flight to 21 for Season 21-1
   } else {
     config = seasonConfigurations[season as keyof typeof seasonConfigurations]
-    currentDestinysFlight.value = 20 // Set Destiny's Flight to 20 for other seasons
   }
   
   if (!config || !config.hasData) {

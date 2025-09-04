@@ -174,16 +174,16 @@ export class BattleAnalyzer {
         livingAbyss: players.reduce((sum, p) => sum + p.livingAbyss.battles, 0)
       }
     } else if (season === 1 && destinysFlight === 21) {
-      // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void
-      totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + (p.machineGod?.battles || 0), 0)
+      // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void (using livingAbyss data)
+      totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + p.livingAbyss.battles, 0)
       playersBelowMinimum = players.filter(p => {
-        const playerTickets = p.avatarOfDestiny.battles + (p.machineGod?.battles || 0)
+        const playerTickets = p.avatarOfDestiny.battles + p.livingAbyss.battles
         return playerTickets < MIN_REQUIRED_TICKETS
       }).length
       ticketsUsedByBoss = {
         redVelvet: 0,
         avatar: players.reduce((sum, p) => sum + p.avatarOfDestiny.battles, 0),
-        livingAbyss: 0 // Machine God replaces Living Abyss in season 21-1
+        livingAbyss: players.reduce((sum, p) => sum + p.livingAbyss.battles, 0) // Machine God data in livingAbyss field
       }
     } else {
       // Default fallback: Avatar of Destiny and Living Abyss
@@ -301,10 +301,10 @@ export class BattleAnalyzer {
         return playerTickets < MIN_REQUIRED_TICKETS
       }).length
     } else if (season === 1 && destinysFlight === 21) {
-      // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void
-      totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + (p.machineGod?.battles || 0), 0)
+      // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void (using livingAbyss data)
+      totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + p.livingAbyss.battles, 0)
       playersBelowMinimum = players.filter(p => {
-        const playerTickets = p.avatarOfDestiny.battles + (p.machineGod?.battles || 0)
+        const playerTickets = p.avatarOfDestiny.battles + p.livingAbyss.battles
         return playerTickets < MIN_REQUIRED_TICKETS
       }).length
     } else {
