@@ -586,7 +586,13 @@ const getSeasonStatusClass = () => {
                   <div class="requirement-icon">
                     <img src="/img/Red_Velvet_Dragon.webp" alt="Red Velvet Dragon" />
                   </div>
-                  <span class="requirement-text">8 BIL+ RED VELVET DRAGON</span>
+                  <span class="requirement-text">11 BIL+ RED VELVET DRAGON</span>
+                </div>
+                <div class="requirement-item">
+                  <div class="requirement-icon">
+                    <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" alt="Avatar of Destiny" />
+                  </div>
+                  <span class="requirement-text">6 BIL+ AVATAR OF DESTINY</span>
                 </div>
                 <div class="requirement-item">
                   <div class="requirement-icon">
@@ -596,9 +602,9 @@ const getSeasonStatusClass = () => {
                 </div>
                 <div class="requirement-item">
                   <div class="requirement-icon">
-                    <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" alt="Avatar of Destiny" />
+                    <img src="/img/Machine-God_of_the_Eternal_Void_guild_ready.webp" alt="Machine-God of the Eternal Void" />
                   </div>
-                  <span class="requirement-text">3.5 BIL+ AVATAR OF DESTINY</span>
+                  <span class="requirement-text">10 BIL+ MACHINE-GOD OF THE ETERNAL VOID</span>
                 </div>
                <div class="requirement-item">
                  <span class="requirement-icon">📊</span>

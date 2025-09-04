@@ -81,6 +81,11 @@ export class BattleAnalyzer {
         damage: sheetPlayer.livingAbyss.damage, // Already in actual damage format from API
         avgDamagePerTicket: sheetPlayer.livingAbyss.avgDamagePerTicket
       },
+      machineGod: sheetPlayer.machineGod ? {
+        battles: sheetPlayer.machineGod.battles,
+        damage: sheetPlayer.machineGod.damage,
+        avgDamagePerTicket: sheetPlayer.machineGod.avgDamagePerTicket
+      } : undefined,
       guildRank: this.getPlayerGuildRank(sheetPlayer.playerName)
     }))
   }
@@ -101,11 +106,23 @@ export class BattleAnalyzer {
    */
   static calculateStats(players: BattlePlayer[], season: number = 1): BattleStats {
     const totalPlayers = players.length
-    const highestDamage = Math.max(...players.map(p => p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage))
-    const averageDamage = Math.round(players.reduce((sum, p) => sum + p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage, 0) / totalPlayers)
-    const totalBattlesDone = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + p.avatarOfDestiny.battles + p.livingAbyss.battles, 0)
+    const highestDamage = Math.max(...players.map(p => {
+      const totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage + (p.machineGod?.damage || 0)
+      return totalDamage
+    }))
+    const averageDamage = Math.round(players.reduce((sum, p) => {
+      const totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage + (p.machineGod?.damage || 0)
+      return sum + totalDamage
+    }, 0) / totalPlayers)
+    const totalBattlesDone = players.reduce((sum, p) => {
+      const totalBattles = p.redVelvetDragon.battles + p.avatarOfDestiny.battles + p.livingAbyss.battles + (p.machineGod?.battles || 0)
+      return sum + totalBattles
+    }, 0)
     const topPerformers = players.slice(0, 5)
-    const guildScore = players.reduce((sum, p) => sum + p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage, 0)
+    const guildScore = players.reduce((sum, p) => {
+      const totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage + (p.machineGod?.damage || 0)
+      return sum + totalDamage
+    }, 0)
 
     // Ticket calculations - Season-aware
     const MAX_TICKETS_PER_SEASON = 18 // 9 tickets per boss, 2 bosses active
@@ -215,11 +232,11 @@ export class BattleAnalyzer {
 
     // Top performer insights
     const topPlayer = players[0]
-    const topPlayerTotalDamage = topPlayer.redVelvetDragon.damage + topPlayer.avatarOfDestiny.damage + topPlayer.livingAbyss.damage
+    const topPlayerTotalDamage = topPlayer.redVelvetDragon.damage + topPlayer.avatarOfDestiny.damage + topPlayer.livingAbyss.damage + (topPlayer.machineGod?.damage || 0)
     insights.push(`🏆 ${topPlayer.playerName} achieved the highest total damage with ${this.formatDamage(topPlayerTotalDamage)}`)
 
     // Battle participation insights
-    const activePlayers = players.filter(p => p.redVelvetDragon.battles > 0 || p.avatarOfDestiny.battles > 0 || p.livingAbyss.battles > 0).length
+    const activePlayers = players.filter(p => p.redVelvetDragon.battles > 0 || p.avatarOfDestiny.battles > 0 || p.livingAbyss.battles > 0 || (p.machineGod?.battles || 0) > 0).length
     insights.push(`⚔️ ${activePlayers} out of ${players.length} players participated in battles this season`)
 
     // Ticket usage insights - Season-aware
@@ -279,7 +296,7 @@ export class BattleAnalyzer {
     }
     // Performance thresholds
     const highPerformers = players.filter(p => {
-      const totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage
+      const totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage + (p.machineGod?.damage || 0)
       return totalDamage >= 10000000000 // 10B+
     }).length
     if (highPerformers > 0) {
@@ -336,11 +353,13 @@ export class BattleAnalyzer {
     redVelvet: boolean
     avatar: boolean
     livingAbyss: boolean
+    machineGod: boolean
   } {
     return {
-      redVelvet: player.redVelvetDragon.damage >= 6000000000, // 6B
-      avatar: player.avatarOfDestiny.damage >= 3500000000, // 3.5B
-      livingAbyss: player.livingAbyss.damage >= 12000000000 // 12B
+      redVelvet: player.redVelvetDragon.damage >= 11000000000, // 11B
+      avatar: player.avatarOfDestiny.damage >= 6000000000, // 6B
+      livingAbyss: player.livingAbyss.damage >= 16000000000, // 16B
+      machineGod: player.machineGod ? player.machineGod.damage >= 10000000000 : false // 10B
     }
   }
 
@@ -348,10 +367,10 @@ export class BattleAnalyzer {
    * Calculate efficiency score (damage per battle)
    */
   static getEfficiencyScore(player: BattlePlayer): number {
-    const totalBattles = player.redVelvetDragon.battles + player.avatarOfDestiny.battles + player.livingAbyss.battles
+    const totalBattles = player.redVelvetDragon.battles + player.avatarOfDestiny.battles + player.livingAbyss.battles + (player.machineGod?.battles || 0)
     if (totalBattles === 0) return 0
     
-    const totalDamage = player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage
+    const totalDamage = player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage + (player.machineGod?.damage || 0)
     const avgDamagePerBattle = totalDamage / totalBattles
     return Math.round(avgDamagePerBattle / 1000000000) // Return in billions
   }

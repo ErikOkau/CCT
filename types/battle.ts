@@ -18,6 +18,11 @@ export interface BattlePlayer {
     damage: number
     avgDamagePerTicket?: number
   }
+  machineGod?: {
+    battles: number
+    damage: number
+    avgDamagePerTicket?: number
+  }
   guildRank?: 'Leader' | 'Member' | 'Officer'
 }
 
@@ -70,6 +75,11 @@ export interface GoogleSheetsData {
     avgDamagePerTicket: number
   }
   livingAbyss: {
+    damage: number
+    battles: number
+    avgDamagePerTicket: number
+  }
+  machineGod?: {
     damage: number
     battles: number
     avgDamagePerTicket: number
