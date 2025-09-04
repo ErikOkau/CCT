@@ -10,7 +10,22 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'vercel',
     minify: true,
-    sourceMap: false
+    sourceMap: false,
+    // Add cache control headers to prevent caching issues
+    routeRules: {
+      '/api/**': { 
+        headers: { 
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        } 
+      },
+      '/_nuxt/**': { 
+        headers: { 
+          'Cache-Control': 'public, max-age=31536000, immutable' 
+        } 
+      }
+    }
   },
   
   // Disable experimental features that cause issues
@@ -60,7 +75,8 @@ export default defineNuxtConfig({
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
         { name: 'apple-mobile-web-app-title', content: 'CCT Analyzer' },
-        { name: 'mobile-web-app-capable', content: 'yes' }
+        { name: 'mobile-web-app-capable', content: 'yes' },
+        { name: 'version', content: Date.now().toString() }
       ],
       link: [
         { rel: 'icon', type: 'image/png', href: '/img/cctLogo.png' },

@@ -19,10 +19,13 @@ export class BattleAnalyzer {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
         },
         body: JSON.stringify({
           spreadsheetId,
-          range: range || 'A1:Z100'
+          range: range || 'A1:Z100',
+          _t: Date.now() // Cache-busting timestamp
         })
       })
 

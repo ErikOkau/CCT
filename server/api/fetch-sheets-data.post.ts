@@ -1,9 +1,14 @@
-import { defineEventHandler, readBody, createError } from 'h3'
+import { defineEventHandler, readBody, createError, setHeader } from 'h3'
 import { google } from 'googleapis'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
 export default defineEventHandler(async (event) => {
+  // Set cache control headers to prevent caching
+  setHeader(event, 'Cache-Control', 'no-cache, no-store, must-revalidate')
+  setHeader(event, 'Pragma', 'no-cache')
+  setHeader(event, 'Expires', '0')
+  
   const body = await readBody(event)
   const { spreadsheetId, range } = body
 
