@@ -43,6 +43,10 @@
     background: linear-gradient(45deg, #44ff44, #00cc00);
   }
 
+  &.machine-god::before {
+    background: linear-gradient(45deg, #ff6464, #cc0000);
+  }
+
   &:hover {
     transform: translateY(-5px);
     background: rgba(255, 255, 255, 0.15);

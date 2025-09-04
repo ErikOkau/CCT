@@ -316,6 +316,10 @@
   &.living-abyss {
     border-color: rgba(138, 43, 226, 0.3);
   }
+
+  &.machine-god {
+    border-color: rgba(255, 100, 100, 0.3);
+  }
 }
 
 .boss-ticket-icon {
@@ -431,6 +435,10 @@
 
   &.living-abyss::before {
     background: linear-gradient(45deg, #8a2be2, #4b0082);
+  }
+
+  &.machine-god::before {
+    background: linear-gradient(45deg, #ff6464, #cc0000);
   }
 }
 
