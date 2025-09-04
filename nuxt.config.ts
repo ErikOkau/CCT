@@ -3,12 +3,14 @@ export default defineNuxtConfig({
   devtools: { enabled: false }, // Disable in production
   css: ['~/assets/scss/main.scss'],
   
-  // Generate static site for Vercel to avoid dynamic import issues
-  ssr: false,
+  // Enable SSR for proper API routes and dynamic imports
+  ssr: true,
   
   // Optimize for Vercel deployment
   nitro: {
-    preset: 'vercel'
+    preset: 'vercel',
+    minify: true,
+    sourceMap: false
   },
   
   // Disable experimental features that cause issues
@@ -29,6 +31,23 @@ export default defineNuxtConfig({
   // Ensure proper build configuration
   build: {
     transpile: ['@supabase/supabase-js']
+  },
+  
+  // Vite configuration for better module resolution
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['vue', 'vue-router'],
+            supabase: ['@supabase/supabase-js']
+          }
+        }
+      }
+    },
+    optimizeDeps: {
+      include: ['@supabase/supabase-js']
+    }
   },
   
   // App configuration for PWA features
