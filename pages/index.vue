@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, ref, watch } from 'vue'
 import { useBattleAnalysis } from '~/composables/useBattleAnalysis'
 import { BattleAnalyzer } from '~/utils/battleAnalyzer'
 
@@ -37,7 +37,8 @@ const allSeasons = [
   { id: '18-1', name: 'Season 18-1', hasData: true },
   { id: '20-1', name: 'Season 20-1', hasData: true },
   { id: '20-2', name: 'Season 20-2', hasData: true },
-  { id: '20-3', name: 'Season 20-3', hasData: true }
+  { id: '20-3', name: 'Season 20-3', hasData: true },
+  { id: '21-1', name: 'Season 21-1', hasData: true }
 ]
 
 // Season-specific data availability and spreadsheet configurations
@@ -56,6 +57,14 @@ const seasonConfigurations = {
     hasData: true, // Season 20-3 (season is over) - now has data
     spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
     range: '20-3!A1:Z100' // Season 20-3 range
+  },
+  // Season 21-1 configuration (Machine God season)
+  21: {
+    1: {
+      hasData: true, // Season 21-1 now has data available
+      spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
+      range: '21-1!A1:Z100' // Season 21-1 range
+    }
   }
 }
 
@@ -90,7 +99,7 @@ activeSeason.value = getCurrentSeason()
 // Function to check if current season has data
 const hasSeasonData = (season: number) => {
   if (currentDestinysFlight.value === 21) {
-    if (season === 1) return false // Tallying, no data yet
+    if (season === 1) return true // Season 21-1 now has data available
     if (season === 2) return false // Current season but no data yet
     if (season === 3 || season === 4) return false // Upcoming, no data
   } else {
@@ -102,6 +111,9 @@ const hasSeasonData = (season: number) => {
 
 // Function to get season display name
 const getSeasonDisplayName = (season: number) => {
+  if (currentDestinysFlight.value === 21) {
+    return `21-${season}`
+  }
   return `20-${season}`
 }
 
@@ -113,7 +125,7 @@ const getSeasonType = (season: number) => {
 // Function to get season status message
 const getSeasonStatusMessage = (season: number) => {
   if (currentDestinysFlight.value === 21) {
-    if (season === 1) return 'Data Soon Available'
+    if (season === 1) return 'Previous Season - Data Available'
     if (season === 2) return 'Current Season - No Data Yet'
     if (season === 3 || season === 4) return 'Upcoming Season - No Data Available'
   } else {
@@ -126,7 +138,7 @@ const getSeasonStatusMessage = (season: number) => {
 // Function to get season status icon
 const getSeasonStatusIcon = (season: number) => {
   if (currentDestinysFlight.value === 21) {
-    if (season === 1) return '📊' // Tallying
+    if (season === 1) return '📊' // Previous season with data available
     if (season === 2) return '⏳' // Current but no data
     if (season === 3 || season === 4) return '⏳' // Upcoming
   } else {
@@ -160,7 +172,14 @@ const isSeasonLoading = ref(false)
 
 // Function to automatically fetch data for selected season
 const fetchSeasonData = async (season: number) => {
-  const config = seasonConfigurations[season as keyof typeof seasonConfigurations]
+  let config: any
+  
+  // Handle Season 21-1 specifically
+  if (currentDestinysFlight.value === 21 && season === 1) {
+    config = seasonConfigurations[21]?.[1]
+  } else {
+    config = seasonConfigurations[season as keyof typeof seasonConfigurations]
+  }
   
   if (!config || !config.hasData) {
     // Reset analysis state for seasons without data
@@ -323,7 +342,8 @@ const hallOfGloryData = ref({
   bossChampions: {
     redVelvet: { player: null as string | null, damage: 0, season: '', tickets: 0 },
     avatar: { player: null as string | null, damage: 0, season: '', tickets: 0 },
-    livingAbyss: { player: null as string | null, damage: 0, season: '', tickets: 0 }
+    livingAbyss: { player: null as string | null, damage: 0, season: '', tickets: 0 },
+    machineGod: { player: null as string | null, damage: 0, season: '', tickets: 0 }
   },
   seasonChampions: [] as any[],
   isLoading: false
@@ -341,7 +361,7 @@ const fetchSeasonDataForGlory = async (seasonId: string) => {
       seasonId,
       players: battlePlayers,
       totalDamage: battlePlayers.reduce((sum: number, player: any) => 
-        sum + player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage, 0
+        sum + player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage + (player.machineGod?.damage || 0), 0
       )
     }
   } catch (error) {
@@ -363,7 +383,8 @@ const loadHallOfGloryData = async () => {
     const bossChampions = {
       redVelvet: { player: null as string | null, damage: 0, season: '', tickets: 0 },
       avatar: { player: null as string | null, damage: 0, season: '', tickets: 0 },
-      livingAbyss: { player: null as string | null, damage: 0, season: '', tickets: 0 }
+      livingAbyss: { player: null as string | null, damage: 0, season: '', tickets: 0 },
+      machineGod: { player: null as string | null, damage: 0, season: '', tickets: 0 }
     }
     
     // Calculate season champions
@@ -375,7 +396,7 @@ const loadHallOfGloryData = async () => {
        let bestTotalDamage = 0
        
        seasonData.players.forEach((player: any) => {
-         const playerTotalDamage = player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage
+         const playerTotalDamage = player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage + (player.machineGod?.damage || 0)
          if (playerTotalDamage > bestTotalDamage) {
            bestTotalDamage = playerTotalDamage
            bestPlayer = player
@@ -383,7 +404,7 @@ const loadHallOfGloryData = async () => {
        })
        
        if (bestPlayer) {
-         const ticketsUsed = bestPlayer.redVelvetDragon.battles + bestPlayer.avatarOfDestiny.battles + bestPlayer.livingAbyss.battles
+         const ticketsUsed = bestPlayer.redVelvetDragon.battles + bestPlayer.avatarOfDestiny.battles + bestPlayer.livingAbyss.battles + (bestPlayer.machineGod?.battles || 0)
          
          seasonChampions.push({
            seasonId: seasonData.seasonId,
@@ -423,6 +444,16 @@ const loadHallOfGloryData = async () => {
             damage: player.livingAbyss.damage,
             season: seasonData.seasonId,
             tickets: player.livingAbyss.battles
+          }
+        }
+        
+        // Check Machine God champion
+        if (player.machineGod && player.machineGod.damage > bossChampions.machineGod.damage) {
+          bossChampions.machineGod = {
+            player: player.playerName,
+            damage: player.machineGod.damage,
+            season: seasonData.seasonId,
+            tickets: player.machineGod.battles
           }
         }
       })
@@ -756,6 +787,35 @@ const getSeasonStatusClass = () => {
                  <div class="stat-item">
                    <span class="stat-label">Season:</span>
                    <span class="stat-value">{{ hallOfGloryData.bossChampions.livingAbyss.season }}</span>
+                 </div>
+               </div>
+             </div>
+
+             <!-- Machine God Champion -->
+             <div class="glory-card machine-god" v-if="hallOfGloryData.bossChampions.machineGod.player">
+               <div class="glory-header">
+                 <div class="boss-icon">
+                   <img src="/img/Machine-God_of_the_Eternal_Void_guild_ready.webp" alt="Machine-God of the Eternal Void" />
+                 </div>
+                 <h3>Machine God</h3>
+                 <div class="champion-badge">🥇 Champion</div>
+               </div>
+               <div class="champion-info">
+                 <div class="champion-name">{{ hallOfGloryData.bossChampions.machineGod.player }}</div>
+                 <div class="champion-damage">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.machineGod.damage) }}</div>
+                 <div class="champion-details">
+                   <span class="detail-item">🎯 {{ hallOfGloryData.bossChampions.machineGod.tickets }}/18 Tickets</span>
+                   <span class="detail-item">📅 Season {{ hallOfGloryData.bossChampions.machineGod.season }}</span>
+                 </div>
+               </div>
+               <div class="glory-stats">
+                 <div class="stat-item">
+                   <span class="stat-label">Guild Record:</span>
+                   <span class="stat-value">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.machineGod.damage) }}</span>
+                 </div>
+                 <div class="stat-item">
+                   <span class="stat-label">Season:</span>
+                   <span class="stat-value">{{ hallOfGloryData.bossChampions.machineGod.season }}</span>
                  </div>
                </div>
              </div>
@@ -1430,446 +1490,8 @@ const getSeasonStatusClass = () => {
   padding: 0;
 }
 
-/* Hero Section */
-.hero {
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  padding: 6rem 0;
-  color: white;
-  position: relative;
-  overflow: hidden;
-}
 
-.hero::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-  opacity: 0.3;
-  pointer-events: none;
-}
 
-.hero-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  align-items: center;
-  position: relative;
-  z-index: 1;
-}
-
-.hero-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.guild-badge {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.guild-logo-img {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  border: 3px solid rgba(255, 215, 0, 0.3);
-}
-
-.guild-name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #ffd700;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-}
-
-.hero-title {
-  font-size: 3.5rem;
-  font-weight: 700;
-  line-height: 1.2;
-  margin: 0;
-}
-
-.gradient-text {
-  background: linear-gradient(45deg, #ffd700, #ffed4e);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.hero-subtitle {
-  font-size: 1.2rem;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.9);
-  margin: 0;
-}
-
-.guild-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 1rem;
-}
-
-.guild-info .info-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.info-label {
-  font-weight: 600;
-  color: #ffd700;
-  min-width: 80px;
-}
-
-.info-value {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.hero-visual {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-}
-
-.sonic-illustration {
-  position: relative;
-  width: 300px;
-  height: 300px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.sonic-character {
-  font-size: 8rem;
-  animation: bounce 2s ease-in-out infinite;
-  z-index: 2;
-}
-
-.rings {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.ring {
-  position: absolute;
-  font-size: 2rem;
-  animation: rotate 4s linear infinite;
-}
-
-.ring-1 {
-  top: -50px;
-  left: -50px;
-  animation-delay: 0s;
-}
-
-.ring-2 {
-  top: -50px;
-  right: -50px;
-  animation-delay: 1s;
-}
-
-.ring-3 {
-  bottom: -50px;
-  left: -50px;
-  animation-delay: 2s;
-}
-
-.chaos-emeralds {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.emerald {
-  position: absolute;
-  font-size: 1.5rem;
-  animation: pulse 3s ease-in-out infinite;
-}
-
-.emerald-1 {
-  top: -80px;
-  left: -80px;
-  animation-delay: 0s;
-}
-
-.emerald-2 {
-  top: -80px;
-  right: -80px;
-  animation-delay: 1s;
-}
-
-.emerald-3 {
-  bottom: -80px;
-  left: -80px;
-  animation-delay: 2s;
-}
-
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-20px);
-  }
-  60% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.2);
-    opacity: 0.7;
-  }
-}
-
-/* Guild Information & Requirements Section */
-.guild-info-section {
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 20, 60, 0.95) 100%);
-  padding: 4rem 0;
-  color: white;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Hall of Glory Section */
-.hall-of-glory-section {
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(40, 20, 60, 0.95) 100%);
-  padding: 4rem 0;
-  color: white;
-  position: relative;
-  overflow: hidden;
-}
-
-.hall-of-glory-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="stars" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(255,215,0,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23stars)"/></svg>');
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-.hall-of-glory-section .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-  position: relative;
-  z-index: 1;
-}
-
-.hall-of-glory-section .section-title {
-  text-align: center;
-  font-size: 3.5rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-}
-
-.section-subtitle {
-  text-align: center;
-  font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 3rem;
-  font-weight: 500;
-}
-
-.glory-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 2rem;
-  margin-bottom: 4rem;
-}
-
-.glory-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-  border-radius: 20px;
-  padding: 2rem;
-  backdrop-filter: blur(15px);
-  border: 2px solid rgba(255, 215, 0, 0.2);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-  transition: all 0.4s ease;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.glory-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--boss-color), var(--boss-color-light));
-}
-
-.glory-card.red-velvet {
-  --boss-color: #ff4444;
-  --boss-color-light: #ff6666;
-}
-
-.glory-card.avatar {
-  --boss-color: #4444ff;
-  --boss-color-light: #6666ff;
-}
-
-.glory-card.living-abyss {
-  --boss-color: #44ff44;
-  --boss-color-light: #66ff66;
-}
-
-.glory-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border-color: var(--boss-color);
-}
-
-.glory-header {
-  margin-bottom: 1.5rem;
-}
-
-.glory-header .boss-icon {
-  width: 100px;
-  height: 100px;
-  margin: 0 auto 1rem;
-  border-radius: 16px;
-  overflow: hidden;
-  border: 3px solid rgba(255, 215, 0, 0.3);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-}
-
-.glory-header .boss-icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.glory-header h3 {
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: #ffd700;
-  text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-}
-
-.champion-badge {
-  display: inline-block;
-  background: linear-gradient(45deg, #ffd700, #ffed4e);
-  color: #000;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  text-shadow: none;
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
-}
-
-.champion-info {
-  margin-bottom: 1.5rem;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.champion-name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #ffd700;
-  margin-bottom: 0.5rem;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-}
-
-.champion-damage {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #fff;
-  margin-bottom: 1rem;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-}
-
-.champion-details {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.detail-item {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.glory-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.stat-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.stat-label {
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.9rem;
-}
-
-.stat-value {
-  font-weight: 700;
-  color: #ffd700;
-  font-size: 1rem;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-}
 
 /* Glory Load Section */
 .glory-load-section {
@@ -2362,201 +1984,7 @@ const getSeasonStatusClass = () => {
   border: 1px solid rgba(255, 152, 0, 0.3);
 }
 
-/* Navigation Header Styles */
-.nav-header {
-  position: static;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 1rem 0;
-  margin: 0;
-  width: 100%;
-}
 
-.nav-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.nav-brand {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.nav-logo {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-}
-
-.nav-title {
-  color: white;
-  font-weight: 600;
-  font-size: 1.2rem;
-}
-
-.nav-menu {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-
-.nav-link {
-  color: rgba(255, 255, 255, 0.8);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.3s ease;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-}
-
-.nav-link:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.nav-link.router-link-active {
-  color: #4caf50;
-  background: rgba(76, 175, 80, 0.2);
-  border: 1px solid rgba(76, 175, 80, 0.3);
-}
-
-.user-menu {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.user-badge {
-  background: rgba(76, 175, 80, 0.2);
-  color: #4caf50;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-weight: 500;
-  border: 1px solid rgba(76, 175, 80, 0.3);
-  font-size: 0.9rem;
-}
-
-.logout-button {
-  background: rgba(244, 67, 54, 0.2);
-  color: #f44336;
-  border: 1px solid rgba(244, 67, 54, 0.3);
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-}
-
-.logout-button:hover {
-  background: rgba(244, 67, 54, 0.3);
-  border-color: rgba(244, 67, 54, 0.5);
-}
-
-/* Loading Section Styles */
-.loading-section {
-  padding: 4rem 0;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(20, 20, 40, 0.9) 100%);
-  min-height: 60vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.loading-content {
-  text-align: center;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.loading-spinner {
-  margin-bottom: 2rem;
-  display: flex;
-  justify-content: center;
-}
-
-.spinner {
-  width: 60px;
-  height: 60px;
-  border: 4px solid rgba(255, 255, 255, 0.1);
-  border-top: 4px solid #4caf50;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.loading-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: white;
-  margin-bottom: 1rem;
-  background: linear-gradient(135deg, #4caf50, #2196f3);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.loading-subtitle {
-  font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 3rem;
-  line-height: 1.6;
-}
-
-.loading-details {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.loading-detail {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  animation: fadeInUp 0.6s ease-out;
-  animation-fill-mode: both;
-}
-
-.loading-detail:nth-child(1) { animation-delay: 0.2s; }
-.loading-detail:nth-child(2) { animation-delay: 0.4s; }
-.loading-detail:nth-child(3) { animation-delay: 0.6s; }
-
-.loading-icon {
-  font-size: 1.5rem;
-  width: 30px;
-  text-align: center;
-}
-
-.loading-detail span:last-child {
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 @media (max-width: 768px) {
   .nav-container {

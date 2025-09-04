@@ -1,304 +1,222 @@
-// Hero Section
+/* Hero Section */
 .hero {
-  padding: 80px 0;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  padding: 6rem 0;
+  color: white;
   position: relative;
   overflow: hidden;
 }
 
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+  opacity: 0.3;
+  pointer-events: none;
+}
+
 .hero-content {
-  display: flex;
-  align-items: center;
-  gap: 60px;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .hero-text {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 .guild-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 15px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 15px 25px;
-  border-radius: 25px;
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  margin-bottom: 30px;
-}
-
-.guild-logo {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 1rem;
 }
 
 .guild-logo-img {
-  width: 80px;
-  height: 80px;
-  object-fit: contain;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  background: linear-gradient(45deg, #ff6b00, #ffd700);
-  padding: 5px;
-  box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3);
+  border: 3px solid rgba(255, 215, 0, 0.3);
 }
 
 .guild-name {
-  font-size: 1.2rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
 .hero-title {
   font-size: 3.5rem;
-  font-weight: 800;
-  line-height: 1.1;
-  margin-bottom: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
 }
 
 .gradient-text {
-  background: linear-gradient(45deg, #ff6b00, #ffd700, #00ccff, #ff6b00);
-  background-size: 300% 300%;
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: gradient 3s ease infinite;
-}
-
-@keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
 }
 
 .hero-subtitle {
   font-size: 1.2rem;
   line-height: 1.6;
-  margin-bottom: 30px;
-  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
 }
 
 .guild-info {
   display: flex;
-  gap: 30px;
-  margin-bottom: 30px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
 }
 
-.info-item {
+.guild-info .info-item {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .info-label {
-  font-size: 0.9rem;
-  opacity: 0.7;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-weight: 600;
+  color: #ffd700;
+  min-width: 80px;
 }
 
 .info-value {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #ffd700;
-}
-
-.hero-features {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-.feature {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 8px 16px;
-  border-radius: 20px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.feature-icon {
-  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .hero-visual {
-  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.sonic-illustration {
+  position: relative;
+  width: 300px;
+  height: 300px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.sonic-illustration {
-  position: relative;
-  width: 400px;
-  height: 400px;
-}
-
 .sonic-character {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   font-size: 8rem;
-  animation: sonic-run 2s ease-in-out infinite;
-}
-
-@keyframes sonic-run {
-  0%,
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-  }
-
-  50% {
-    transform: translate(-50%, -50%) scale(1.1);
-  }
+  animation: bounce 2s ease-in-out infinite;
+  z-index: 2;
 }
 
 .rings {
   position: absolute;
-  width: 100%;
-  height: 100%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .ring {
   position: absolute;
   font-size: 2rem;
-  animation: ring-float 4s ease-in-out infinite;
+  animation: rotate 4s linear infinite;
 }
 
 .ring-1 {
-  top: 20%;
-  left: 20%;
+  top: -50px;
+  left: -50px;
   animation-delay: 0s;
 }
 
 .ring-2 {
-  top: 60%;
-  right: 20%;
+  top: -50px;
+  right: -50px;
   animation-delay: 1s;
 }
 
 .ring-3 {
-  bottom: 20%;
-  left: 40%;
+  bottom: -50px;
+  left: -50px;
   animation-delay: 2s;
-}
-
-@keyframes ring-float {
-  0%,
-  100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-
-  50% {
-    transform: translateY(-20px) rotate(180deg);
-  }
 }
 
 .chaos-emeralds {
   position: absolute;
-  width: 100%;
-  height: 100%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .emerald {
   position: absolute;
   font-size: 1.5rem;
-  animation: emerald-glow 3s ease-in-out infinite;
+  animation: pulse 3s ease-in-out infinite;
 }
 
 .emerald-1 {
-  top: 30%;
-  right: 30%;
+  top: -80px;
+  left: -80px;
   animation-delay: 0s;
 }
 
 .emerald-2 {
-  bottom: 30%;
-  left: 30%;
+  top: -80px;
+  right: -80px;
   animation-delay: 1s;
 }
 
 .emerald-3 {
-  top: 50%;
-  right: 10%;
+  bottom: -80px;
+  left: -80px;
   animation-delay: 2s;
 }
 
-@keyframes emerald-glow {
-  0%,
-  100% {
-    opacity: 0.7;
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-20px);
+  }
+  60% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
     transform: scale(1);
-  }
-
-  50% {
     opacity: 1;
+  }
+  50% {
     transform: scale(1.2);
-  }
-}
-
-// Responsive Design for Hero
-@media (max-width: 768px) {
-  .hero-content {
-    flex-direction: column;
-    text-align: center;
-    gap: 40px;
-  }
-
-  .hero-title {
-    font-size: 2.5rem;
-  }
-
-  .guild-info {
-    justify-content: center;
-  }
-
-  .hero-features {
-    justify-content: center;
-  }
-
-  .sonic-illustration {
-    width: 300px;
-    height: 300px;
-  }
-
-  .sonic-character {
-    font-size: 6rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero-title {
-    font-size: 2rem;
-  }
-
-  .sonic-illustration {
-    width: 250px;
-    height: 250px;
-  }
-
-  .sonic-character {
-    font-size: 4rem;
-  }
-
-  .guild-badge {
-    flex-direction: column;
-    gap: 10px;
+    opacity: 0.7;
   }
 }
