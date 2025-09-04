@@ -10,12 +10,27 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'vercel',
     minify: true,
-    sourceMap: false
+    sourceMap: false,
+    // Ensure proper module resolution
+    esbuild: {
+      options: {
+        target: 'es2020'
+      }
+    }
   },
   
   // Disable experimental features that cause issues
   experimental: {
-    payloadExtraction: false
+    payloadExtraction: false,
+    inlineRouteRules: false
+  },
+  
+  // Route rules for better caching and SSR
+  routeRules: {
+    '/': { ssr: true },
+    '/api/**': { ssr: false },
+    '/login': { ssr: true },
+    '/registration': { ssr: true }
   },
   
   runtimeConfig: {
@@ -40,13 +55,17 @@ export default defineNuxtConfig({
         output: {
           manualChunks: {
             vendor: ['vue', 'vue-router'],
-            supabase: ['@supabase/supabase-js']
+            supabase: ['@supabase/supabase-js'],
+            utils: ['~/utils/battleAnalyzer', '~/composables/useBattleAnalysis']
           }
         }
       }
     },
     optimizeDeps: {
       include: ['@supabase/supabase-js']
+    },
+    ssr: {
+      noExternal: ['@supabase/supabase-js']
     }
   },
   
