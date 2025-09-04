@@ -110,7 +110,7 @@ In your Vercel project settings, add these environment variables:
 CHATGPT_API=your_chatgpt_api_key
 
 # Google Sheets Configuration (if using)
-GOOGLE_SHEETS_CREDENTIALS_PATH=/tmp/credentials.json
+GOOGLE_SHEETS_CREDENTIALS=your_google_sheets_credentials_json_content
 ```
 
 ### 2.4 Deploy
