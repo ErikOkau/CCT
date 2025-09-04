@@ -15,7 +15,8 @@ export default defineNuxtConfig({
   
   // Disable experimental features that cause issues
   experimental: {
-    payloadExtraction: false
+    payloadExtraction: false,
+    viewTransition: false
   },
   
   runtimeConfig: {
@@ -35,6 +36,15 @@ export default defineNuxtConfig({
   
   // Vite configuration for better module resolution
   vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          chunkFileNames: 'js/[name]-[hash].js',
+          entryFileNames: 'js/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash].[ext]'
+        }
+      }
+    },
     optimizeDeps: {
       include: ['@supabase/supabase-js']
     }

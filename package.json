@@ -6,7 +6,7 @@
     "#internal/nuxt/paths": "./.nuxt/paths.mjs"
   },
   "scripts": {
-    "build": "nuxt build",
+    "build": "nuxt build --preset vercel",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
