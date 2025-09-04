@@ -302,8 +302,8 @@ const canNavigateToFlight = (flight: number) => {
 const getTicketStatusClass = (player: any, season: number = activeSeason.value) => {
   let ticketsUsed = 0
   
-  if (season === 21) {
-    // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void (using livingAbyss data)
+  if (currentDestinysFlight.value === 21) {
+    // All Destiny's Flight 21 seasons: Avatar of Destiny and Machine God of the Eternal Void (using livingAbyss data)
     ticketsUsed = player.avatarOfDestiny.battles + player.livingAbyss.battles
   } else if (season === 1) {
     // Season 20-1: Red Velvet Dragon and Living Abyss
@@ -328,8 +328,8 @@ const getTicketStatusClass = (player: any, season: number = activeSeason.value) 
 const getTicketStatusText = (player: any, season: number = activeSeason.value) => {
   let ticketsUsed = 0
   
-  if (season === 21) {
-    // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void (using livingAbyss data)
+  if (currentDestinysFlight.value === 21) {
+    // All Destiny's Flight 21 seasons: Avatar of Destiny and Machine God of the Eternal Void (using livingAbyss data)
     ticketsUsed = player.avatarOfDestiny.battles + player.livingAbyss.battles
   } else if (season === 1) {
     // Season 20-1: Red Velvet Dragon and Living Abyss
@@ -1257,14 +1257,14 @@ const getSeasonStatusClass = () => {
                   <div class="boss-ticket-count">{{ analysisState.battleStats?.ticketStats.ticketsUsedByBoss.avatar || 0 }} tickets</div>
                 </div>
               </div>
-              <div class="ticket-boss-item" :class="(activeSeason === 21) ? 'machine-god' : 'living-abyss'">
+              <div class="ticket-boss-item" :class="(currentDestinysFlight === 21) ? 'machine-god' : 'living-abyss'">
                 <div class="boss-ticket-icon">
-                  <img :src="(activeSeason === 21) ? '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' : '/img/Living_Licorice_Abyss.webp'" 
-                       :alt="(activeSeason === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss'"
+                  <img :src="(currentDestinysFlight === 21) ? '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' : '/img/Living_Licorice_Abyss.webp'" 
+                       :alt="(currentDestinysFlight === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss'"
                        class="boss-icon-image">
                 </div>
                 <div class="boss-ticket-info">
-                  <div class="boss-ticket-name">{{ (activeSeason === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss' }}</div>
+                  <div class="boss-ticket-name">{{ (currentDestinysFlight === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss' }}</div>
                   <div class="boss-ticket-count">{{ analysisState.battleStats?.ticketStats.ticketsUsedByBoss.livingAbyss || 0 }} tickets</div>
                 </div>
               </div>
@@ -1324,14 +1324,14 @@ const getSeasonStatusClass = () => {
             </div>
           </div>
 
-          <div class="boss-stat-card" :class="(activeSeason === 21) ? 'machine-god' : 'living-abyss'">
+          <div class="boss-stat-card" :class="(currentDestinysFlight === 21) ? 'machine-god' : 'living-abyss'">
             <div class="boss-stat-header">
               <div class="boss-icon">
-                <img :src="(activeSeason === 21) ? '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' : '/img/Living_Licorice_Abyss.webp'" 
-                     :alt="(activeSeason === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss'"
+                <img :src="(currentDestinysFlight === 21) ? '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' : '/img/Living_Licorice_Abyss.webp'" 
+                     :alt="(currentDestinysFlight === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss'"
                      class="boss-icon-image">
               </div>
-              <h3>{{ (activeSeason === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss' }}</h3>
+              <h3>{{ (currentDestinysFlight === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss' }}</h3>
             </div>
             <div class="boss-stat-content">
               <div class="boss-stat-item">
@@ -1378,7 +1378,7 @@ const getSeasonStatusClass = () => {
                   <th>Player</th>
                   <th>Red Velvet Dragon</th>
                   <th>Avatar of Destiny</th>
-                  <th>{{ (activeSeason === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss' }}</th>
+                  <th>{{ (currentDestinysFlight === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss' }}</th>
                   <th>Season Total</th>
                   <th>Tickets Used</th>
                   <th>Guild Rank</th>
@@ -1427,7 +1427,7 @@ const getSeasonStatusClass = () => {
                   <td class="ticket-cell">
                     <div class="ticket-info">
                       <div class="ticket-count" :class="getTicketStatusClass(player, activeSeason)">
-                        {{ activeSeason === 21 ? (player.avatarOfDestiny.battles + player.livingAbyss.battles) :
+                        {{ currentDestinysFlight === 21 ? (player.avatarOfDestiny.battles + player.livingAbyss.battles) :
                            activeSeason === 1 ? (player.redVelvetDragon.battles + player.livingAbyss.battles) : 
                            activeSeason === 2 ? (player.redVelvetDragon.battles + player.avatarOfDestiny.battles) : 
                            (player.avatarOfDestiny.battles + player.livingAbyss.battles) }}/18
@@ -1487,8 +1487,8 @@ const getSeasonStatusClass = () => {
                 
                 <div class="mobile-boss-damage-item">
                   <div class="mobile-boss-icon">
-                    <img :src="(activeSeason === 21) ? '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' : '/img/Living_Licorice_Abyss.webp'" 
-                         :alt="(activeSeason === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss'"
+                    <img :src="(currentDestinysFlight === 21) ? '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' : '/img/Living_Licorice_Abyss.webp'" 
+                         :alt="(currentDestinysFlight === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss'"
                          class="boss-icon-image">
                   </div>
                   <div class="mobile-boss-damage-info">
@@ -1504,7 +1504,7 @@ const getSeasonStatusClass = () => {
                   <div class="mobile-total-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage) }}</div>
                 </div>
                 <div class="mobile-ticket-status" :class="getTicketStatusClass(player, activeSeason)">
-                  <div class="mobile-ticket-count">{{ activeSeason === 21 ? (player.avatarOfDestiny.battles + player.livingAbyss.battles) :
+                  <div class="mobile-ticket-count">{{ currentDestinysFlight === 21 ? (player.avatarOfDestiny.battles + player.livingAbyss.battles) :
                      activeSeason === 1 ? (player.redVelvetDragon.battles + player.livingAbyss.battles) : 
                      activeSeason === 2 ? (player.redVelvetDragon.battles + player.avatarOfDestiny.battles) : 
                      (player.avatarOfDestiny.battles + player.livingAbyss.battles) }}/18</div>
