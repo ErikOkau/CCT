@@ -58,13 +58,10 @@ const seasonConfigurations = {
     spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
     range: '20-3!A1:Z100' // Season 20-3 range
   },
-  // Season 21-1 configuration (Machine God season)
-  21: {
-    1: {
-      hasData: true, // Season 21-1 now has data available
-      spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-      range: '21-1!A1:Z100' // Season 21-1 range
-    }
+  21: { 
+    hasData: true, // Season 21-1 now has data available
+    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
+    range: '21-1!A1:Z100' // Season 21-1 range
   }
 }
 
@@ -72,7 +69,8 @@ const seasonConfigurations = {
 const seasonTypes = {
   1: 'previous',  // Season 20-1 - previous season
   2: 'previous',  // Season 20-2 - previous season  
-  3: 'previous'   // Season 20-3 - previous season (now over)
+  3: 'previous',  // Season 20-3 - previous season (now over)
+  21: 'current'   // Season 21-1 - current season (Machine God)
 }
 
 // Function to determine current season based on date
@@ -196,7 +194,7 @@ const fetchSeasonData = async (season: number) => {
   
   // Automatically fetch data for the season
   try {
-    await fetchFromGoogleSheets(season)
+    await fetchFromGoogleSheets(season, currentDestinysFlight.value)
   } catch (error) {
     console.error('Error fetching season data:', error)
   } finally {
@@ -300,8 +298,14 @@ const getTicketStatusClass = (player: any, season: number = activeSeason.value) 
   } else if (season === 2) {
     // Season 20-2: Red Velvet Dragon and Avatar of Destiny
     ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-  } else {
+  } else if (season === 3) {
     // Season 20-3: Avatar of Destiny and Living Abyss
+    ticketsUsed = player.avatarOfDestiny.battles + player.livingAbyss.battles
+  } else if (season === 1 && currentDestinysFlight.value === 21) {
+    // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void
+    ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
+  } else {
+    // Default fallback: Avatar of Destiny and Living Abyss
     ticketsUsed = player.avatarOfDestiny.battles + player.livingAbyss.battles
   }
   
@@ -320,8 +324,14 @@ const getTicketStatusText = (player: any, season: number = activeSeason.value) =
   } else if (season === 2) {
     // Season 20-2: Red Velvet Dragon and Avatar of Destiny
     ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-  } else {
+  } else if (season === 3) {
     // Season 20-3: Avatar of Destiny and Living Abyss
+    ticketsUsed = player.avatarOfDestiny.battles + player.livingAbyss.battles
+  } else if (season === 1 && currentDestinysFlight.value === 21) {
+    // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void
+    ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
+  } else {
+    // Default fallback: Avatar of Destiny and Living Abyss
     ticketsUsed = player.avatarOfDestiny.battles + player.livingAbyss.battles
   }
   
@@ -1233,11 +1243,11 @@ const getSeasonStatusClass = () => {
                   <div class="boss-ticket-count">{{ analysisState.battleStats?.ticketStats.ticketsUsedByBoss.avatar || 0 }} tickets</div>
                 </div>
               </div>
-              <div class="ticket-boss-item living-abyss">
-                <div class="boss-ticket-icon">🔷</div>
+              <div class="ticket-boss-item" :class="(activeSeason === 1 && currentDestinysFlight === 21) ? 'machine-god' : 'living-abyss'">
+                <div class="boss-ticket-icon">{{ (activeSeason === 1 && currentDestinysFlight === 21) ? '🤖' : '🔷' }}</div>
                 <div class="boss-ticket-info">
-                  <div class="boss-ticket-name">Living Abyss</div>
-                  <div class="boss-ticket-count">{{ analysisState.battleStats?.ticketStats.ticketsUsedByBoss.livingAbyss || 0 }} tickets</div>
+                  <div class="boss-ticket-name">{{ (activeSeason === 1 && currentDestinysFlight === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss' }}</div>
+                  <div class="boss-ticket-count">{{ (activeSeason === 1 && currentDestinysFlight === 21) ? (analysisState.battleStats?.machineGodStats?.participants || 0) * 9 : (analysisState.battleStats?.ticketStats.ticketsUsedByBoss.livingAbyss || 0) }} tickets</div>
                 </div>
               </div>
             </div>
@@ -1288,23 +1298,23 @@ const getSeasonStatusClass = () => {
             </div>
           </div>
 
-          <div class="boss-stat-card living-abyss">
+          <div class="boss-stat-card" :class="(activeSeason === 1 && currentDestinysFlight === 21) ? 'machine-god' : 'living-abyss'">
             <div class="boss-stat-header">
-              <div class="boss-icon">🔷</div>
-              <h3>Living Abyss</h3>
+              <div class="boss-icon">{{ (activeSeason === 1 && currentDestinysFlight === 21) ? '🤖' : '🔷' }}</div>
+              <h3>{{ (activeSeason === 1 && currentDestinysFlight === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss' }}</h3>
             </div>
             <div class="boss-stat-content">
               <div class="boss-stat-item">
                 <span class="stat-label">Participants:</span>
-                <span class="stat-value">{{ analysisState.battleStats?.livingAbyssStats.participants || 0 }}</span>
+                <span class="stat-value">{{ (activeSeason === 1 && currentDestinysFlight === 21) ? (analysisState.battleStats?.machineGodStats?.participants || 0) : (analysisState.battleStats?.livingAbyssStats.participants || 0) }}</span>
               </div>
               <div class="boss-stat-item">
                 <span class="stat-label">Total Damage:</span>
-                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.totalDamage || 0) }}</span>
+                <span class="stat-value">{{ (activeSeason === 1 && currentDestinysFlight === 21) ? BattleAnalyzer.formatDamage(analysisState.battleStats?.machineGodStats?.totalDamage || 0) : BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.totalDamage || 0) }}</span>
               </div>
               <div class="boss-stat-item">
                 <span class="stat-label">Average Damage:</span>
-                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.averageDamage || 0) }}</span>
+                <span class="stat-value">{{ (activeSeason === 1 && currentDestinysFlight === 21) ? BattleAnalyzer.formatDamage(analysisState.battleStats?.machineGodStats?.averageDamage || 0) : BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.averageDamage || 0) }}</span>
               </div>
             </div>
           </div>

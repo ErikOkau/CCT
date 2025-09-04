@@ -104,7 +104,7 @@ export class BattleAnalyzer {
   /**
    * Calculate battle statistics from player data
    */
-  static calculateStats(players: BattlePlayer[], season: number = 1): BattleStats {
+  static calculateStats(players: BattlePlayer[], season: number = 1, destinysFlight: number = 20): BattleStats {
     const totalPlayers = players.length
     const highestDamage = Math.max(...players.map(p => {
       const totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage + (p.machineGod?.damage || 0)
@@ -161,8 +161,32 @@ export class BattleAnalyzer {
         avatar: players.reduce((sum, p) => sum + p.avatarOfDestiny.battles, 0),
         livingAbyss: 0
       }
-    } else {
+    } else if (season === 3) {
       // Season 20-3: Avatar of Destiny and Living Abyss
+      totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + p.livingAbyss.battles, 0)
+      playersBelowMinimum = players.filter(p => {
+        const playerTickets = p.avatarOfDestiny.battles + p.livingAbyss.battles
+        return playerTickets < MIN_REQUIRED_TICKETS
+      }).length
+      ticketsUsedByBoss = {
+        redVelvet: 0,
+        avatar: players.reduce((sum, p) => sum + p.avatarOfDestiny.battles, 0),
+        livingAbyss: players.reduce((sum, p) => sum + p.livingAbyss.battles, 0)
+      }
+    } else if (season === 1 && destinysFlight === 21) {
+      // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void
+      totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + (p.machineGod?.battles || 0), 0)
+      playersBelowMinimum = players.filter(p => {
+        const playerTickets = p.avatarOfDestiny.battles + (p.machineGod?.battles || 0)
+        return playerTickets < MIN_REQUIRED_TICKETS
+      }).length
+      ticketsUsedByBoss = {
+        redVelvet: 0,
+        avatar: players.reduce((sum, p) => sum + p.avatarOfDestiny.battles, 0),
+        livingAbyss: 0 // Machine God replaces Living Abyss in season 21-1
+      }
+    } else {
+      // Default fallback: Avatar of Destiny and Living Abyss
       totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + p.livingAbyss.battles, 0)
       playersBelowMinimum = players.filter(p => {
         const playerTickets = p.avatarOfDestiny.battles + p.livingAbyss.battles
@@ -202,6 +226,14 @@ export class BattleAnalyzer {
       participants: livingAbyssPlayers.length
     }
 
+    // Machine God stats
+    const machineGodPlayers = players.filter(p => p.machineGod && p.machineGod.damage > 0)
+    const machineGodStats = {
+      totalDamage: machineGodPlayers.reduce((sum, p) => sum + (p.machineGod?.damage || 0), 0),
+      averageDamage: machineGodPlayers.length > 0 ? Math.round(machineGodPlayers.reduce((sum, p) => sum + (p.machineGod?.damage || 0), 0) / machineGodPlayers.length) : 0,
+      participants: machineGodPlayers.length
+    }
+
     return {
       totalPlayers,
       highestDamage,
@@ -218,14 +250,15 @@ export class BattleAnalyzer {
       },
       redVelvetStats,
       avatarStats,
-      livingAbyssStats
+      livingAbyssStats,
+      machineGodStats
     }
   }
 
   /**
    * Generate insights from battle data
    */
-  static generateInsights(players: BattlePlayer[], season: number = 1): string[] {
+  static generateInsights(players: BattlePlayer[], season: number = 1, destinysFlight: number = 20): string[] {
     const insights: string[] = []
 
     if (players.length === 0) return insights
@@ -260,8 +293,22 @@ export class BattleAnalyzer {
         const playerTickets = p.redVelvetDragon.battles + p.avatarOfDestiny.battles
         return playerTickets < MIN_REQUIRED_TICKETS
       }).length
-    } else {
+    } else if (season === 3) {
       // Season 20-3: Avatar of Destiny and Living Abyss
+      totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + p.livingAbyss.battles, 0)
+      playersBelowMinimum = players.filter(p => {
+        const playerTickets = p.avatarOfDestiny.battles + p.livingAbyss.battles
+        return playerTickets < MIN_REQUIRED_TICKETS
+      }).length
+    } else if (season === 1 && destinysFlight === 21) {
+      // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void
+      totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + (p.machineGod?.battles || 0), 0)
+      playersBelowMinimum = players.filter(p => {
+        const playerTickets = p.avatarOfDestiny.battles + (p.machineGod?.battles || 0)
+        return playerTickets < MIN_REQUIRED_TICKETS
+      }).length
+    } else {
+      // Default fallback: Avatar of Destiny and Living Abyss
       totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + p.livingAbyss.battles, 0)
       playersBelowMinimum = players.filter(p => {
         const playerTickets = p.avatarOfDestiny.battles + p.livingAbyss.battles

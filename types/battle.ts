@@ -59,6 +59,11 @@ export interface BattleStats {
     averageDamage: number
     participants: number
   }
+  machineGodStats?: {
+    totalDamage: number
+    averageDamage: number
+    participants: number
+  }
 }
 
 export interface GoogleSheetsData {
