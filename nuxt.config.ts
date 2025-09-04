@@ -9,14 +9,13 @@ export default defineNuxtConfig({
   // Optimize for Vercel deployment
   nitro: {
     preset: 'vercel',
-    minify: false,
+    minify: true,
     sourceMap: false
   },
   
   // Disable experimental features that cause issues
   experimental: {
-    payloadExtraction: false,
-    viewTransition: false
+    payloadExtraction: false
   },
   
   runtimeConfig: {
@@ -39,9 +38,10 @@ export default defineNuxtConfig({
     build: {
       rollupOptions: {
         output: {
-          chunkFileNames: 'js/[name]-[hash].js',
-          entryFileNames: 'js/[name]-[hash].js',
-          assetFileNames: 'assets/[name]-[hash].[ext]'
+          manualChunks: {
+            vendor: ['vue', 'vue-router'],
+            supabase: ['@supabase/supabase-js']
+          }
         }
       }
     },
