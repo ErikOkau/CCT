@@ -9,28 +9,13 @@ export default defineNuxtConfig({
   // Optimize for Vercel deployment
   nitro: {
     preset: 'vercel',
-    minify: true,
-    sourceMap: false,
-    // Ensure proper module resolution
-    esbuild: {
-      options: {
-        target: 'es2020'
-      }
-    }
+    minify: false,
+    sourceMap: false
   },
   
   // Disable experimental features that cause issues
   experimental: {
-    payloadExtraction: false,
-    inlineRouteRules: false
-  },
-  
-  // Route rules for better caching and SSR
-  routeRules: {
-    '/': { ssr: true },
-    '/api/**': { ssr: false },
-    '/login': { ssr: true },
-    '/registration': { ssr: true }
+    payloadExtraction: false
   },
   
   runtimeConfig: {
@@ -50,22 +35,8 @@ export default defineNuxtConfig({
   
   // Vite configuration for better module resolution
   vite: {
-    build: {
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            vendor: ['vue', 'vue-router'],
-            supabase: ['@supabase/supabase-js'],
-            utils: ['~/utils/battleAnalyzer', '~/composables/useBattleAnalysis']
-          }
-        }
-      }
-    },
     optimizeDeps: {
       include: ['@supabase/supabase-js']
-    },
-    ssr: {
-      noExternal: ['@supabase/supabase-js']
     }
   },
   
