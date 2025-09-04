@@ -53,7 +53,6 @@ If you're using Google Sheets API, add these in the Vercel dashboard:
 2. **Environment Variables**
 3. **Add these variables**:
    ```
-   GOOGLE_CLOUD_VISION_API_KEY=your_api_key_here
    GOOGLE_SHEETS_CREDENTIALS=your_credentials_here
    ```
 
@@ -149,11 +148,9 @@ npm run generate
 ### **Environment Variables**
 ```bash
 # Development
-GOOGLE_CLOUD_VISION_API_KEY=dev_key
 GOOGLE_SHEETS_CREDENTIALS=dev_creds
 
 # Production
-GOOGLE_CLOUD_VISION_API_KEY=prod_key
 GOOGLE_SHEETS_CREDENTIALS=prod_creds
 ```
 
