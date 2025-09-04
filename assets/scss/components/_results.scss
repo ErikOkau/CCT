@@ -325,6 +325,13 @@
 .boss-ticket-icon {
   font-size: 1.8rem;
   flex-shrink: 0;
+  
+  .boss-icon-image {
+    width: 2rem;
+    height: 2rem;
+    object-fit: cover;
+    border-radius: 4px;
+  }
 }
 
 .boss-ticket-info {
@@ -450,6 +457,13 @@
 
   .boss-icon {
     font-size: 2rem;
+    
+    .boss-icon-image {
+      width: 3rem;
+      height: 3rem;
+      object-fit: cover;
+      border-radius: 6px;
+    }
   }
 
   h3 {
@@ -832,6 +846,13 @@ th {
   font-size: 1.5rem;
   width: 30px;
   text-align: center;
+  
+  .boss-icon-image {
+    width: 1.5rem;
+    height: 1.5rem;
+    object-fit: cover;
+    border-radius: 3px;
+  }
 }
 
 .mobile-boss-damage-info {

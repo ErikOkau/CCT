@@ -1240,7 +1240,11 @@ const getSeasonStatusClass = () => {
             <h4>Ticket Usage by Boss</h4>
             <div class="ticket-boss-grid">
               <div class="ticket-boss-item red-velvet">
-                <div class="boss-ticket-icon">🐉</div>
+                <div class="boss-ticket-icon">
+                  <img src="/img/Red_Velvet_Dragon.webp" 
+                       alt="Red Velvet Dragon"
+                       class="boss-icon-image">
+                </div>
                 <div class="boss-ticket-info">
                   <div class="boss-ticket-name">Red Velvet Dragon</div>
                   <div class="boss-ticket-count">{{ analysisState.battleStats?.ticketStats.ticketsUsedByBoss.redVelvet || 0 }} tickets</div>
@@ -1254,7 +1258,11 @@ const getSeasonStatusClass = () => {
                 </div>
               </div>
               <div class="ticket-boss-item" :class="(activeSeason === 21) ? 'machine-god' : 'living-abyss'">
-                <div class="boss-ticket-icon">{{ (activeSeason === 21) ? '🤖' : '🔷' }}</div>
+                <div class="boss-ticket-icon">
+                  <img :src="(activeSeason === 21) ? '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' : '/img/Living_Licorice_Abyss.webp'" 
+                       :alt="(activeSeason === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss'"
+                       class="boss-icon-image">
+                </div>
                 <div class="boss-ticket-info">
                   <div class="boss-ticket-name">{{ (activeSeason === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss' }}</div>
                   <div class="boss-ticket-count">{{ (activeSeason === 21) ? (analysisState.battleStats?.machineGodStats?.participants || 0) * 9 : (analysisState.battleStats?.ticketStats.ticketsUsedByBoss.livingAbyss || 0) }} tickets</div>
@@ -1268,7 +1276,11 @@ const getSeasonStatusClass = () => {
         <div class="boss-stats-grid">
           <div class="boss-stat-card red-velvet">
             <div class="boss-stat-header">
-              <div class="boss-icon">🐉</div>
+              <div class="boss-icon">
+                <img src="/img/Red_Velvet_Dragon.webp" 
+                     alt="Red Velvet Dragon"
+                     class="boss-icon-image">
+              </div>
               <h3>Red Velvet Dragon</h3>
             </div>
             <div class="boss-stat-content">
@@ -1289,7 +1301,11 @@ const getSeasonStatusClass = () => {
 
           <div class="boss-stat-card avatar">
             <div class="boss-stat-header">
-              <div class="boss-icon">👁️</div>
+              <div class="boss-icon">
+                <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" 
+                     alt="Avatar of Destiny"
+                     class="boss-icon-image">
+              </div>
               <h3>Avatar of Destiny</h3>
             </div>
             <div class="boss-stat-content">
@@ -1310,7 +1326,11 @@ const getSeasonStatusClass = () => {
 
           <div class="boss-stat-card" :class="(activeSeason === 21) ? 'machine-god' : 'living-abyss'">
             <div class="boss-stat-header">
-              <div class="boss-icon">{{ (activeSeason === 21) ? '🤖' : '🔷' }}</div>
+              <div class="boss-icon">
+                <img :src="(activeSeason === 21) ? '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' : '/img/Living_Licorice_Abyss.webp'" 
+                     :alt="(activeSeason === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss'"
+                     class="boss-icon-image">
+              </div>
               <h3>{{ (activeSeason === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss' }}</h3>
             </div>
             <div class="boss-stat-content">
@@ -1441,7 +1461,11 @@ const getSeasonStatusClass = () => {
               
               <div class="mobile-boss-damage">
                 <div class="mobile-boss-damage-item">
-                  <div class="mobile-boss-icon">🐉</div>
+                  <div class="mobile-boss-icon">
+                    <img src="/img/Red_Velvet_Dragon.webp" 
+                         alt="Red Velvet Dragon"
+                         class="boss-icon-image">
+                  </div>
                   <div class="mobile-boss-damage-info">
                     <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage) }}</div>
                     <div class="mobile-battles-count">x{{ player.redVelvetDragon.battles }}</div>
@@ -1449,7 +1473,11 @@ const getSeasonStatusClass = () => {
                 </div>
                 
                 <div class="mobile-boss-damage-item">
-                  <div class="mobile-boss-icon">👁️</div>
+                  <div class="mobile-boss-icon">
+                    <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" 
+                         alt="Avatar of Destiny"
+                         class="boss-icon-image">
+                  </div>
                   <div class="mobile-boss-damage-info">
                     <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(player.avatarOfDestiny.damage) }}</div>
                     <div class="mobile-battles-count">x{{ player.avatarOfDestiny.battles }}</div>
@@ -1457,10 +1485,14 @@ const getSeasonStatusClass = () => {
                 </div>
                 
                 <div class="mobile-boss-damage-item">
-                  <div class="mobile-boss-icon">🔷</div>
+                  <div class="mobile-boss-icon">
+                    <img :src="(activeSeason === 21) ? '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' : '/img/Living_Licorice_Abyss.webp'" 
+                         :alt="(activeSeason === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss'"
+                         class="boss-icon-image">
+                  </div>
                   <div class="mobile-boss-damage-info">
-                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(player.livingAbyss.damage) }}</div>
-                    <div class="mobile-battles-count">x{{ player.livingAbyss.battles }}</div>
+                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage((activeSeason === 21) ? (player.machineGod?.damage || 0) : player.livingAbyss.damage) }}</div>
+                    <div class="mobile-battles-count">x{{ (activeSeason === 21) ? (player.machineGod?.battles || 0) : player.livingAbyss.battles }}</div>
                   </div>
                 </div>
               </div>
