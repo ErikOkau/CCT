@@ -1378,7 +1378,7 @@ const getSeasonStatusClass = () => {
                   <th>Player</th>
                   <th>Red Velvet Dragon</th>
                   <th>Avatar of Destiny</th>
-                  <th>Living Abyss</th>
+                  <th>{{ (activeSeason === 1 && currentDestinysFlight === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss' }}</th>
                   <th>Season Total</th>
                   <th>Tickets Used</th>
                   <th>Guild Rank</th>
@@ -1427,7 +1427,8 @@ const getSeasonStatusClass = () => {
                   <td class="ticket-cell">
                     <div class="ticket-info">
                       <div class="ticket-count" :class="getTicketStatusClass(player, activeSeason)">
-                        {{ activeSeason === 1 ? (player.redVelvetDragon.battles + player.livingAbyss.battles) : 
+                        {{ (activeSeason === 1 && currentDestinysFlight === 21) ? (player.avatarOfDestiny.battles + player.livingAbyss.battles) :
+                           activeSeason === 1 ? (player.redVelvetDragon.battles + player.livingAbyss.battles) : 
                            activeSeason === 2 ? (player.redVelvetDragon.battles + player.avatarOfDestiny.battles) : 
                            (player.avatarOfDestiny.battles + player.livingAbyss.battles) }}/18
                       </div>
@@ -1503,7 +1504,8 @@ const getSeasonStatusClass = () => {
                   <div class="mobile-total-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage) }}</div>
                 </div>
                 <div class="mobile-ticket-status" :class="getTicketStatusClass(player, activeSeason)">
-                  <div class="mobile-ticket-count">{{ activeSeason === 1 ? (player.redVelvetDragon.battles + player.livingAbyss.battles) : 
+                  <div class="mobile-ticket-count">{{ (activeSeason === 1 && currentDestinysFlight === 21) ? (player.avatarOfDestiny.battles + player.livingAbyss.battles) :
+                     activeSeason === 1 ? (player.redVelvetDragon.battles + player.livingAbyss.battles) : 
                      activeSeason === 2 ? (player.redVelvetDragon.battles + player.avatarOfDestiny.battles) : 
                      (player.avatarOfDestiny.battles + player.livingAbyss.battles) }}/18</div>
                   <div class="mobile-ticket-text">{{ getTicketStatusText(player, activeSeason) }}</div>
