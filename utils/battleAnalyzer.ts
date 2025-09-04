@@ -115,7 +115,23 @@ export class BattleAnalyzer {
       return sum + totalDamage
     }, 0) / totalPlayers)
     const totalBattlesDone = players.reduce((sum, p) => {
-      const totalBattles = p.redVelvetDragon.battles + p.avatarOfDestiny.battles + p.livingAbyss.battles + (p.machineGod?.battles || 0)
+      let totalBattles = 0
+      if (season === 1 && destinysFlight === 21) {
+        // Season 21-1: Avatar of Destiny and Machine God (using livingAbyss data)
+        totalBattles = p.avatarOfDestiny.battles + p.livingAbyss.battles
+      } else if (season === 1) {
+        // Season 20-1: Red Velvet Dragon and Living Abyss
+        totalBattles = p.redVelvetDragon.battles + p.livingAbyss.battles
+      } else if (season === 2) {
+        // Season 20-2: Red Velvet Dragon and Avatar of Destiny
+        totalBattles = p.redVelvetDragon.battles + p.avatarOfDestiny.battles
+      } else if (season === 3) {
+        // Season 20-3: Avatar of Destiny and Living Abyss
+        totalBattles = p.avatarOfDestiny.battles + p.livingAbyss.battles
+      } else {
+        // Default fallback: Avatar of Destiny and Living Abyss
+        totalBattles = p.avatarOfDestiny.battles + p.livingAbyss.battles
+      }
       return sum + totalBattles
     }, 0)
     const topPerformers = players.slice(0, 5)

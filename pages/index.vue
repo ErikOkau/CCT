@@ -1250,7 +1250,11 @@ const getSeasonStatusClass = () => {
                 </div>
               </div>
               <div class="ticket-boss-item avatar">
-                <div class="boss-ticket-icon">👁️</div>
+                <div class="boss-ticket-icon">
+                  <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" 
+                       alt="Avatar of Destiny"
+                       class="boss-icon-image">
+                </div>
                 <div class="boss-ticket-info">
                   <div class="boss-ticket-name">Avatar of Destiny</div>
                   <div class="boss-ticket-count">{{ analysisState.battleStats?.ticketStats.ticketsUsedByBoss.avatar || 0 }} tickets</div>
