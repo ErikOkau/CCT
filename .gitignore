@@ -24,6 +24,5 @@ logs
 !.env.example
 
 # Google API credentials
-google-sheets-credentials.json
-chaos-control-team-7da253bebe40.json
+chaos-control-team-2d67cc3c1469.json
 .vercel
