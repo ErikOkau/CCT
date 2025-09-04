@@ -174,7 +174,7 @@ const fetchSeasonData = async (season: number) => {
   
   // Handle Season 21-1 specifically
   if (currentDestinysFlight.value === 21 && season === 1) {
-    config = seasonConfigurations[21]?.[1]
+    config = seasonConfigurations[21]
   } else {
     config = seasonConfigurations[season as keyof typeof seasonConfigurations]
   }
