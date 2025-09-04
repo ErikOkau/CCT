@@ -29,7 +29,7 @@ export default defineNuxtConfig({
   
   // Ensure proper build configuration
   build: {
-    transpile: ['@supabase/supabase-js']
+    transpile: []
   },
   
   // Vite configuration for better module resolution
@@ -38,14 +38,13 @@ export default defineNuxtConfig({
       rollupOptions: {
         output: {
           manualChunks: {
-            vendor: ['vue', 'vue-router'],
-            supabase: ['@supabase/supabase-js']
+            vendor: ['vue', 'vue-router']
           }
         }
       }
     },
     optimizeDeps: {
-      include: ['@supabase/supabase-js']
+      include: []
     }
   },
   

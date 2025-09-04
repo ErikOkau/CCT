@@ -30,20 +30,7 @@ export const useBattleAnalysis = () => {
     saveError: ''
   })
 
-  // Load saved data from database (temporarily disabled for Supabase migration)
-  const loadSavedData = async () => {
-    // TODO: Implement Supabase data loading
-    console.log('📝 Database loading temporarily disabled for Supabase migration')
-  }
-
-  // Save data to database (temporarily disabled for Supabase migration)
-  const saveDataToDatabase = async () => {
-    // TODO: Implement Supabase data saving
-    console.log('📝 Database saving temporarily disabled for Supabase migration')
-  }
-
-  // Load saved data when composable is initialized
-  loadSavedData()
+  // Database functionality removed - using Google Sheets as primary data source
 
   const resetAnalysis = () => {
     analysisState.battleData = []
@@ -80,8 +67,7 @@ export const useBattleAnalysis = () => {
         analysisState.analysisComplete = true
         sheetsState.fetchSuccess = true
         
-        // Save to database automatically
-        await saveDataToDatabase()
+        // Data loaded successfully from Google Sheets
         
         console.log('Successfully fetched players from Google Sheets:', players)
       } else {
@@ -96,9 +82,8 @@ export const useBattleAnalysis = () => {
   }
 
   const saveToDatabase = async () => {
-    // TODO: Implement Supabase data saving
-    console.log('📝 Database saving temporarily disabled for Supabase migration')
-    alert('Database saving is temporarily disabled during Supabase migration')
+    console.log('📝 Database saving not available - using Google Sheets as data source')
+    alert('Database saving not available - data is managed through Google Sheets')
   }
 
   return {

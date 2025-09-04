@@ -47,12 +47,13 @@ Vercel will automatically detect it's a Nuxt.js project. The settings should be:
 
 ### **Step 4: Set Environment Variables (If Needed)**
 
-If you're using Google Sheets API, add these in the Vercel dashboard:
+If you're using Google Sheets API or ChatGPT, add these in the Vercel dashboard:
 
 1. **Go to Project Settings**
 2. **Environment Variables**
 3. **Add these variables**:
    ```
+   CHATGPT_API=your_chatgpt_api_key
    GOOGLE_SHEETS_CREDENTIALS=your_credentials_here
    ```
 
@@ -148,9 +149,11 @@ npm run generate
 ### **Environment Variables**
 ```bash
 # Development
+CHATGPT_API=dev_key
 GOOGLE_SHEETS_CREDENTIALS=dev_creds
 
 # Production
+CHATGPT_API=prod_key
 GOOGLE_SHEETS_CREDENTIALS=prod_creds
 ```
 

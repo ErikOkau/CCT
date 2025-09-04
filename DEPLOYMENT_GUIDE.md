@@ -106,10 +106,8 @@ CREATE POLICY "Admins can insert battle data" ON public.battle_data
 In your Vercel project settings, add these environment variables:
 
 ```bash
-# Supabase Configuration
-SUPABASE_URL=https://your-project-ref.supabase.co
-SUPABASE_ANON_KEY=your_anon_key_here
-SUPABASE_KEY=your_service_role_key_here
+# ChatGPT API Configuration
+CHATGPT_API=your_chatgpt_api_key
 
 # Google Sheets Configuration (if using)
 GOOGLE_SHEETS_CREDENTIALS_PATH=/tmp/credentials.json

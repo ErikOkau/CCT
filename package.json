@@ -23,10 +23,7 @@
     "webpack": "^5.89.0"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.55.0",
-    "@types/bcryptjs": "^2.4.6",
     "@types/file-saver": "^2.0.7",
-    "bcryptjs": "^3.0.2",
     "file-saver": "^2.0.5",
     "googleapis": "^156.0.0",
     "gsap": "^3.12.4",
