@@ -182,8 +182,14 @@ const fetchSeasonData = async (season: number) => {
   
   // Handle Destiny's Flight 21 seasons
   if (currentDestinysFlight.value === 21) {
-    // For Destiny's Flight 21, use the 21-1 data for all seasons (since we only have 21-1 data)
-    config = seasonConfigurations[21]
+    // For Destiny's Flight 21, use the correct season configuration
+    if (season === 1) {
+      config = seasonConfigurations[21] // Season 21-1: AoD + Machine God
+    } else if (season === 2) {
+      config = seasonConfigurations[22] // Season 21-2: RVD + Machine God
+    } else {
+      config = seasonConfigurations[21] // Fallback to 21-1
+    }
   } else {
     config = seasonConfigurations[season as keyof typeof seasonConfigurations]
   }
@@ -203,7 +209,16 @@ const fetchSeasonData = async (season: number) => {
   
   // Automatically fetch data for the season
   try {
-    await fetchFromGoogleSheets(season, currentDestinysFlight.value)
+    // Map the season number correctly for the battle analyzer
+    let analyzerSeason = season
+    if (currentDestinysFlight.value === 21) {
+      // For Destiny's Flight 21, season 1 = 21-1 (AoD + MG), season 2 = 21-2 (RVD + MG)
+      // The battle analyzer expects: season 1 = AoD+MG, season 2 = RVD+MG
+      analyzerSeason = season // Keep the same season number for analyzer
+    }
+    console.log(`Fetching data for season ${season} (analyzer season: ${analyzerSeason}), Destiny's Flight: ${currentDestinysFlight.value}`)
+    console.log(`Using range: ${config.range}`)
+    await fetchFromGoogleSheets(analyzerSeason, currentDestinysFlight.value)
   } catch (error) {
     console.error('Error fetching season data:', error)
   } finally {
@@ -1357,15 +1372,15 @@ const getSeasonStatusClass = () => {
             <div class="boss-stat-content">
               <div class="boss-stat-item">
                 <span class="stat-label">Participants:</span>
-                <span class="stat-value">{{ analysisState.battleStats?.livingAbyssStats.participants || 0 }}</span>
+                <span class="stat-value">{{ (currentDestinysFlight === 21) ? (analysisState.battleStats?.machineGodStats.participants || 0) : (analysisState.battleStats?.livingAbyssStats.participants || 0) }}</span>
               </div>
               <div class="boss-stat-item">
                 <span class="stat-label">Total Damage:</span>
-                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.totalDamage || 0) }}</span>
+                <span class="stat-value">{{ (currentDestinysFlight === 21) ? BattleAnalyzer.formatDamage(analysisState.battleStats?.machineGodStats.totalDamage || 0) : BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.totalDamage || 0) }}</span>
               </div>
               <div class="boss-stat-item">
                 <span class="stat-label">Average Damage:</span>
-                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.averageDamage || 0) }}</span>
+                <span class="stat-value">{{ (currentDestinysFlight === 21) ? BattleAnalyzer.formatDamage(analysisState.battleStats?.machineGodStats.averageDamage || 0) : BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.averageDamage || 0) }}</span>
               </div>
             </div>
           </div>
