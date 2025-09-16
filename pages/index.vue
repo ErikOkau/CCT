@@ -85,9 +85,10 @@ const getCurrentSeason = () => {
   const now = new Date()
   const gmtPlus9 = new Date(now.getTime() + (9 * 60 * 60 * 1000)) // Convert to GMT+9
   
-  for (const [season, dates] of Object.entries(seasonDates)) {
+  for (const season in seasonDates) {
+    const dates = seasonDates[season as keyof typeof seasonDates]
     if (gmtPlus9 >= dates.start && gmtPlus9 <= dates.end) {
-      return parseInt(season)
+      return parseInt(season) as unknown as 1 | 2 | 3
     }
   }
   
@@ -481,6 +482,7 @@ const loadHallOfGloryData = async () => {
         
         // Check Machine God champion
         if (player.machineGod && player.machineGod.damage > bossChampions.machineGod.damage) {
+          console.log(`New Machine God champion: ${player.playerName} with ${player.machineGod.damage} damage in season ${seasonData.seasonId}`)
           bossChampions.machineGod = {
             player: player.playerName,
             damage: player.machineGod.damage,
@@ -493,6 +495,9 @@ const loadHallOfGloryData = async () => {
     
     // Sort season champions by total damage
     seasonChampions.sort((a, b) => b.totalDamage - a.totalDamage)
+    
+    console.log('Final boss champions:', bossChampions)
+    console.log('Machine God champion:', bossChampions.machineGod)
     
     hallOfGloryData.value = {
       bossChampions,
@@ -1136,7 +1141,7 @@ const getSeasonStatusClass = () => {
             </template>
 
             <!-- Default: Generic current/upcoming info -->
-            <template v-if="!(currentDestinysFlight === 21 && [1, 2, 3, 4].includes(activeSeason)) && !(currentDestinysFlight === 20 && activeSeason === 3)">
+            <template v-if="!(currentDestinysFlight === 21 && [1, 2, 3, 4].indexOf(activeSeason) !== -1) && !(currentDestinysFlight === 20 && activeSeason === 3)">
               <div class="info-card" v-if="getSeasonType(activeSeason) === 'current'">
                 <div class="info-icon">📊</div>
                 <h3>Data Collection</h3>

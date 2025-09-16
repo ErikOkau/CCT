@@ -100,108 +100,86 @@ function parseSpreadsheetData(rows: any[][]): any[] {
   console.log(`Processing ${playerRows.length} player rows (stopped at row ${endIndex})`)
   console.log('Sample row structure:', playerRows[0])
   
+  // Create an object to store all unique players and their data
+  const playerMap: { [key: string]: any } = {}
+  
   playerRows.forEach((row, index) => {
     if (row.length < 20) {
       console.log(`Skipping row ${index + 1}: insufficient columns (${row.length})`)
       return
     }
     
-    const rank = index + 1
-    
     // Parse Red Velvet Dragon data (columns A-F: 0-5)
-    // Column 1 (B) contains member names, Column 2 (C) contains damage
-    const redVelvetMemberName = row[1] || `Player ${rank}`
+    const redVelvetMemberName = row[1]
     const redVelvetDamageText = row[2] || ''
     const redVelvetDamage = parseFloat(redVelvetDamageText.replace(' Billion', '')) * 1000000000 || 0
-    const redVelvetBattlesRaw = parseInt(row[4]) || 0 // Column E - "Battles Done" (correct mapping)
-    const redVelvetBattles = redVelvetDamage > 0 ? redVelvetBattlesRaw : 0 // Only count tickets if damage > 0
-    const redVelvetAvg = parseInt(row[5]) || 0 // Column F (correct mapping)
+    const redVelvetBattlesRaw = parseInt(row[4]) || 0
+    const redVelvetBattles = redVelvetDamage > 0 ? redVelvetBattlesRaw : 0
+    const redVelvetAvg = parseInt(row[5]) || 0
     
     // Parse Avatar of Destiny data (columns H-M: 7-12)
-    // Column 8 (I) contains member names, Column 9 (J) contains damage
-    const avatarMemberName = row[8] || `Player ${rank}`
+    const avatarMemberName = row[8]
     const avatarDamageText = row[9] || ''
     const avatarDamage = parseFloat(avatarDamageText.replace(' Billion', '')) * 1000000000 || 0
-    const avatarBattlesRaw = parseInt(row[11]) || 0 // Column L - "Battles Done" (correct: index 11)
-    const avatarBattles = avatarDamage > 0 ? avatarBattlesRaw : 0 // Only count tickets if damage > 0
-    const avatarAvg = parseInt(row[12]) || 0 // Column M (correct: index 12)
+    const avatarBattlesRaw = parseInt(row[11]) || 0
+    const avatarBattles = avatarDamage > 0 ? avatarBattlesRaw : 0
+    const avatarAvg = parseInt(row[12]) || 0
     
     // Parse Living Abyss data (columns O-T: 14-19)
-    // Column 15 (P) contains member names, Column 16 (Q) contains damage
-    const livingAbyssMemberName = row[15] || `Player ${rank}`
+    const livingAbyssMemberName = row[15]
     const livingAbyssDamageText = row[16] || ''
     const livingAbyssDamage = parseFloat(livingAbyssDamageText.replace(' Billion', '')) * 1000000000 || 0
-    const livingAbyssBattlesRaw = parseInt(row[18]) || 0 // Column S - "Battles Done" (correct: index 18)
-    const livingAbyssBattles = livingAbyssDamage > 0 ? livingAbyssBattlesRaw : 0 // Only count tickets if damage > 0
-    const livingAbyssAvg = parseInt(row[19]) || 0 // Column T (correct: index 19)
+    const livingAbyssBattlesRaw = parseInt(row[18]) || 0
+    const livingAbyssBattles = livingAbyssDamage > 0 ? livingAbyssBattlesRaw : 0
+    const livingAbyssAvg = parseInt(row[19]) || 0
     
     // Parse Machine God data (columns V-AA: 21-26)
-    // Column 22 (W) contains member names, Column 23 (X) contains damage
-    const machineGodMemberName = row[22] || `Player ${rank}`
+    const machineGodMemberName = row[22]
     const machineGodDamageText = row[23] || ''
     const machineGodDamage = parseFloat(machineGodDamageText.replace(' Billion', '')) * 1000000000 || 0
-    const machineGodBattlesRaw = parseInt(row[25]) || 0 // Column Z - "Battles Done" (correct: index 25)
+    const machineGodBattlesRaw = parseInt(row[25]) || 0
     const machineGodBattles = machineGodDamage > 0 ? machineGodBattlesRaw : 0
-    const machineGodAvg = parseInt(row[26]) || 0 // Column AA (correct: index 26)
+    const machineGodAvg = parseInt(row[26]) || 0
     
-    // Use the member name from the boss section that has actual data
-    // Priority: Machine God > Avatar of Destiny > Living Abyss > Red Velvet Dragon
-    let playerName = machineGodMemberName
-    if (!machineGodMemberName || machineGodMemberName === `Player ${rank}` || machineGodMemberName === rank.toString()) {
-      playerName = avatarMemberName
-    }
-    if (!playerName || playerName === `Player ${rank}` || playerName === rank.toString()) {
-      playerName = livingAbyssMemberName
-    }
-    if (!playerName || playerName === `Player ${rank}` || playerName === rank.toString()) {
-      playerName = redVelvetMemberName
-    }
+    // Process each boss section independently
+    const bossSections = [
+      { name: redVelvetMemberName, damage: redVelvetDamage, battles: redVelvetBattles, avg: redVelvetAvg, type: 'redVelvetDragon' },
+      { name: avatarMemberName, damage: avatarDamage, battles: avatarBattles, avg: avatarAvg, type: 'avatarOfDestiny' },
+      { name: livingAbyssMemberName, damage: livingAbyssDamage, battles: livingAbyssBattles, avg: livingAbyssAvg, type: 'livingAbyss' },
+      { name: machineGodMemberName, damage: machineGodDamage, battles: machineGodBattles, avg: machineGodAvg, type: 'machineGod' }
+    ]
     
-    // Additional fallback: if all names are just numbers, try to find a meaningful name
-    if (playerName === rank.toString() || playerName === `Player ${rank}`) {
-      // Look for any non-numeric name in the row
-      for (let col = 0; col < row.length; col++) {
-        const cellValue = row[col]
-        if (cellValue && typeof cellValue === 'string' && 
-            cellValue.length > 2 && 
-            !cellValue.match(/^\d+$/) && 
-            !cellValue.includes('Billion') && 
-            !cellValue.includes('Battles') &&
-            !cellValue.includes('avg')) {
-          playerName = cellValue
-          console.log(`Found alternative name for rank ${rank}: ${playerName} in column ${col}`)
-          break
+    bossSections.forEach(boss => {
+      if (boss.name && boss.name.trim() && boss.damage > 0) {
+        if (!playerMap[boss.name]) {
+          playerMap[boss.name] = {
+            playerName: boss.name,
+            redVelvetDragon: { damage: 0, battles: 0, avgDamagePerTicket: 0 },
+            avatarOfDestiny: { damage: 0, battles: 0, avgDamagePerTicket: 0 },
+            livingAbyss: { damage: 0, battles: 0, avgDamagePerTicket: 0 },
+            machineGod: { damage: 0, battles: 0, avgDamagePerTicket: 0 }
+          }
         }
-      }
-    }
-    
-    console.log(`Rank ${rank}: ${playerName} | RVD: ${redVelvetDamageText} | AoD: ${avatarDamageText} | LA: ${livingAbyssDamageText} | MG: ${machineGodDamageText}`)
-    
-    players.push({
-      rank,
-      playerName,
-      redVelvetDragon: {
-        damage: redVelvetDamage,
-        battles: redVelvetBattles,
-        avgDamagePerTicket: redVelvetAvg
-      },
-      avatarOfDestiny: {
-        damage: avatarDamage,
-        battles: avatarBattles,
-        avgDamagePerTicket: avatarAvg
-      },
-      livingAbyss: {
-        damage: livingAbyssDamage,
-        battles: livingAbyssBattles,
-        avgDamagePerTicket: livingAbyssAvg
-      },
-      machineGod: {
-        damage: machineGodDamage,
-        battles: machineGodBattles,
-        avgDamagePerTicket: machineGodAvg
+        
+        const player = playerMap[boss.name]
+        player[boss.type] = {
+          damage: boss.damage,
+          battles: boss.battles,
+          avgDamagePerTicket: boss.avg
+        }
+        
+        console.log(`Added ${boss.name} to ${boss.type}: ${boss.damage} damage, ${boss.battles} battles`)
       }
     })
   })
+  
+  // Convert object to array and assign ranks
+  let rank = 1
+  for (const playerName in playerMap) {
+    const player = playerMap[playerName]
+    player.rank = rank++
+    players.push(player)
+  }
   
   return players
 }
