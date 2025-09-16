@@ -108,6 +108,15 @@ export class BattleAnalyzer {
    * Calculate battle statistics from player data
    */
   static calculateStats(players: BattlePlayer[], season: number = 1, destinysFlight: number = 20): BattleStats {
+    console.log(`🔍 BattleAnalyzer.calculateStats called with season=${season}, destinysFlight=${destinysFlight}`)
+    console.log(`🔍 Players received: ${players.length}`)
+    console.log(`🔍 Sample player data:`, players.slice(0, 2).map(p => ({
+      name: p.playerName,
+      aod: p.avatarOfDestiny,
+      rvd: p.redVelvetDragon,
+      la: p.livingAbyss,
+      mg: p.machineGod
+    })))
     const totalPlayers = players.length
     const highestDamage = Math.max(...players.map(p => {
       const totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage + (p.machineGod?.damage || 0)

@@ -60,6 +60,9 @@ export const useBattleAnalysis = () => {
       const players = await BattleAnalyzer.fetchFromGoogleSheets(sheetsState.spreadsheetId, sheetsState.range)
       
       if (players.length > 0) {
+        console.log(`🔍 useBattleAnalysis: About to call calculateStats with season=${season}, destinysFlight=${destinysFlight}`)
+        console.log(`🔍 useBattleAnalysis: Players received:`, players.length)
+        
         analysisState.battleData = players
         analysisState.battleStats = BattleAnalyzer.calculateStats(players, season, destinysFlight)
         analysisState.insights = BattleAnalyzer.generateInsights(players, season, destinysFlight)
