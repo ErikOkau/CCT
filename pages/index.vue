@@ -511,6 +511,25 @@ const loadHallOfGloryData = async () => {
     // Sort season champions by total damage
     seasonChampions.sort((a, b) => b.totalDamage - a.totalDamage)
     
+    // Manual correction for Red Velvet Dragon champion
+    // Based on user feedback, brownmascara should be the RVD champion, not YourLoverXD
+    if (bossChampions.redVelvet.player === 'YourLoverXD' && bossChampions.redVelvet.season === '21-2') {
+      console.log('Correcting Red Velvet Dragon champion from YourLoverXD to brownmascara')
+      // Find brownmascara's RVD data from 21-2
+      const season21_2 = validSeasonData.find(data => data.seasonId === '21-2')
+      if (season21_2) {
+        const brownmascara = season21_2.players.find((player: any) => player.playerName === 'brownmascara')
+        if (brownmascara && brownmascara.redVelvetDragon.damage > 0) {
+          bossChampions.redVelvet = {
+            player: 'brownmascara',
+            damage: brownmascara.redVelvetDragon.damage,
+            season: '21-2',
+            tickets: brownmascara.redVelvetDragon.battles
+          }
+        }
+      }
+    }
+    
     console.log('Final boss champions:', bossChampions)
     console.log('Final season champions:', seasonChampions.slice(0, 3))
     
@@ -785,6 +804,35 @@ const getSeasonStatusClass = () => {
                </div>
              </div>
 
+             <!-- Machine God Champion -->
+             <div class="glory-card machine-god" v-if="hallOfGloryData.bossChampions.machineGod.player">
+               <div class="glory-header">
+                 <div class="boss-icon">
+                   <img src="/img/Machine-God_of_the_Eternal_Void_guild_ready.webp" alt="Machine-God of the Eternal Void" />
+                 </div>
+                 <h3>Machine God</h3>
+                 <div class="champion-badge">🥇 Champion</div>
+               </div>
+               <div class="champion-info">
+                 <div class="champion-name">{{ hallOfGloryData.bossChampions.machineGod.player }}</div>
+                 <div class="champion-damage">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.machineGod.damage) }}</div>
+                 <div class="champion-details">
+                   <span class="detail-item">🎯 {{ hallOfGloryData.bossChampions.machineGod.tickets }}/18 Tickets</span>
+                   <span class="detail-item">📅 Season {{ hallOfGloryData.bossChampions.machineGod.season }}</span>
+                 </div>
+               </div>
+               <div class="glory-stats">
+                 <div class="stat-item">
+                   <span class="stat-label">Guild Record:</span>
+                   <span class="stat-value">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.machineGod.damage) }}</span>
+                 </div>
+                 <div class="stat-item">
+                   <span class="stat-label">Season:</span>
+                   <span class="stat-value">{{ hallOfGloryData.bossChampions.machineGod.season }}</span>
+                 </div>
+               </div>
+             </div>
+
              <!-- Avatar of Destiny Champion -->
              <div class="glory-card avatar" v-if="hallOfGloryData.bossChampions.avatar.player">
                <div class="glory-header">
@@ -839,35 +887,6 @@ const getSeasonStatusClass = () => {
                  <div class="stat-item">
                    <span class="stat-label">Season:</span>
                    <span class="stat-value">{{ hallOfGloryData.bossChampions.livingAbyss.season }}</span>
-                 </div>
-               </div>
-             </div>
-
-             <!-- Machine God Champion -->
-             <div class="glory-card machine-god" v-if="hallOfGloryData.bossChampions.machineGod.player">
-               <div class="glory-header">
-                 <div class="boss-icon">
-                   <img src="/img/Machine-God_of_the_Eternal_Void_guild_ready.webp" alt="Machine-God of the Eternal Void" />
-                 </div>
-                 <h3>Machine God</h3>
-                 <div class="champion-badge">🥇 Champion</div>
-               </div>
-               <div class="champion-info">
-                 <div class="champion-name">{{ hallOfGloryData.bossChampions.machineGod.player }}</div>
-                 <div class="champion-damage">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.machineGod.damage) }}</div>
-                 <div class="champion-details">
-                   <span class="detail-item">🎯 {{ hallOfGloryData.bossChampions.machineGod.tickets }}/18 Tickets</span>
-                   <span class="detail-item">📅 Season {{ hallOfGloryData.bossChampions.machineGod.season }}</span>
-                 </div>
-               </div>
-               <div class="glory-stats">
-                 <div class="stat-item">
-                   <span class="stat-label">Guild Record:</span>
-                   <span class="stat-value">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.machineGod.damage) }}</span>
-                 </div>
-                 <div class="stat-item">
-                   <span class="stat-label">Season:</span>
-                   <span class="stat-value">{{ hallOfGloryData.bossChampions.machineGod.season }}</span>
                  </div>
                </div>
              </div>
