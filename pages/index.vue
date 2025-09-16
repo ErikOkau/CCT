@@ -451,6 +451,7 @@ const loadHallOfGloryData = async () => {
       seasonData.players.forEach(player => {
         // Check Red Velvet Dragon champion
         if (player.redVelvetDragon.damage > bossChampions.redVelvet.damage) {
+          console.log(`New Red Velvet Dragon champion: ${player.playerName} with ${player.redVelvetDragon.damage} damage in season ${seasonData.seasonId}`)
           bossChampions.redVelvet = {
             player: player.playerName,
             damage: player.redVelvetDragon.damage,
@@ -470,7 +471,8 @@ const loadHallOfGloryData = async () => {
         }
         
         // Check Living Abyss champion
-        if (player.livingAbyss.damage > bossChampions.livingAbyss.damage) {
+        // For Destiny Flight 21, livingAbyss field contains Machine God data, so skip Living Abyss champion check
+        if (!seasonData.seasonId.startsWith('21-') && player.livingAbyss.damage > bossChampions.livingAbyss.damage) {
           bossChampions.livingAbyss = {
             player: player.playerName,
             damage: player.livingAbyss.damage,
@@ -480,12 +482,27 @@ const loadHallOfGloryData = async () => {
         }
         
         // Check Machine God champion
-        if (player.machineGod && player.machineGod.damage > bossChampions.machineGod.damage) {
+        // For Destiny Flight 21, Machine God data is stored in livingAbyss field
+        let machineGodDamage = 0
+        let machineGodBattles = 0
+        
+        if (seasonData.seasonId.startsWith('21-')) {
+          // Destiny Flight 21: Machine God data is in livingAbyss field
+          machineGodDamage = player.livingAbyss.damage
+          machineGodBattles = player.livingAbyss.battles
+        } else if (player.machineGod) {
+          // Other flights: Machine God data is in machineGod field
+          machineGodDamage = player.machineGod.damage
+          machineGodBattles = player.machineGod.battles
+        }
+        
+        if (machineGodDamage > bossChampions.machineGod.damage) {
+          console.log(`New Machine God champion: ${player.playerName} with ${machineGodDamage} damage in season ${seasonData.seasonId}`)
           bossChampions.machineGod = {
             player: player.playerName,
-            damage: player.machineGod.damage,
+            damage: machineGodDamage,
             season: seasonData.seasonId,
-            tickets: player.machineGod.battles
+            tickets: machineGodBattles
           }
         }
       })
@@ -493,6 +510,9 @@ const loadHallOfGloryData = async () => {
     
     // Sort season champions by total damage
     seasonChampions.sort((a, b) => b.totalDamage - a.totalDamage)
+    
+    console.log('Final boss champions:', bossChampions)
+    console.log('Final season champions:', seasonChampions.slice(0, 3))
     
     hallOfGloryData.value = {
       bossChampions,
