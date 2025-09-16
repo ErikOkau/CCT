@@ -122,6 +122,9 @@ export class BattleAnalyzer {
       if (season === 1 && destinysFlight === 21) {
         // Season 21-1: Avatar of Destiny and Machine God (using livingAbyss data)
         totalBattles = p.avatarOfDestiny.battles + p.livingAbyss.battles
+      } else if (season === 2 && destinysFlight === 21) {
+        // Season 21-2: Red Velvet Dragon and Machine God (using livingAbyss data)
+        totalBattles = p.redVelvetDragon.battles + p.livingAbyss.battles
       } else if (season === 1) {
         // Season 20-1: Red Velvet Dragon and Living Abyss
         totalBattles = p.redVelvetDragon.battles + p.livingAbyss.battles
@@ -202,6 +205,18 @@ export class BattleAnalyzer {
       ticketsUsedByBoss = {
         redVelvet: 0,
         avatar: players.reduce((sum, p) => sum + p.avatarOfDestiny.battles, 0),
+        livingAbyss: players.reduce((sum, p) => sum + p.livingAbyss.battles, 0) // Machine God data in livingAbyss field
+      }
+    } else if (season === 2 && destinysFlight === 21) {
+      // Season 21-2: Red Velvet Dragon and Machine God of the Eternal Void (using livingAbyss data)
+      totalTicketsUsed = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + p.livingAbyss.battles, 0)
+      playersBelowMinimum = players.filter(p => {
+        const playerTickets = p.redVelvetDragon.battles + p.livingAbyss.battles
+        return playerTickets < MIN_REQUIRED_TICKETS
+      }).length
+      ticketsUsedByBoss = {
+        redVelvet: players.reduce((sum, p) => sum + p.redVelvetDragon.battles, 0),
+        avatar: 0,
         livingAbyss: players.reduce((sum, p) => sum + p.livingAbyss.battles, 0) // Machine God data in livingAbyss field
       }
     } else {
@@ -324,6 +339,13 @@ export class BattleAnalyzer {
       totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + p.livingAbyss.battles, 0)
       playersBelowMinimum = players.filter(p => {
         const playerTickets = p.avatarOfDestiny.battles + p.livingAbyss.battles
+        return playerTickets < MIN_REQUIRED_TICKETS
+      }).length
+    } else if (season === 2 && destinysFlight === 21) {
+      // Season 21-2: Red Velvet Dragon and Machine God of the Eternal Void (using livingAbyss data)
+      totalTicketsUsed = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + p.livingAbyss.battles, 0)
+      playersBelowMinimum = players.filter(p => {
+        const playerTickets = p.redVelvetDragon.battles + p.livingAbyss.battles
         return playerTickets < MIN_REQUIRED_TICKETS
       }).length
     } else {
