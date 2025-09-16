@@ -197,6 +197,15 @@ export class BattleAnalyzer {
       }
     } else if (season === 1 && destinysFlight === 21) {
       // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void
+      console.log('🔍 Season 21-1 ticket calculation:')
+      console.log('Players with AoD battles:', players.filter(p => p.avatarOfDestiny.battles > 0).length)
+      console.log('Players with Machine God battles:', players.filter(p => p.machineGod?.battles > 0).length)
+      console.log('Sample player data:', players.slice(0, 3).map(p => ({
+        name: p.playerName,
+        aodBattles: p.avatarOfDestiny.battles,
+        mgBattles: p.machineGod?.battles || 0
+      })))
+      
       totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + (p.machineGod?.battles || 0), 0)
       playersBelowMinimum = players.filter(p => {
         const playerTickets = p.avatarOfDestiny.battles + (p.machineGod?.battles || 0)
@@ -207,8 +216,23 @@ export class BattleAnalyzer {
         avatar: players.reduce((sum, p) => sum + p.avatarOfDestiny.battles, 0),
         livingAbyss: players.reduce((sum, p) => sum + (p.machineGod?.battles || 0), 0) // Machine God data
       }
+      
+      console.log('Ticket totals:', {
+        totalTicketsUsed,
+        aodTickets: ticketsUsedByBoss.avatar,
+        mgTickets: ticketsUsedByBoss.livingAbyss
+      })
     } else if (season === 2 && destinysFlight === 21) {
       // Season 21-2: Red Velvet Dragon and Machine God of the Eternal Void
+      console.log('🔍 Season 21-2 ticket calculation:')
+      console.log('Players with RVD battles:', players.filter(p => p.redVelvetDragon.battles > 0).length)
+      console.log('Players with Machine God battles:', players.filter(p => p.machineGod?.battles > 0).length)
+      console.log('Sample player data:', players.slice(0, 3).map(p => ({
+        name: p.playerName,
+        rvdBattles: p.redVelvetDragon.battles,
+        mgBattles: p.machineGod?.battles || 0
+      })))
+      
       totalTicketsUsed = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + (p.machineGod?.battles || 0), 0)
       playersBelowMinimum = players.filter(p => {
         const playerTickets = p.redVelvetDragon.battles + (p.machineGod?.battles || 0)
@@ -219,6 +243,12 @@ export class BattleAnalyzer {
         avatar: 0,
         livingAbyss: players.reduce((sum, p) => sum + (p.machineGod?.battles || 0), 0) // Machine God data
       }
+      
+      console.log('Ticket totals:', {
+        totalTicketsUsed,
+        rvdTickets: ticketsUsedByBoss.redVelvet,
+        mgTickets: ticketsUsedByBoss.livingAbyss
+      })
     } else {
       // Default fallback: Avatar of Destiny and Living Abyss
       totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + p.livingAbyss.battles, 0)

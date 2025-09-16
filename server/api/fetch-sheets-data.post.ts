@@ -169,6 +169,15 @@ function parseSpreadsheetData(rows: any[][]): any[] {
         }
         
         console.log(`Added ${boss.name} to ${boss.type}: ${boss.damage} damage, ${boss.battles} battles`)
+        
+        // Special debugging for Machine God data
+        if (boss.type === 'machineGod') {
+          console.log(`🔍 Machine God data for ${boss.name}:`, {
+            damage: boss.damage,
+            battles: boss.battles,
+            avg: boss.avg
+          })
+        }
       }
     })
   })
@@ -179,6 +188,17 @@ function parseSpreadsheetData(rows: any[][]): any[] {
     const player = playerMap[playerName]
     player.rank = rank++
     players.push(player)
+  }
+  
+  // Debug: Check Machine God data in final result
+  const playersWithMG = players.filter(p => p.machineGod && p.machineGod.battles > 0)
+  console.log(`🔍 Final result: ${playersWithMG.length} players with Machine God battles`)
+  if (playersWithMG.length > 0) {
+    console.log('Sample Machine God players:', playersWithMG.slice(0, 3).map(p => ({
+      name: p.playerName,
+      mgBattles: p.machineGod.battles,
+      mgDamage: p.machineGod.damage
+    })))
   }
   
   return players
