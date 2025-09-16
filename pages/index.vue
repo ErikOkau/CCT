@@ -2,6 +2,7 @@
 import { onMounted, computed, ref, watch } from 'vue'
 import { useBattleAnalysis } from '~/composables/useBattleAnalysis'
 import { BattleAnalyzer } from '~/utils/battleAnalyzer'
+import HollyberryRanking from '~/components/HollyberryRanking.vue'
 
 // Use composables
 const {
@@ -1570,6 +1571,9 @@ const getSeasonStatusClass = () => {
         </div>
       </div>
     </footer>
+
+    <!-- Hollyberry Server Rankings -->
+    <HollyberryRanking />
   </div>
 </template>
 
