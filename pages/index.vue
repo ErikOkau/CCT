@@ -309,11 +309,11 @@ const getTicketStatusClass = (player: any, season: number = activeSeason.value) 
   let ticketsUsed = 0
   
   if (currentDestinysFlight.value === 21 && season === 1) {
-    // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void (using livingAbyss data)
-    ticketsUsed = player.avatarOfDestiny.battles + player.livingAbyss.battles
+    // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void
+    ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
   } else if (currentDestinysFlight.value === 21 && season === 2) {
-    // Season 21-2: Red Velvet Dragon and Machine God of the Eternal Void (using livingAbyss data)
-    ticketsUsed = player.redVelvetDragon.battles + player.livingAbyss.battles
+    // Season 21-2: Red Velvet Dragon and Machine God of the Eternal Void
+    ticketsUsed = player.redVelvetDragon.battles + (player.machineGod?.battles || 0)
   } else if (season === 1) {
     // Season 20-1: Red Velvet Dragon and Living Abyss
     ticketsUsed = player.redVelvetDragon.battles + player.livingAbyss.battles
@@ -338,11 +338,11 @@ const getTicketStatusText = (player: any, season: number = activeSeason.value) =
   let ticketsUsed = 0
   
   if (currentDestinysFlight.value === 21 && season === 1) {
-    // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void (using livingAbyss data)
-    ticketsUsed = player.avatarOfDestiny.battles + player.livingAbyss.battles
+    // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void
+    ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
   } else if (currentDestinysFlight.value === 21 && season === 2) {
-    // Season 21-2: Red Velvet Dragon and Machine God of the Eternal Void (using livingAbyss data)
-    ticketsUsed = player.redVelvetDragon.battles + player.livingAbyss.battles
+    // Season 21-2: Red Velvet Dragon and Machine God of the Eternal Void
+    ticketsUsed = player.redVelvetDragon.battles + (player.machineGod?.battles || 0)
   } else if (season === 1) {
     // Season 20-1: Red Velvet Dragon and Living Abyss
     ticketsUsed = player.redVelvetDragon.battles + player.livingAbyss.battles
@@ -451,7 +451,6 @@ const loadHallOfGloryData = async () => {
       seasonData.players.forEach(player => {
         // Check Red Velvet Dragon champion
         if (player.redVelvetDragon.damage > bossChampions.redVelvet.damage) {
-          console.log(`New Red Velvet Dragon champion: ${player.playerName} with ${player.redVelvetDragon.damage} damage in season ${seasonData.seasonId}`)
           bossChampions.redVelvet = {
             player: player.playerName,
             damage: player.redVelvetDragon.damage,
@@ -471,8 +470,7 @@ const loadHallOfGloryData = async () => {
         }
         
         // Check Living Abyss champion
-        // For Destiny Flight 21, livingAbyss field contains Machine God data, so skip Living Abyss champion check
-        if (!seasonData.seasonId.startsWith('21-') && player.livingAbyss.damage > bossChampions.livingAbyss.damage) {
+        if (player.livingAbyss.damage > bossChampions.livingAbyss.damage) {
           bossChampions.livingAbyss = {
             player: player.playerName,
             damage: player.livingAbyss.damage,
@@ -482,27 +480,12 @@ const loadHallOfGloryData = async () => {
         }
         
         // Check Machine God champion
-        // For Destiny Flight 21, Machine God data is stored in livingAbyss field
-        let machineGodDamage = 0
-        let machineGodBattles = 0
-        
-        if (seasonData.seasonId.startsWith('21-')) {
-          // Destiny Flight 21: Machine God data is in livingAbyss field
-          machineGodDamage = player.livingAbyss.damage
-          machineGodBattles = player.livingAbyss.battles
-        } else if (player.machineGod) {
-          // Other flights: Machine God data is in machineGod field
-          machineGodDamage = player.machineGod.damage
-          machineGodBattles = player.machineGod.battles
-        }
-        
-        if (machineGodDamage > bossChampions.machineGod.damage) {
-          console.log(`New Machine God champion: ${player.playerName} with ${machineGodDamage} damage in season ${seasonData.seasonId}`)
+        if (player.machineGod && player.machineGod.damage > bossChampions.machineGod.damage) {
           bossChampions.machineGod = {
             player: player.playerName,
-            damage: machineGodDamage,
+            damage: player.machineGod.damage,
             season: seasonData.seasonId,
-            tickets: machineGodBattles
+            tickets: player.machineGod.battles
           }
         }
       })
@@ -510,28 +493,6 @@ const loadHallOfGloryData = async () => {
     
     // Sort season champions by total damage
     seasonChampions.sort((a, b) => b.totalDamage - a.totalDamage)
-    
-    // Manual correction for Red Velvet Dragon champion
-    // Based on user feedback, brownmascara should be the RVD champion, not YourLoverXD
-    if (bossChampions.redVelvet.player === 'YourLoverXD' && bossChampions.redVelvet.season === '21-2') {
-      console.log('Correcting Red Velvet Dragon champion from YourLoverXD to brownmascara')
-      // Find brownmascara's RVD data from 21-2
-      const season21_2 = validSeasonData.find(data => data.seasonId === '21-2')
-      if (season21_2) {
-        const brownmascara = season21_2.players.find((player: any) => player.playerName === 'brownmascara')
-        if (brownmascara && brownmascara.redVelvetDragon.damage > 0) {
-          bossChampions.redVelvet = {
-            player: 'brownmascara',
-            damage: brownmascara.redVelvetDragon.damage,
-            season: '21-2',
-            tickets: brownmascara.redVelvetDragon.battles
-          }
-        }
-      }
-    }
-    
-    console.log('Final boss champions:', bossChampions)
-    console.log('Final season champions:', seasonChampions.slice(0, 3))
     
     hallOfGloryData.value = {
       bossChampions,

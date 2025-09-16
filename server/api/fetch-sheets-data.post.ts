@@ -135,10 +135,22 @@ function parseSpreadsheetData(rows: any[][]): any[] {
     const livingAbyssBattles = livingAbyssDamage > 0 ? livingAbyssBattlesRaw : 0 // Only count tickets if damage > 0
     const livingAbyssAvg = parseInt(row[19]) || 0 // Column T (correct: index 19)
     
+    // Parse Machine God data (columns V-AA: 21-26)
+    // Column 22 (W) contains member names, Column 23 (X) contains damage
+    const machineGodMemberName = row[22] || `Player ${rank}`
+    const machineGodDamageText = row[23] || ''
+    const machineGodDamage = parseFloat(machineGodDamageText.replace(' Billion', '')) * 1000000000 || 0
+    const machineGodBattlesRaw = parseInt(row[25]) || 0 // Column Z - "Battles Done" (correct: index 25)
+    const machineGodBattles = machineGodDamage > 0 ? machineGodBattlesRaw : 0
+    const machineGodAvg = parseInt(row[26]) || 0 // Column AA (correct: index 26)
+    
     // Use the member name from the boss section that has actual data
-    // Priority: Avatar of Destiny > Living Abyss > Red Velvet Dragon
-    let playerName = avatarMemberName
-    if (!avatarMemberName || avatarMemberName === `Player ${rank}` || avatarMemberName === rank.toString()) {
+    // Priority: Machine God > Avatar of Destiny > Living Abyss > Red Velvet Dragon
+    let playerName = machineGodMemberName
+    if (!machineGodMemberName || machineGodMemberName === `Player ${rank}` || machineGodMemberName === rank.toString()) {
+      playerName = avatarMemberName
+    }
+    if (!playerName || playerName === `Player ${rank}` || playerName === rank.toString()) {
       playerName = livingAbyssMemberName
     }
     if (!playerName || playerName === `Player ${rank}` || playerName === rank.toString()) {
@@ -163,7 +175,7 @@ function parseSpreadsheetData(rows: any[][]): any[] {
       }
     }
     
-    console.log(`Rank ${rank}: ${playerName} | RVD: ${redVelvetDamageText} | AoD: ${avatarDamageText} | LA: ${livingAbyssDamageText}`)
+    console.log(`Rank ${rank}: ${playerName} | RVD: ${redVelvetDamageText} | AoD: ${avatarDamageText} | LA: ${livingAbyssDamageText} | MG: ${machineGodDamageText}`)
     
     players.push({
       rank,
@@ -182,6 +194,11 @@ function parseSpreadsheetData(rows: any[][]): any[] {
         damage: livingAbyssDamage,
         battles: livingAbyssBattles,
         avgDamagePerTicket: livingAbyssAvg
+      },
+      machineGod: {
+        damage: machineGodDamage,
+        battles: machineGodBattles,
+        avgDamagePerTicket: machineGodAvg
       }
     })
   })
