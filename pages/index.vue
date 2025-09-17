@@ -1303,7 +1303,7 @@ const getSeasonStatusClass = () => {
                 </div>
                 <div class="boss-ticket-info">
                   <div class="boss-ticket-name">{{ (currentDestinysFlight === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss' }}</div>
-                  <div class="boss-ticket-count">{{ analysisState.battleStats?.ticketStats.ticketsUsedByBoss.livingAbyss || 0 }} tickets</div>
+                  <div class="boss-ticket-count">{{ (currentDestinysFlight === 21) ? (analysisState.battleStats?.ticketStats.ticketsUsedByBoss.machineGod || 0) : (analysisState.battleStats?.ticketStats.ticketsUsedByBoss.livingAbyss || 0) }} tickets</div>
                 </div>
               </div>
             </div>
@@ -1465,7 +1465,8 @@ const getSeasonStatusClass = () => {
                   <td class="ticket-cell">
                     <div class="ticket-info">
                       <div class="ticket-count" :class="getTicketStatusClass(player, activeSeason)">
-                        {{ currentDestinysFlight === 21 ? (player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)) :
+                        {{ (currentDestinysFlight === 21 && activeSeason === 1) ? (player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)) :
+                           (currentDestinysFlight === 21 && activeSeason === 2) ? (player.redVelvetDragon.battles + (player.machineGod?.battles || 0)) :
                            activeSeason === 1 ? (player.redVelvetDragon.battles + player.livingAbyss.battles) : 
                            activeSeason === 2 ? (player.redVelvetDragon.battles + player.avatarOfDestiny.battles) : 
                            (player.avatarOfDestiny.battles + player.livingAbyss.battles) }}/18
@@ -1542,7 +1543,8 @@ const getSeasonStatusClass = () => {
                   <div class="mobile-total-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage + player.avatarOfDestiny.damage + ((currentDestinysFlight === 21) ? (player.machineGod?.damage || 0) : player.livingAbyss.damage)) }}</div>
                 </div>
                 <div class="mobile-ticket-status" :class="getTicketStatusClass(player, activeSeason)">
-                  <div class="mobile-ticket-count">{{ currentDestinysFlight === 21 ? (player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)) :
+                  <div class="mobile-ticket-count">{{ (currentDestinysFlight === 21 && activeSeason === 1) ? (player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)) :
+                     (currentDestinysFlight === 21 && activeSeason === 2) ? (player.redVelvetDragon.battles + (player.machineGod?.battles || 0)) :
                      activeSeason === 1 ? (player.redVelvetDragon.battles + player.livingAbyss.battles) : 
                      activeSeason === 2 ? (player.redVelvetDragon.battles + player.avatarOfDestiny.battles) : 
                      (player.avatarOfDestiny.battles + player.livingAbyss.battles) }}/18</div>

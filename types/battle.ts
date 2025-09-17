@@ -42,6 +42,7 @@ export interface BattleStats {
       redVelvet: number
       avatar: number
       livingAbyss: number
+      machineGod: number
     }
   }
   redVelvetStats: {

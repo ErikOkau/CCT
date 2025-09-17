@@ -233,7 +233,8 @@ export class BattleAnalyzer {
     let ticketsUsedByBoss = {
       redVelvet: 0,
       avatar: 0,
-      livingAbyss: 0
+      livingAbyss: 0,
+      machineGod: 0
     }
     
     if (season === 1) {
@@ -246,7 +247,8 @@ export class BattleAnalyzer {
       ticketsUsedByBoss = {
         redVelvet: players.reduce((sum, p) => sum + p.redVelvetDragon.battles, 0),
         avatar: 0,
-        livingAbyss: players.reduce((sum, p) => sum + p.livingAbyss.battles, 0)
+        livingAbyss: players.reduce((sum, p) => sum + p.livingAbyss.battles, 0),
+        machineGod: 0
       }
     } else if (season === 2) {
       // Season 20-2: Red Velvet Dragon and Avatar of Destiny
@@ -258,7 +260,8 @@ export class BattleAnalyzer {
       ticketsUsedByBoss = {
         redVelvet: players.reduce((sum, p) => sum + p.redVelvetDragon.battles, 0),
         avatar: players.reduce((sum, p) => sum + p.avatarOfDestiny.battles, 0),
-        livingAbyss: 0
+        livingAbyss: 0,
+        machineGod: 0
       }
     } else if (season === 3) {
       // Season 20-3: Avatar of Destiny and Living Abyss
@@ -270,7 +273,8 @@ export class BattleAnalyzer {
       ticketsUsedByBoss = {
         redVelvet: 0,
         avatar: players.reduce((sum, p) => sum + p.avatarOfDestiny.battles, 0),
-        livingAbyss: players.reduce((sum, p) => sum + p.livingAbyss.battles, 0)
+        livingAbyss: players.reduce((sum, p) => sum + p.livingAbyss.battles, 0),
+        machineGod: 0
       }
     } else if (season === 1 && destinysFlight === 21) {
       // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void
@@ -291,13 +295,14 @@ export class BattleAnalyzer {
       ticketsUsedByBoss = {
         redVelvet: 0,
         avatar: players.reduce((sum, p) => sum + p.avatarOfDestiny.battles, 0),
-        livingAbyss: players.reduce((sum, p) => sum + (p.machineGod?.battles || 0), 0) // Machine God data
+        livingAbyss: 0,
+        machineGod: players.reduce((sum, p) => sum + (p.machineGod?.battles || 0), 0) // Machine God data
       }
       
       console.log('Ticket totals:', {
         totalTicketsUsed,
         aodTickets: ticketsUsedByBoss.avatar,
-        mgTickets: ticketsUsedByBoss.livingAbyss
+        mgTickets: ticketsUsedByBoss.machineGod
       })
     } else if (season === 2 && destinysFlight === 21) {
       // Season 21-2: Red Velvet Dragon and Machine God of the Eternal Void
@@ -318,13 +323,14 @@ export class BattleAnalyzer {
       ticketsUsedByBoss = {
         redVelvet: players.reduce((sum, p) => sum + p.redVelvetDragon.battles, 0),
         avatar: 0,
-        livingAbyss: players.reduce((sum, p) => sum + (p.machineGod?.battles || 0), 0) // Machine God data
+        livingAbyss: 0,
+        machineGod: players.reduce((sum, p) => sum + (p.machineGod?.battles || 0), 0) // Machine God data
       }
       
       console.log('Ticket totals:', {
         totalTicketsUsed,
         rvdTickets: ticketsUsedByBoss.redVelvet,
-        mgTickets: ticketsUsedByBoss.livingAbyss
+        mgTickets: ticketsUsedByBoss.machineGod
       })
     } else {
       // Default fallback: Avatar of Destiny and Living Abyss
@@ -336,7 +342,8 @@ export class BattleAnalyzer {
       ticketsUsedByBoss = {
         redVelvet: 0,
         avatar: players.reduce((sum, p) => sum + p.avatarOfDestiny.battles, 0),
-        livingAbyss: players.reduce((sum, p) => sum + p.livingAbyss.battles, 0)
+        livingAbyss: players.reduce((sum, p) => sum + p.livingAbyss.battles, 0),
+        machineGod: 0
       }
     }
     
