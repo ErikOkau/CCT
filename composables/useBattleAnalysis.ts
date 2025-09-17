@@ -57,11 +57,19 @@ export const useBattleAnalysis = () => {
     sheetsState.fetchSuccess = false
 
     try {
+      console.log(`🔍 useBattleAnalysis: Fetching from range: ${sheetsState.range}`)
       const players = await BattleAnalyzer.fetchFromGoogleSheets(sheetsState.spreadsheetId, sheetsState.range)
       
       if (players.length > 0) {
         console.log(`🔍 useBattleAnalysis: About to call calculateStats with season=${season}, destinysFlight=${destinysFlight}`)
         console.log(`🔍 useBattleAnalysis: Players received:`, players.length)
+        console.log(`🔍 useBattleAnalysis: Sample player data:`, players.slice(0, 2).map(p => ({
+          name: p.playerName,
+          rvd: p.redVelvetDragon,
+          aod: p.avatarOfDestiny,
+          la: p.livingAbyss,
+          mg: p.machineGod
+        })))
         
         analysisState.battleData = players
         analysisState.battleStats = BattleAnalyzer.calculateStats(players, season, destinysFlight)

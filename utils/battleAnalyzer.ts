@@ -39,10 +39,21 @@ export class BattleAnalyzer {
       // Convert Google Sheets data to BattlePlayer format
       const battlePlayers = this.convertSheetsDataToBattlePlayers(sheetsData)
 
+      // Debug: Log Machine God data
+      const playersWithMG = battlePlayers.filter(p => p.machineGod && p.machineGod.battles > 0)
+      console.log(`🔍 BattleAnalyzer: ${playersWithMG.length} players with Machine God data`)
+      if (playersWithMG.length > 0) {
+        console.log('🔍 Sample Machine God players:', playersWithMG.slice(0, 3).map(p => ({
+          name: p.playerName,
+          mgBattles: p.machineGod.battles,
+          mgDamage: p.machineGod.damage
+        })))
+      }
+
       // Sort by total damage across all bosses (highest first)
       battlePlayers.sort((a, b) => {
-        const totalDamageA = a.redVelvetDragon.damage + a.avatarOfDestiny.damage + a.livingAbyss.damage
-        const totalDamageB = b.redVelvetDragon.damage + b.avatarOfDestiny.damage + b.livingAbyss.damage
+        const totalDamageA = a.redVelvetDragon.damage + a.avatarOfDestiny.damage + a.livingAbyss.damage + (a.machineGod?.damage || 0)
+        const totalDamageB = b.redVelvetDragon.damage + b.avatarOfDestiny.damage + b.livingAbyss.damage + (b.machineGod?.damage || 0)
         return totalDamageB - totalDamageA
       })
 
