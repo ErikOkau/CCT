@@ -439,66 +439,6 @@ export class BattleAnalyzer {
     const activePlayers = players.filter(p => p.redVelvetDragon.battles > 0 || p.avatarOfDestiny.battles > 0 || p.livingAbyss.battles > 0 || (p.machineGod?.battles || 0) > 0).length
     insights.push(`⚔️ ${activePlayers} out of ${players.length} players participated in battles this season`)
 
-    // Ticket usage insights - Season-aware
-    const MAX_TICKETS_PER_SEASON = 18
-    const MIN_REQUIRED_TICKETS = 15
-    
-    let totalTicketsUsed = 0
-    let playersBelowMinimum = 0
-    
-    if (season === 1) {
-      // Season 20-1: Red Velvet Dragon and Living Abyss
-      totalTicketsUsed = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + p.livingAbyss.battles, 0)
-      playersBelowMinimum = players.filter(p => {
-        const playerTickets = p.redVelvetDragon.battles + p.livingAbyss.battles
-        return playerTickets < MIN_REQUIRED_TICKETS
-      }).length
-    } else if (season === 2) {
-      // Season 20-2: Red Velvet Dragon and Avatar of Destiny
-      totalTicketsUsed = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + p.avatarOfDestiny.battles, 0)
-      playersBelowMinimum = players.filter(p => {
-        const playerTickets = p.redVelvetDragon.battles + p.avatarOfDestiny.battles
-        return playerTickets < MIN_REQUIRED_TICKETS
-      }).length
-    } else if (season === 3) {
-      // Season 20-3: Avatar of Destiny and Living Abyss
-      totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + p.livingAbyss.battles, 0)
-      playersBelowMinimum = players.filter(p => {
-        const playerTickets = p.avatarOfDestiny.battles + p.livingAbyss.battles
-        return playerTickets < MIN_REQUIRED_TICKETS
-      }).length
-    } else if (season === 1 && destinysFlight === 21) {
-      // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void
-      totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + (p.machineGod?.battles || 0), 0)
-      playersBelowMinimum = players.filter(p => {
-        const playerTickets = p.avatarOfDestiny.battles + (p.machineGod?.battles || 0)
-        return playerTickets < MIN_REQUIRED_TICKETS
-      }).length
-    } else if (season === 2 && destinysFlight === 21) {
-      // Season 21-2: Red Velvet Dragon and Machine God of the Eternal Void
-      totalTicketsUsed = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + (p.machineGod?.battles || 0), 0)
-      playersBelowMinimum = players.filter(p => {
-        const playerTickets = p.redVelvetDragon.battles + (p.machineGod?.battles || 0)
-        return playerTickets < MIN_REQUIRED_TICKETS
-      }).length
-    } else {
-      // Default fallback: Avatar of Destiny and Living Abyss
-      totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + p.livingAbyss.battles, 0)
-      playersBelowMinimum = players.filter(p => {
-        const playerTickets = p.avatarOfDestiny.battles + p.livingAbyss.battles
-        return playerTickets < MIN_REQUIRED_TICKETS
-      }).length
-    }
-    
-    const totalTicketsMissed = (players.length * MAX_TICKETS_PER_SEASON) - totalTicketsUsed
-
-    insights.push(`🎫 Total tickets used: ${totalTicketsUsed}/${players.length * MAX_TICKETS_PER_SEASON} (${totalTicketsMissed} missed)`)
-    
-    if (playersBelowMinimum > 0) {
-      insights.push(`⚠️ ${playersBelowMinimum} players used fewer than ${MIN_REQUIRED_TICKETS} tickets (minimum requirement)`)
-    } else {
-      insights.push(`✅ All players met the minimum ${MIN_REQUIRED_TICKETS} ticket requirement`)
-    }
 
     // Average level insights (if available)
     const playersWithLevel = players.filter(p => p.playerLevel !== undefined)

@@ -2,7 +2,6 @@
 import { onMounted, computed, ref, watch } from 'vue'
 import { useBattleAnalysis } from '~/composables/useBattleAnalysis'
 import { BattleAnalyzer } from '~/utils/battleAnalyzer'
-import HollyberryRanking from '~/components/HollyberryRanking.vue'
 
 
 // Use composables
@@ -1211,104 +1210,6 @@ const getSeasonStatusClass = () => {
           </div>
         </div>
 
-        <!-- Ticket Statistics Section -->
-        <div class="ticket-stats-section">
-          <h3>🎫 Ticket Usage Statistics</h3>
-          <div class="ticket-stats-grid">
-            <div class="ticket-stat-card">
-              <div class="ticket-stat-header">
-                <div class="ticket-icon">🎫</div>
-                <h4>Total Tickets</h4>
-              </div>
-              <div class="ticket-stat-content">
-                <div class="ticket-stat-main">
-                  <span class="ticket-number">{{ analysisState.battleStats?.ticketStats.totalTicketsUsed || 0 }}</span>
-                  <span class="ticket-max">/ {{ (analysisState.battleStats?.totalPlayers || 0) * 18 }}</span>
-                </div>
-                <div class="ticket-stat-subtitle">Tickets Used</div>
-              </div>
-            </div>
-
-            <div class="ticket-stat-card missed">
-              <div class="ticket-stat-header">
-                <div class="ticket-icon">⚠️</div>
-                <h4>Missed Tickets</h4>
-              </div>
-              <div class="ticket-stat-content">
-                <div class="ticket-stat-main">
-                  <span class="ticket-number">{{ analysisState.battleStats?.ticketStats.totalTicketsMissed || 0 }}</span>
-                </div>
-                <div class="ticket-stat-subtitle">Tickets Lost</div>
-              </div>
-            </div>
-
-            <div class="ticket-stat-card below-min">
-              <div class="ticket-stat-header">
-                <div class="ticket-icon">📉</div>
-                <h4>Below Minimum</h4>
-              </div>
-              <div class="ticket-stat-content">
-                <div class="ticket-stat-main">
-                  <span class="ticket-number">{{ analysisState.battleStats?.ticketStats.playersBelowMinimum || 0 }}</span>
-                </div>
-                <div class="ticket-stat-subtitle">Players (< 15 tickets)</div>
-              </div>
-            </div>
-
-            <div class="ticket-stat-card average">
-              <div class="ticket-stat-header">
-                <div class="ticket-icon">📊</div>
-                <h4>Average Usage</h4>
-              </div>
-              <div class="ticket-stat-content">
-                <div class="ticket-stat-main">
-                  <span class="ticket-number">{{ analysisState.battleStats?.ticketStats.averageTicketsUsed || 0 }}</span>
-                </div>
-                <div class="ticket-stat-subtitle">Tickets per Player</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Ticket Usage by Boss -->
-          <div class="ticket-boss-breakdown">
-            <h4>Ticket Usage by Boss</h4>
-            <div class="ticket-boss-grid">
-              <div class="ticket-boss-item red-velvet">
-                <div class="boss-ticket-icon">
-                  <img src="/img/Red_Velvet_Dragon.webp" 
-                       alt="Red Velvet Dragon"
-                       class="boss-icon-image">
-                </div>
-                <div class="boss-ticket-info">
-                  <div class="boss-ticket-name">Red Velvet Dragon</div>
-                  <div class="boss-ticket-count">{{ analysisState.battleStats?.ticketStats.ticketsUsedByBoss.redVelvet || 0 }} tickets</div>
-                </div>
-              </div>
-              <div class="ticket-boss-item avatar">
-                <div class="boss-ticket-icon">
-                  <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" 
-                       alt="Avatar of Destiny"
-                       class="boss-icon-image">
-                </div>
-                <div class="boss-ticket-info">
-                  <div class="boss-ticket-name">Avatar of Destiny</div>
-                  <div class="boss-ticket-count">{{ analysisState.battleStats?.ticketStats.ticketsUsedByBoss.avatar || 0 }} tickets</div>
-                </div>
-              </div>
-              <div class="ticket-boss-item" :class="(currentDestinysFlight === 21) ? 'machine-god' : 'living-abyss'">
-                <div class="boss-ticket-icon">
-                  <img :src="(currentDestinysFlight === 21) ? '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' : '/img/Living_Licorice_Abyss.webp'" 
-                       :alt="(currentDestinysFlight === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss'"
-                       class="boss-icon-image">
-                </div>
-                <div class="boss-ticket-info">
-                  <div class="boss-ticket-name">{{ (currentDestinysFlight === 21) ? 'Machine God of the Eternal Void' : 'Living Abyss' }}</div>
-                  <div class="boss-ticket-count">{{ (currentDestinysFlight === 21) ? (analysisState.battleStats?.ticketStats.ticketsUsedByBoss.machineGod || 0) : (analysisState.battleStats?.ticketStats.ticketsUsedByBoss.livingAbyss || 0) }} tickets</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <!-- Boss-specific stats -->
         <div class="boss-stats-grid">
@@ -1574,9 +1475,6 @@ const getSeasonStatusClass = () => {
         </div>
       </div>
     </footer>
-
-    <!-- Hollyberry Server Rankings -->
-    <HollyberryRanking />
   </div>
 </template>
 
