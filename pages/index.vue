@@ -26,7 +26,8 @@ const activeSeason = ref(1) // Will be calculated based on current date
 const seasonDates = {
   1: { start: new Date('2025-08-07T00:00:00+09:00'), end: new Date('2025-08-13T23:59:59+09:00') },
   2: { start: new Date('2025-08-14T00:00:00+09:00'), end: new Date('2025-08-20T23:59:59+09:00') },
-  3: { start: new Date('2025-08-21T00:00:00+09:00'), end: new Date('2025-08-27T23:59:59+09:00') }
+  3: { start: new Date('2025-08-21T00:00:00+09:00'), end: new Date('2025-08-27T23:59:59+09:00') },
+  4: { start: new Date('2025-08-28T00:00:00+09:00'), end: new Date('2025-09-03T23:59:59+09:00') }
 }
 
 // All available seasons with their configurations (only after 16-4, excluding "Copy of 18-1")
@@ -41,7 +42,8 @@ const allSeasons = [
   { id: '20-3', name: 'Season 20-3', hasData: true },
   { id: '21-1', name: 'Season 21-1', hasData: true },
   { id: '21-2', name: 'Season 21-2', hasData: true },
-  { id: '21-3', name: 'Season 21-3', hasData: true }
+  { id: '21-3', name: 'Season 21-3', hasData: true },
+  { id: '21-4', name: 'Season 21-4', hasData: true }
 ]
 
 // Season-specific data availability and spreadsheet configurations
@@ -75,6 +77,11 @@ const seasonConfigurations = {
     hasData: true, // Season 21-3 now has data available
     spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
     range: '21-3!A1:Z100' // Season 21-3 range
+  },
+  24: { 
+    hasData: true, // Season 21-4 now has data available
+    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
+    range: '21-4!A1:Z100' // Season 21-4 range
   }
 }
 
@@ -85,7 +92,8 @@ const seasonTypes = {
   3: 'previous',  // Season 20-3 - previous season (now over)
   21: 'previous', // Season 21-1 - previous season (Machine God)
   22: 'previous', // Season 21-2 - previous season (Machine God)
-  23: 'current'   // Season 21-3 - current season
+  23: 'previous', // Season 21-3 - previous season
+  24: 'current'   // Season 21-4 - current season
 }
 
 // Function to determine current season based on date
@@ -94,15 +102,16 @@ const getCurrentSeason = () => {
   const gmtPlus9 = new Date(now.getTime() + (9 * 60 * 60 * 1000)) // Convert to GMT+9
   
   for (const season in seasonDates) {
-    const dates = seasonDates[season as keyof typeof seasonDates]
+    const seasonNum = parseInt(season) as 1 | 2 | 3 | 4
+    const dates = seasonDates[seasonNum]
     if (gmtPlus9 >= dates.start && gmtPlus9 <= dates.end) {
-      return parseInt(season) as unknown as 1 | 2 | 3
+      return seasonNum
     }
   }
   
   // If not in any season, return the most recent past season or default to 1
   if (gmtPlus9 < seasonDates[1].start) return 1
-  if (gmtPlus9 > seasonDates[3].end) return 3
+  if (gmtPlus9 > seasonDates[4].end) return 4
   
   return 1
 }
@@ -116,7 +125,7 @@ const hasSeasonData = (season: number) => {
     if (season === 1) return true // Season 21-1 now has data available
     if (season === 2) return true // Season 21-2 now has data available
     if (season === 3) return true // Season 21-3 now has data available
-    if (season === 4) return false // Upcoming, no data
+    if (season === 4) return true // Season 21-4 now has data available
   } else {
     // Destiny's Flight 20: All seasons are previous seasons with data available
     if (season === 1 || season === 2 || season === 3) return true
@@ -142,8 +151,8 @@ const getSeasonStatusMessage = (season: number) => {
   if (currentDestinysFlight.value === 21) {
     if (season === 1) return 'Previous Season - Data Available'
     if (season === 2) return 'Previous Season - Data Available'
-    if (season === 3) return 'Current Season - Data Available'
-    if (season === 4) return 'Upcoming Season - No Data Available'
+    if (season === 3) return 'Previous Season - Data Available'
+    if (season === 4) return 'Current Season - Data Available'
   } else {
     // Destiny's Flight 20: All seasons are previous seasons with data available
     if (season === 1 || season === 2 || season === 3) return 'Previous Season - Data Available'
@@ -156,8 +165,8 @@ const getSeasonStatusIcon = (season: number) => {
   if (currentDestinysFlight.value === 21) {
     if (season === 1) return '📊' // Previous season with data available
     if (season === 2) return '📊' // Previous season with data available
-    if (season === 3) return '📊' // Current season with data available
-    if (season === 4) return '⏳' // Upcoming
+    if (season === 3) return '📊' // Previous season with data available
+    if (season === 4) return '📊' // Current season with data available
   } else {
     // Destiny's Flight 20: All seasons are previous seasons with data available
     if (season === 1 || season === 2 || season === 3) return '📊' // Previous
@@ -200,6 +209,8 @@ const fetchSeasonData = async (season: number) => {
       config = seasonConfigurations[22] // Season 21-2: RVD + Machine God
     } else if (season === 3) {
       config = seasonConfigurations[23] // Season 21-3: RVD + AOD
+    } else if (season === 4) {
+      config = seasonConfigurations[24] // Season 21-4: AoD + Machine God
     } else {
       config = seasonConfigurations[21] // Fallback to 21-1
     }
@@ -346,6 +357,9 @@ const getTicketStatusClass = (player: any, season: number = activeSeason.value) 
   } else if (currentDestinysFlight.value === 21 && season === 3) {
     // Season 21-3: Red Velvet Dragon and Avatar of Destiny
     ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
+  } else if (currentDestinysFlight.value === 21 && season === 4) {
+    // Season 21-4: Avatar of Destiny and Machine God of the Eternal Void
+    ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
   } else if (season === 1) {
     // Season 20-1: Red Velvet Dragon and Living Abyss
     ticketsUsed = player.redVelvetDragon.battles + player.livingAbyss.battles
@@ -378,6 +392,9 @@ const getTicketStatusText = (player: any, season: number = activeSeason.value) =
   } else if (currentDestinysFlight.value === 21 && season === 3) {
     // Season 21-3: Red Velvet Dragon and Avatar of Destiny
     ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
+  } else if (currentDestinysFlight.value === 21 && season === 4) {
+    // Season 21-4: Avatar of Destiny and Machine God of the Eternal Void
+    ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
   } else if (season === 1) {
     // Season 20-1: Red Velvet Dragon and Living Abyss
     ticketsUsed = player.redVelvetDragon.battles + player.livingAbyss.battles
@@ -568,8 +585,8 @@ const getSeasonStatusClass = () => {
   if (currentDestinysFlight.value === 21) {
     if (activeSeason.value === 1) return 'tallying'
     if (activeSeason.value === 2) return 'tallying'
-    if (activeSeason.value === 3) return 'current'
-    if (activeSeason.value === 4) return 'upcoming'
+    if (activeSeason.value === 3) return 'tallying'
+    if (activeSeason.value === 4) return 'current'
   } else if (currentDestinysFlight.value === 20 && activeSeason.value === 3) {
     return 'previous'
   }
@@ -762,7 +779,7 @@ const getSeasonStatusClass = () => {
                <span class="load-icon">📊</span>
                <span>Load All-Time Champions</span>
              </button>
-                           <p class="load-note">Load data from seasons 17-1 to 20-3</p>
+                           <p class="load-note">Load data from seasons 17-1 to 21-4</p>
            </div>
            
            <!-- Loading State -->
@@ -1080,16 +1097,18 @@ const getSeasonStatusClass = () => {
           <!-- Dynamic title and subtitle based on season status -->
           <h2 class="coming-soon-title">
             <span v-if="currentDestinysFlight === 21 && activeSeason === 1">Season Just Finished</span>
-            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 2">Current Season</span>
-            <span v-else-if="currentDestinysFlight === 21 && (activeSeason === 3 || activeSeason === 4)">Upcoming Season</span>
+            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 2">Previous Season</span>
+            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 3">Previous Season</span>
+            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 4">Current Season</span>
             <span v-else-if="currentDestinysFlight === 20 && activeSeason === 3">Previous Season</span>
             <span v-else>No Data Available</span>
           </h2>
           
           <p class="coming-soon-subtitle">
             <span v-if="currentDestinysFlight === 21 && activeSeason === 1">Season 21-1 has just ended and is currently being tallied.</span>
-            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 2">Season 21-2 is currently active with battle data available.</span>
-            <span v-else-if="currentDestinysFlight === 21 && (activeSeason === 3 || activeSeason === 4)">Season {{ currentDestinysFlight }}-{{ activeSeason }} is an upcoming season. No data is available yet.</span>
+            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 2">Season 21-2 is a previous season with battle data available.</span>
+            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 3">Season 21-3 is a previous season with battle data available.</span>
+            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 4">Season 21-4 is currently active with battle data available.</span>
             <span v-else-if="currentDestinysFlight === 20 && activeSeason === 3">Season 20-3 is a previous season with battle data available.</span>
             <span v-else>No battle analysis data is available for this season.</span>
           </p>
@@ -1115,8 +1134,46 @@ const getSeasonStatusClass = () => {
               </div>
             </template>
 
-            <!-- Season 21-2: Current Season -->
+            <!-- Season 21-2: Previous Season -->
             <template v-if="currentDestinysFlight === 21 && activeSeason === 2">
+              <div class="info-card previous">
+                <div class="info-icon">📊</div>
+                <h3>Data Available</h3>
+                <p>This season has completed and all battle data is available for review.</p>
+              </div>
+              <div class="info-card previous">
+                <div class="info-icon">🏆</div>
+                <h3>Final Results</h3>
+                <p>Check the Hall of Glory below to see final rankings and champions.</p>
+              </div>
+              <div class="info-card previous">
+                <div class="info-icon">📈</div>
+                <h3>Performance Analysis</h3>
+                <p>Review your guild's performance and identify areas for improvement.</p>
+              </div>
+            </template>
+
+            <!-- Season 21-3: Previous Season -->
+            <template v-if="currentDestinysFlight === 21 && activeSeason === 3">
+              <div class="info-card previous">
+                <div class="info-icon">📊</div>
+                <h3>Data Available</h3>
+                <p>This season has completed and all battle data is available for review.</p>
+              </div>
+              <div class="info-card previous">
+                <div class="info-icon">🏆</div>
+                <h3>Final Results</h3>
+                <p>Check the Hall of Glory below to see final rankings and champions.</p>
+              </div>
+              <div class="info-card previous">
+                <div class="info-icon">📈</div>
+                <h3>Performance Analysis</h3>
+                <p>Review your guild's performance and identify areas for improvement.</p>
+              </div>
+            </template>
+
+            <!-- Season 21-4: Current Season -->
+            <template v-if="currentDestinysFlight === 21 && activeSeason === 4">
               <div class="info-card current">
                 <div class="info-icon">⚔️</div>
                 <h3>Battles in Progress</h3>
@@ -1134,27 +1191,6 @@ const getSeasonStatusClass = () => {
               </div>
             </template>
 
-            <!-- Seasons 21-3 & 21-4: Upcoming -->
-            <template v-if="currentDestinysFlight === 21 && (activeSeason === 3 || activeSeason === 4)">
-              <div class="info-card upcoming">
-                <div class="info-icon">🔮</div>
-                <h3>Future Season</h3>
-                <p>This season hasn't started yet. Check the boss schedule above to see what's planned.</p>
-              </div>
-              <div class="info-card upcoming">
-                <div class="info-icon">📅</div>
-                <h3>Season Dates</h3>
-                <p>
-                  <span v-if="activeSeason === 3">Season 21-3 will run from 09.11.25 - 09.17.25.</span>
-                  <span v-else-if="activeSeason === 4">Season 21-4 will run from 09.18.25 - 09.24.25.</span>
-                </p>
-              </div>
-              <div class="info-card upcoming">
-                <div class="info-icon">🎯</div>
-                <h3>Preparation</h3>
-                <p>Use this time to prepare your guild for the upcoming battles and strategize your approach.</p>
-              </div>
-            </template>
 
             <!-- Season 20-3: Previous with Data -->
             <template v-if="currentDestinysFlight === 20 && activeSeason === 3">
@@ -1388,6 +1424,7 @@ const getSeasonStatusClass = () => {
                         {{ (currentDestinysFlight === 21 && activeSeason === 1) ? (player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)) :
                            (currentDestinysFlight === 21 && activeSeason === 2) ? (player.redVelvetDragon.battles + (player.machineGod?.battles || 0)) :
                            (currentDestinysFlight === 21 && activeSeason === 3) ? (player.redVelvetDragon.battles + player.avatarOfDestiny.battles) :
+                           (currentDestinysFlight === 21 && activeSeason === 4) ? (player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)) :
                            activeSeason === 1 ? (player.redVelvetDragon.battles + player.livingAbyss.battles) : 
                            activeSeason === 2 ? (player.redVelvetDragon.battles + player.avatarOfDestiny.battles) : 
                            (player.avatarOfDestiny.battles + player.livingAbyss.battles) }}/18
@@ -1467,6 +1504,7 @@ const getSeasonStatusClass = () => {
                   <div class="mobile-ticket-count">{{ (currentDestinysFlight === 21 && activeSeason === 1) ? (player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)) :
                      (currentDestinysFlight === 21 && activeSeason === 2) ? (player.redVelvetDragon.battles + (player.machineGod?.battles || 0)) :
                      (currentDestinysFlight === 21 && activeSeason === 3) ? (player.redVelvetDragon.battles + player.avatarOfDestiny.battles) :
+                     (currentDestinysFlight === 21 && activeSeason === 4) ? (player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)) :
                      activeSeason === 1 ? (player.redVelvetDragon.battles + player.livingAbyss.battles) : 
                      activeSeason === 2 ? (player.redVelvetDragon.battles + player.avatarOfDestiny.battles) : 
                      (player.avatarOfDestiny.battles + player.livingAbyss.battles) }}/18</div>
