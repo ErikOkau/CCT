@@ -449,6 +449,23 @@ const canNavigateToFlight = (flight: number) => {
   return !!bossSchedules[flight as keyof typeof bossSchedules]
 }
 
+// Get the next available flight (for navigation)
+const getNextFlight = (currentFlight: number, direction: 'prev' | 'next'): number | null => {
+  const availableFlights = Object.keys(bossSchedules).map(Number).sort((a, b) => a - b)
+  const currentIndex = availableFlights.indexOf(currentFlight)
+  
+  if (direction === 'prev') {
+    if (currentIndex > 0) {
+      return availableFlights[currentIndex - 1]
+    }
+  } else {
+    if (currentIndex < availableFlights.length - 1) {
+      return availableFlights[currentIndex + 1]
+    }
+  }
+  return null
+}
+
 // Ticket status helper methods - Updated for different seasons
 const getTicketStatusClass = (player: any, season: number = activeSeason.value) => {
   let ticketsUsed = 0
@@ -1285,8 +1302,8 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
           <div class="destinys-flight-navigation">
             <button 
               class="flight-nav-arrow left" 
-              @click="navigateToDestinysFlight(currentDestinysFlight - 1)"
-              :disabled="!canNavigateToFlight(currentDestinysFlight - 1)"
+              @click="() => { const prevFlight = getNextFlight(currentDestinysFlight, 'prev'); if (prevFlight !== null) navigateToDestinysFlight(prevFlight); }"
+              :disabled="getNextFlight(currentDestinysFlight, 'prev') === null"
             >
               ←
             </button>
@@ -1296,8 +1313,8 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
             </div>
             <button 
               class="flight-nav-arrow right" 
-              @click="navigateToDestinysFlight(currentDestinysFlight + 1)"
-              :disabled="!canNavigateToFlight(currentDestinysFlight + 1)"
+              @click="() => { const nextFlight = getNextFlight(currentDestinysFlight, 'next'); if (nextFlight !== null) navigateToDestinysFlight(nextFlight); }"
+              :disabled="getNextFlight(currentDestinysFlight, 'next') === null"
             >
               →
             </button>

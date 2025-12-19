@@ -62,10 +62,28 @@ export default defineEventHandler(async (event) => {
       totalPlayers: players.length
     }
   } catch (error: any) {
-    console.error('❌ Google Sheets fetch error:', error.message)
+    console.error('❌ Google Sheets fetch error:', error)
+    console.error('❌ Error details:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    })
+    
+    // Provide more detailed error messages
+    let errorMessage = 'Failed to fetch Google Sheets data'
+    if (error.message) {
+      errorMessage = error.message
+    } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+      errorMessage = 'Unable to connect to Google Sheets API. Please check your internet connection.'
+    } else if (error.code === 403) {
+      errorMessage = 'Access denied. Please check Google Sheets credentials and permissions.'
+    } else if (error.code === 404) {
+      errorMessage = 'Spreadsheet not found. Please check the spreadsheet ID.'
+    }
+    
     throw createError({
       statusCode: 500,
-      statusMessage: `Google Sheets fetch error: ${error.message}`,
+      statusMessage: `Google Sheets fetch error: ${errorMessage}`,
     })
   }
 })
