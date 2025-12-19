@@ -116,6 +116,134 @@ export class BattleAnalyzer {
 
 
   /**
+   * Helper function to get total damage for a player based on active bosses in a season
+   */
+  private static getPlayerTotalDamage(player: BattlePlayer, season: number, destinysFlight: number): number {
+    // Flight 23 seasons
+    if (destinysFlight === 23) {
+      if (season === 1) {
+        // Season 23-1: Red Velvet Dragon and Avatar of Destiny
+        return player.redVelvetDragon.damage + player.avatarOfDestiny.damage
+      } else if (season === 2) {
+        // Season 23-2: Avatar of Destiny and Machine God
+        return player.avatarOfDestiny.damage + (player.machineGod?.damage || 0)
+      } else if (season === 3) {
+        // Season 23-3: Red Velvet Dragon and Machine God
+        return player.redVelvetDragon.damage + (player.machineGod?.damage || 0)
+      } else if (season === 4) {
+        // Season 23-4: Red Velvet Dragon and Avatar of Destiny
+        return player.redVelvetDragon.damage + player.avatarOfDestiny.damage
+      }
+    }
+    // Flight 24 seasons
+    if (destinysFlight === 24) {
+      if (season === 1) {
+        // Season 24-1: Avatar of Destiny and Machine God
+        return player.avatarOfDestiny.damage + (player.machineGod?.damage || 0)
+      } else if (season === 2) {
+        // Season 24-2: Red Velvet Dragon and Machine God
+        return player.redVelvetDragon.damage + (player.machineGod?.damage || 0)
+      } else if (season === 3) {
+        // Season 24-3: Red Velvet Dragon and Avatar of Destiny
+        return player.redVelvetDragon.damage + player.avatarOfDestiny.damage
+      }
+    }
+    // Flight 21 seasons
+    if (destinysFlight === 21) {
+      if (season === 1) {
+        // Season 21-1: Avatar of Destiny and Machine God
+        return player.avatarOfDestiny.damage + (player.machineGod?.damage || 0)
+      } else if (season === 2) {
+        // Season 21-2: Red Velvet Dragon and Machine God
+        return player.redVelvetDragon.damage + (player.machineGod?.damage || 0)
+      } else if (season === 3) {
+        // Season 21-3: Red Velvet Dragon and Avatar of Destiny
+        return player.redVelvetDragon.damage + player.avatarOfDestiny.damage
+      } else if (season === 4) {
+        // Season 21-4: Avatar of Destiny and Machine God
+        return player.avatarOfDestiny.damage + (player.machineGod?.damage || 0)
+      }
+    }
+    // Flight 20 seasons
+    if (season === 1) {
+      // Season 20-1: Red Velvet Dragon and Living Abyss
+      return player.redVelvetDragon.damage + player.livingAbyss.damage
+    } else if (season === 2) {
+      // Season 20-2: Red Velvet Dragon and Avatar of Destiny
+      return player.redVelvetDragon.damage + player.avatarOfDestiny.damage
+    } else if (season === 3) {
+      // Season 20-3: Avatar of Destiny and Living Abyss
+      return player.avatarOfDestiny.damage + player.livingAbyss.damage
+    }
+    // Default: all bosses
+    return player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage + (player.machineGod?.damage || 0)
+  }
+
+  /**
+   * Helper function to get total battles for a player based on active bosses in a season
+   */
+  private static getPlayerTotalBattles(player: BattlePlayer, season: number, destinysFlight: number): number {
+    // Flight 23 seasons
+    if (destinysFlight === 23) {
+      if (season === 1) {
+        // Season 23-1: Red Velvet Dragon and Avatar of Destiny
+        return player.redVelvetDragon.battles + player.avatarOfDestiny.battles
+      } else if (season === 2) {
+        // Season 23-2: Avatar of Destiny and Machine God
+        return player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
+      } else if (season === 3) {
+        // Season 23-3: Red Velvet Dragon and Machine God
+        return player.redVelvetDragon.battles + (player.machineGod?.battles || 0)
+      } else if (season === 4) {
+        // Season 23-4: Red Velvet Dragon and Avatar of Destiny
+        return player.redVelvetDragon.battles + player.avatarOfDestiny.battles
+      }
+    }
+    // Flight 24 seasons
+    if (destinysFlight === 24) {
+      if (season === 1) {
+        // Season 24-1: Avatar of Destiny and Machine God
+        return player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
+      } else if (season === 2) {
+        // Season 24-2: Red Velvet Dragon and Machine God
+        return player.redVelvetDragon.battles + (player.machineGod?.battles || 0)
+      } else if (season === 3) {
+        // Season 24-3: Red Velvet Dragon and Avatar of Destiny
+        return player.redVelvetDragon.battles + player.avatarOfDestiny.battles
+      }
+    }
+    // Flight 21 seasons
+    if (destinysFlight === 21) {
+      if (season === 1) {
+        // Season 21-1: Avatar of Destiny and Machine God
+        return player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
+      } else if (season === 2) {
+        // Season 21-2: Red Velvet Dragon and Machine God
+        return player.redVelvetDragon.battles + (player.machineGod?.battles || 0)
+      } else if (season === 3) {
+        // Season 21-3: Red Velvet Dragon and Avatar of Destiny
+        return player.redVelvetDragon.battles + player.avatarOfDestiny.battles
+      } else if (season === 4) {
+        // Season 21-4: Avatar of Destiny and Machine God
+        return player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
+      }
+    }
+    // Flight 20 seasons
+    if (season === 1) {
+      // Season 20-1: Red Velvet Dragon and Living Abyss
+      return player.redVelvetDragon.battles + player.livingAbyss.battles
+    } else if (season === 2) {
+      // Season 20-2: Red Velvet Dragon and Avatar of Destiny
+      return player.redVelvetDragon.battles + player.avatarOfDestiny.battles
+    } else if (season === 3) {
+      // Season 20-3: Avatar of Destiny and Living Abyss
+      return player.avatarOfDestiny.battles + player.livingAbyss.battles
+    }
+    // Default fallback: Avatar of Destiny and Living Abyss
+    return player.avatarOfDestiny.battles + player.livingAbyss.battles
+  }
+
+  /**
    * Calculate battle statistics from player data
    */
   static calculateStats(players: BattlePlayer[], season: number = 1, destinysFlight: number = 20): BattleStats {
@@ -129,111 +257,11 @@ export class BattleAnalyzer {
       mg: p.machineGod
     })))
     const totalPlayers = players.length
-    const highestDamage = Math.max(...players.map(p => {
-      let totalDamage = 0
-      if (season === 1 && destinysFlight === 21) {
-        // Season 21-1: Avatar of Destiny and Machine God
-        totalDamage = p.avatarOfDestiny.damage + (p.machineGod?.damage || 0)
-      } else if (season === 2 && destinysFlight === 21) {
-        // Season 21-2: Red Velvet Dragon and Machine God
-        totalDamage = p.redVelvetDragon.damage + (p.machineGod?.damage || 0)
-      } else if (season === 3 && destinysFlight === 21) {
-        // Season 21-3: Red Velvet Dragon and Avatar of Destiny
-        totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage
-      } else if (season === 1) {
-        // Season 20-1: Red Velvet Dragon and Living Abyss
-        totalDamage = p.redVelvetDragon.damage + p.livingAbyss.damage
-      } else if (season === 2) {
-        // Season 20-2: Red Velvet Dragon and Avatar of Destiny
-        totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage
-      } else if (season === 3) {
-        // Season 20-3: Avatar of Destiny and Living Abyss
-        totalDamage = p.avatarOfDestiny.damage + p.livingAbyss.damage
-      } else {
-        // Default: all bosses
-        totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage + (p.machineGod?.damage || 0)
-      }
-      return totalDamage
-    }))
-    const averageDamage = Math.round(players.reduce((sum, p) => {
-      let totalDamage = 0
-      if (season === 1 && destinysFlight === 21) {
-        // Season 21-1: Avatar of Destiny and Machine God
-        totalDamage = p.avatarOfDestiny.damage + (p.machineGod?.damage || 0)
-      } else if (season === 2 && destinysFlight === 21) {
-        // Season 21-2: Red Velvet Dragon and Machine God
-        totalDamage = p.redVelvetDragon.damage + (p.machineGod?.damage || 0)
-      } else if (season === 3 && destinysFlight === 21) {
-        // Season 21-3: Red Velvet Dragon and Avatar of Destiny
-        totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage
-      } else if (season === 1) {
-        // Season 20-1: Red Velvet Dragon and Living Abyss
-        totalDamage = p.redVelvetDragon.damage + p.livingAbyss.damage
-      } else if (season === 2) {
-        // Season 20-2: Red Velvet Dragon and Avatar of Destiny
-        totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage
-      } else if (season === 3) {
-        // Season 20-3: Avatar of Destiny and Living Abyss
-        totalDamage = p.avatarOfDestiny.damage + p.livingAbyss.damage
-      } else {
-        // Default: all bosses
-        totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage + (p.machineGod?.damage || 0)
-      }
-      return sum + totalDamage
-    }, 0) / totalPlayers)
-    const totalBattlesDone = players.reduce((sum, p) => {
-      let totalBattles = 0
-      if (season === 1 && destinysFlight === 21) {
-        // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void
-        totalBattles = p.avatarOfDestiny.battles + (p.machineGod?.battles || 0)
-      } else if (season === 2 && destinysFlight === 21) {
-        // Season 21-2: Red Velvet Dragon and Machine God of the Eternal Void
-        totalBattles = p.redVelvetDragon.battles + (p.machineGod?.battles || 0)
-      } else if (season === 3 && destinysFlight === 21) {
-        // Season 21-3: Red Velvet Dragon and Avatar of Destiny
-        totalBattles = p.redVelvetDragon.battles + p.avatarOfDestiny.battles
-      } else if (season === 1) {
-        // Season 20-1: Red Velvet Dragon and Living Abyss
-        totalBattles = p.redVelvetDragon.battles + p.livingAbyss.battles
-      } else if (season === 2) {
-        // Season 20-2: Red Velvet Dragon and Avatar of Destiny
-        totalBattles = p.redVelvetDragon.battles + p.avatarOfDestiny.battles
-      } else if (season === 3) {
-        // Season 20-3: Avatar of Destiny and Living Abyss
-        totalBattles = p.avatarOfDestiny.battles + p.livingAbyss.battles
-      } else {
-        // Default fallback: Avatar of Destiny and Living Abyss
-        totalBattles = p.avatarOfDestiny.battles + p.livingAbyss.battles
-      }
-      return sum + totalBattles
-    }, 0)
+    const highestDamage = Math.max(...players.map(p => this.getPlayerTotalDamage(p, season, destinysFlight)))
+    const averageDamage = Math.round(players.reduce((sum, p) => sum + this.getPlayerTotalDamage(p, season, destinysFlight), 0) / totalPlayers)
+    const totalBattlesDone = players.reduce((sum, p) => sum + this.getPlayerTotalBattles(p, season, destinysFlight), 0)
     const topPerformers = players.slice(0, 5)
-    const guildScore = players.reduce((sum, p) => {
-      let totalDamage = 0
-      if (season === 1 && destinysFlight === 21) {
-        // Season 21-1: Avatar of Destiny and Machine God
-        totalDamage = p.avatarOfDestiny.damage + (p.machineGod?.damage || 0)
-      } else if (season === 2 && destinysFlight === 21) {
-        // Season 21-2: Red Velvet Dragon and Machine God
-        totalDamage = p.redVelvetDragon.damage + (p.machineGod?.damage || 0)
-      } else if (season === 3 && destinysFlight === 21) {
-        // Season 21-3: Red Velvet Dragon and Avatar of Destiny
-        totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage
-      } else if (season === 1) {
-        // Season 20-1: Red Velvet Dragon and Living Abyss
-        totalDamage = p.redVelvetDragon.damage + p.livingAbyss.damage
-      } else if (season === 2) {
-        // Season 20-2: Red Velvet Dragon and Avatar of Destiny
-        totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage
-      } else if (season === 3) {
-        // Season 20-3: Avatar of Destiny and Living Abyss
-        totalDamage = p.avatarOfDestiny.damage + p.livingAbyss.damage
-      } else {
-        // Default: all bosses
-        totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage + (p.machineGod?.damage || 0)
-      }
-      return sum + totalDamage
-    }, 0)
+    const guildScore = players.reduce((sum, p) => sum + this.getPlayerTotalDamage(p, season, destinysFlight), 0)
 
     // Ticket calculations - Season-aware
     const MAX_TICKETS_PER_SEASON = 18 // 9 tickets per boss, 2 bosses active
@@ -249,7 +277,107 @@ export class BattleAnalyzer {
       machineGod: 0
     }
     
-    if (season === 1) {
+    // Flight 23 seasons
+    if (destinysFlight === 23) {
+      if (season === 1) {
+        // Season 23-1: Red Velvet Dragon and Avatar of Destiny
+        totalTicketsUsed = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + p.avatarOfDestiny.battles, 0)
+        playersBelowMinimum = players.filter(p => {
+          const playerTickets = p.redVelvetDragon.battles + p.avatarOfDestiny.battles
+          return playerTickets < MIN_REQUIRED_TICKETS
+        }).length
+        ticketsUsedByBoss = {
+          redVelvet: players.reduce((sum, p) => sum + p.redVelvetDragon.battles, 0),
+          avatar: players.reduce((sum, p) => sum + p.avatarOfDestiny.battles, 0),
+          livingAbyss: 0,
+          machineGod: 0
+        }
+      } else if (season === 2) {
+        // Season 23-2: Avatar of Destiny and Machine God
+        totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + (p.machineGod?.battles || 0), 0)
+        playersBelowMinimum = players.filter(p => {
+          const playerTickets = p.avatarOfDestiny.battles + (p.machineGod?.battles || 0)
+          return playerTickets < MIN_REQUIRED_TICKETS
+        }).length
+        ticketsUsedByBoss = {
+          redVelvet: 0,
+          avatar: players.reduce((sum, p) => sum + p.avatarOfDestiny.battles, 0),
+          livingAbyss: 0,
+          machineGod: players.reduce((sum, p) => sum + (p.machineGod?.battles || 0), 0)
+        }
+      } else if (season === 3) {
+        // Season 23-3: Red Velvet Dragon and Machine God
+        totalTicketsUsed = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + (p.machineGod?.battles || 0), 0)
+        playersBelowMinimum = players.filter(p => {
+          const playerTickets = p.redVelvetDragon.battles + (p.machineGod?.battles || 0)
+          return playerTickets < MIN_REQUIRED_TICKETS
+        }).length
+        ticketsUsedByBoss = {
+          redVelvet: players.reduce((sum, p) => sum + p.redVelvetDragon.battles, 0),
+          avatar: 0,
+          livingAbyss: 0,
+          machineGod: players.reduce((sum, p) => sum + (p.machineGod?.battles || 0), 0)
+        }
+      } else if (season === 4) {
+        // Season 23-4: Red Velvet Dragon and Avatar of Destiny
+        totalTicketsUsed = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + p.avatarOfDestiny.battles, 0)
+        playersBelowMinimum = players.filter(p => {
+          const playerTickets = p.redVelvetDragon.battles + p.avatarOfDestiny.battles
+          return playerTickets < MIN_REQUIRED_TICKETS
+        }).length
+        ticketsUsedByBoss = {
+          redVelvet: players.reduce((sum, p) => sum + p.redVelvetDragon.battles, 0),
+          avatar: players.reduce((sum, p) => sum + p.avatarOfDestiny.battles, 0),
+          livingAbyss: 0,
+          machineGod: 0
+        }
+      }
+    }
+    // Flight 24 seasons
+    else if (destinysFlight === 24) {
+      if (season === 1) {
+        // Season 24-1: Avatar of Destiny and Machine God
+        totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + (p.machineGod?.battles || 0), 0)
+        playersBelowMinimum = players.filter(p => {
+          const playerTickets = p.avatarOfDestiny.battles + (p.machineGod?.battles || 0)
+          return playerTickets < MIN_REQUIRED_TICKETS
+        }).length
+        ticketsUsedByBoss = {
+          redVelvet: 0,
+          avatar: players.reduce((sum, p) => sum + p.avatarOfDestiny.battles, 0),
+          livingAbyss: 0,
+          machineGod: players.reduce((sum, p) => sum + (p.machineGod?.battles || 0), 0)
+        }
+      } else if (season === 2) {
+        // Season 24-2: Red Velvet Dragon and Machine God
+        totalTicketsUsed = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + (p.machineGod?.battles || 0), 0)
+        playersBelowMinimum = players.filter(p => {
+          const playerTickets = p.redVelvetDragon.battles + (p.machineGod?.battles || 0)
+          return playerTickets < MIN_REQUIRED_TICKETS
+        }).length
+        ticketsUsedByBoss = {
+          redVelvet: players.reduce((sum, p) => sum + p.redVelvetDragon.battles, 0),
+          avatar: 0,
+          livingAbyss: 0,
+          machineGod: players.reduce((sum, p) => sum + (p.machineGod?.battles || 0), 0)
+        }
+      } else if (season === 3) {
+        // Season 24-3: Red Velvet Dragon and Avatar of Destiny
+        totalTicketsUsed = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + p.avatarOfDestiny.battles, 0)
+        playersBelowMinimum = players.filter(p => {
+          const playerTickets = p.redVelvetDragon.battles + p.avatarOfDestiny.battles
+          return playerTickets < MIN_REQUIRED_TICKETS
+        }).length
+        ticketsUsedByBoss = {
+          redVelvet: players.reduce((sum, p) => sum + p.redVelvetDragon.battles, 0),
+          avatar: players.reduce((sum, p) => sum + p.avatarOfDestiny.battles, 0),
+          livingAbyss: 0,
+          machineGod: 0
+        }
+      }
+    }
+    // Flight 20 seasons
+    else if (season === 1 && destinysFlight === 20) {
       // Season 20-1: Red Velvet Dragon and Living Abyss
       totalTicketsUsed = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + p.livingAbyss.battles, 0)
       playersBelowMinimum = players.filter(p => {
@@ -262,7 +390,7 @@ export class BattleAnalyzer {
         livingAbyss: players.reduce((sum, p) => sum + p.livingAbyss.battles, 0),
         machineGod: 0
       }
-    } else if (season === 2) {
+    } else if (season === 2 && destinysFlight === 20) {
       // Season 20-2: Red Velvet Dragon and Avatar of Destiny
       totalTicketsUsed = players.reduce((sum, p) => sum + p.redVelvetDragon.battles + p.avatarOfDestiny.battles, 0)
       playersBelowMinimum = players.filter(p => {
@@ -275,7 +403,7 @@ export class BattleAnalyzer {
         livingAbyss: 0,
         machineGod: 0
       }
-    } else if (season === 3) {
+    } else if (season === 3 && destinysFlight === 20) {
       // Season 20-3: Avatar of Destiny and Living Abyss
       totalTicketsUsed = players.reduce((sum, p) => sum + p.avatarOfDestiny.battles + p.livingAbyss.battles, 0)
       playersBelowMinimum = players.filter(p => {
@@ -453,29 +581,7 @@ export class BattleAnalyzer {
 
     // Top performer insights
     const topPlayer = players[0]
-    let topPlayerTotalDamage = 0
-    if (season === 1 && destinysFlight === 21) {
-      // Season 21-1: Avatar of Destiny and Machine God
-      topPlayerTotalDamage = topPlayer.avatarOfDestiny.damage + (topPlayer.machineGod?.damage || 0)
-    } else if (season === 2 && destinysFlight === 21) {
-      // Season 21-2: Red Velvet Dragon and Machine God
-      topPlayerTotalDamage = topPlayer.redVelvetDragon.damage + (topPlayer.machineGod?.damage || 0)
-    } else if (season === 3 && destinysFlight === 21) {
-      // Season 21-3: Red Velvet Dragon and Avatar of Destiny
-      topPlayerTotalDamage = topPlayer.redVelvetDragon.damage + topPlayer.avatarOfDestiny.damage
-    } else if (season === 1) {
-      // Season 20-1: Red Velvet Dragon and Living Abyss
-      topPlayerTotalDamage = topPlayer.redVelvetDragon.damage + topPlayer.livingAbyss.damage
-    } else if (season === 2) {
-      // Season 20-2: Red Velvet Dragon and Avatar of Destiny
-      topPlayerTotalDamage = topPlayer.redVelvetDragon.damage + topPlayer.avatarOfDestiny.damage
-    } else if (season === 3) {
-      // Season 20-3: Avatar of Destiny and Living Abyss
-      topPlayerTotalDamage = topPlayer.avatarOfDestiny.damage + topPlayer.livingAbyss.damage
-    } else {
-      // Default: all bosses
-      topPlayerTotalDamage = topPlayer.redVelvetDragon.damage + topPlayer.avatarOfDestiny.damage + topPlayer.livingAbyss.damage + (topPlayer.machineGod?.damage || 0)
-    }
+    const topPlayerTotalDamage = this.getPlayerTotalDamage(topPlayer, season, destinysFlight)
     insights.push(`🏆 ${topPlayer.playerName} achieved the highest total damage with ${this.formatDamage(topPlayerTotalDamage)}`)
 
     // Battle participation insights
@@ -500,29 +606,7 @@ export class BattleAnalyzer {
     }
     // Performance thresholds
     const highPerformers = players.filter(p => {
-      let totalDamage = 0
-      if (season === 1 && destinysFlight === 21) {
-        // Season 21-1: Avatar of Destiny and Machine God
-        totalDamage = p.avatarOfDestiny.damage + (p.machineGod?.damage || 0)
-      } else if (season === 2 && destinysFlight === 21) {
-        // Season 21-2: Red Velvet Dragon and Machine God
-        totalDamage = p.redVelvetDragon.damage + (p.machineGod?.damage || 0)
-      } else if (season === 3 && destinysFlight === 21) {
-        // Season 21-3: Red Velvet Dragon and Avatar of Destiny
-        totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage
-      } else if (season === 1) {
-        // Season 20-1: Red Velvet Dragon and Living Abyss
-        totalDamage = p.redVelvetDragon.damage + p.livingAbyss.damage
-      } else if (season === 2) {
-        // Season 20-2: Red Velvet Dragon and Avatar of Destiny
-        totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage
-      } else if (season === 3) {
-        // Season 20-3: Avatar of Destiny and Living Abyss
-        totalDamage = p.avatarOfDestiny.damage + p.livingAbyss.damage
-      } else {
-        // Default: all bosses
-        totalDamage = p.redVelvetDragon.damage + p.avatarOfDestiny.damage + p.livingAbyss.damage + (p.machineGod?.damage || 0)
-      }
+      const totalDamage = this.getPlayerTotalDamage(p, season, destinysFlight)
       return totalDamage >= 10000000000 // 10B+
     }).length
     if (highPerformers > 0) {
