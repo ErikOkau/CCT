@@ -23,14 +23,15 @@ export default defineNuxtConfig({
       '/_nuxt/**': { 
         headers: { 
           'Cache-Control': 'public, max-age=31536000, immutable' 
-        } 
+        }
       }
     }
   },
   
   // Disable experimental features that cause issues
   experimental: {
-    payloadExtraction: false
+    payloadExtraction: false,
+    inlineSSRStyles: false
   },
   
   runtimeConfig: {
@@ -44,7 +45,9 @@ export default defineNuxtConfig({
   
   // Ensure proper build configuration
   build: {
-    transpile: []
+    transpile: [],
+    // Ensure assets are properly generated
+    analyze: false
   },
   
   // Vite configuration for better module resolution

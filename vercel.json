@@ -1,5 +1,13 @@
 {
   "framework": "nuxtjs",
   "buildCommand": "npm run build",
-  "outputDirectory": ".output"
+  "outputDirectory": ".output",
+  "installCommand": "npm install",
+  "devCommand": "npm run dev",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
+  ]
 }

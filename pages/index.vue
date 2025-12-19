@@ -277,16 +277,19 @@ const fetchSeasonData = async (season: number) => {
     // Flight 23 seasons
     const configKey = (230 + season) as keyof typeof seasonConfigurations
     config = seasonConfigurations[configKey] || seasonConfigurations[231]
+    console.log(`🔍 Flight 23, Season ${season}: Using config key ${configKey}, range: ${config?.range}`)
   } else if (flight === 24) {
     // Flight 24 seasons
     const configKey = (240 + season) as keyof typeof seasonConfigurations
     config = seasonConfigurations[configKey] || seasonConfigurations[241]
+    console.log(`🔍 Flight 24, Season ${season}: Using config key ${configKey}, range: ${config?.range}`)
   } else {
     config = seasonConfigurations[season as keyof typeof seasonConfigurations]
   }
   
   if (!config || !config.hasData) {
     // Reset analysis state for seasons without data
+    console.warn(`⚠️ No config found for Flight ${flight}, Season ${season}`)
     resetAnalysis()
     return
   }
@@ -306,8 +309,13 @@ const fetchSeasonData = async (season: number) => {
       // For flights 21, 23, and 24, keep the same season number for analyzer
       analyzerSeason = season
     }
-    console.log(`Fetching data for season ${season} (analyzer season: ${analyzerSeason}), Destiny's Flight: ${flight}`)
-    console.log(`Using range: ${config.range}`)
+    console.log(`📊 Fetching data for Flight ${flight}, Season ${season} (analyzer season: ${analyzerSeason})`)
+    console.log(`📊 Using spreadsheet range: ${config.range}`)
+    console.log(`📊 Expected bosses for ${flight}-${season}:`, {
+      boss1: getBossForSeason(flight, season, 1)?.name || 'None',
+      boss2: getBossForSeason(flight, season, 2)?.name || 'None',
+      boss3: getBossForSeason(flight, season, 3)?.name || 'None'
+    })
     await fetchFromGoogleSheets(analyzerSeason, flight)
   } catch (error) {
     console.error('Error fetching season data:', error)
@@ -424,6 +432,23 @@ const getBossForSeason = (destinysFlight: number, season: number, position: numb
   const boss = seasonData[position as keyof typeof seasonData] || null
   console.log(`getBossForSeason(${destinysFlight}, ${season}, ${position}):`, boss)
   return boss
+}
+
+// Helper function to check if a boss is active in the current season
+const isBossActiveInSeason = (bossName: string, destinysFlight: number, season: number): boolean => {
+  const flightData = bossSchedules[destinysFlight as keyof typeof bossSchedules]
+  if (!flightData) return false
+  const seasonData = flightData[season as keyof typeof flightData]
+  if (!seasonData) return false
+  
+  // Check all positions for this boss
+  for (let pos = 1; pos <= 3; pos++) {
+    const boss = seasonData[pos as keyof typeof seasonData]
+    if (boss && boss.name === bossName) {
+      return true
+    }
+  }
+  return false
 }
 
 // Method to get current Destiny's Flight boss schedule
@@ -1637,7 +1662,8 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
 
         <!-- Boss-specific stats -->
         <div class="boss-stats-grid">
-          <div class="boss-stat-card red-velvet">
+          <!-- Red Velvet Dragon - only show if active in this season -->
+          <div v-if="isBossActiveInSeason('Red Velvet Dragon', currentDestinysFlight, activeSeason)" class="boss-stat-card red-velvet">
             <div class="boss-stat-header">
               <div class="boss-icon">
                 <img src="/img/Red_Velvet_Dragon.webp" 
@@ -1662,7 +1688,8 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
             </div>
           </div>
 
-          <div class="boss-stat-card avatar">
+          <!-- Avatar of Destiny - only show if active in this season -->
+          <div v-if="isBossActiveInSeason('Avatar of Destiny', currentDestinysFlight, activeSeason)" class="boss-stat-card avatar">
             <div class="boss-stat-header">
               <div class="boss-icon">
                 <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" 
@@ -1687,27 +1714,54 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
             </div>
           </div>
 
-          <div class="boss-stat-card" :class="(currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? 'machine-god' : 'living-abyss'">
+          <!-- Living Abyss - only show if active in this season -->
+          <div v-if="isBossActiveInSeason('Living Abyss', currentDestinysFlight, activeSeason)" class="boss-stat-card living-abyss">
             <div class="boss-stat-header">
               <div class="boss-icon">
-                <img :src="(currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' : '/img/Living_Licorice_Abyss.webp'" 
-                     :alt="(currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? 'Machine God of the Eternal Void' : 'Living Abyss'"
+                <img src="/img/Living_Licorice_Abyss.webp" 
+                     alt="Living Abyss"
                      class="boss-icon-image">
               </div>
-              <h3>{{ (currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? 'Machine God of the Eternal Void' : 'Living Abyss' }}</h3>
+              <h3>Living Abyss</h3>
             </div>
             <div class="boss-stat-content">
               <div class="boss-stat-item">
                 <span class="stat-label">Participants:</span>
-                <span class="stat-value">{{ (currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? (analysisState.battleStats?.machineGodStats.participants || 0) : (analysisState.battleStats?.livingAbyssStats.participants || 0) }}</span>
+                <span class="stat-value">{{ analysisState.battleStats?.livingAbyssStats.participants || 0 }}</span>
               </div>
               <div class="boss-stat-item">
                 <span class="stat-label">Total Damage:</span>
-                <span class="stat-value">{{ (currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? BattleAnalyzer.formatDamage(analysisState.battleStats?.machineGodStats.totalDamage || 0) : BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.totalDamage || 0) }}</span>
+                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.totalDamage || 0) }}</span>
               </div>
               <div class="boss-stat-item">
                 <span class="stat-label">Average Damage:</span>
-                <span class="stat-value">{{ (currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? BattleAnalyzer.formatDamage(analysisState.battleStats?.machineGodStats.averageDamage || 0) : BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.averageDamage || 0) }}</span>
+                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.averageDamage || 0) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Machine God - only show if active in this season -->
+          <div v-if="isBossActiveInSeason('Machine-God of the Eternal Void', currentDestinysFlight, activeSeason)" class="boss-stat-card machine-god">
+            <div class="boss-stat-header">
+              <div class="boss-icon">
+                <img src="/img/Machine-God_of_the_Eternal_Void_guild_ready.webp" 
+                     alt="Machine-God of the Eternal Void"
+                     class="boss-icon-image">
+              </div>
+              <h3>Machine God of the Eternal Void</h3>
+            </div>
+            <div class="boss-stat-content">
+              <div class="boss-stat-item">
+                <span class="stat-label">Participants:</span>
+                <span class="stat-value">{{ analysisState.battleStats?.machineGodStats.participants || 0 }}</span>
+              </div>
+              <div class="boss-stat-item">
+                <span class="stat-label">Total Damage:</span>
+                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.machineGodStats.totalDamage || 0) }}</span>
+              </div>
+              <div class="boss-stat-item">
+                <span class="stat-label">Average Damage:</span>
+                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.machineGodStats.averageDamage || 0) }}</span>
               </div>
             </div>
           </div>
