@@ -13,20 +13,23 @@ export class BattleAnalyzer {
    */
   static async fetchFromGoogleSheets(spreadsheetId: string, range?: string): Promise<BattlePlayer[]> {
     console.log(`📊 Fetching data from Google Sheets: ${spreadsheetId}`)
+    console.log(`📊 Using range: ${range || 'A1:Z100'}`)
 
     try {
       const response = await fetch('/api/fetch-sheets-data', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         },
         body: JSON.stringify({
           spreadsheetId,
           range: range || 'A1:Z100',
           _t: Date.now() // Cache-busting timestamp
-        })
+        }),
+        cache: 'no-store' // Prevent caching
       })
 
       if (!response.ok) {

@@ -46,7 +46,7 @@ export const useBattleAnalysis = () => {
     console.log('🗑️ Reset analysis state')
   }
 
-  const fetchFromGoogleSheets = async (season: number = 1, destinysFlight: number = 20) => {
+  const fetchFromGoogleSheets = async (season: number = 1, destinysFlight: number = 20, rangeOverride?: string) => {
     if (!sheetsState.spreadsheetId) {
       sheetsState.fetchError = 'Please enter a Spreadsheet ID'
       return
@@ -56,9 +56,13 @@ export const useBattleAnalysis = () => {
     sheetsState.fetchError = ''
     sheetsState.fetchSuccess = false
 
+    // Use override range if provided, otherwise use sheetsState.range
+    const rangeToUse = rangeOverride || sheetsState.range
+
     try {
-      console.log(`🔍 useBattleAnalysis: Fetching from range: ${sheetsState.range}`)
-      const players = await BattleAnalyzer.fetchFromGoogleSheets(sheetsState.spreadsheetId, sheetsState.range)
+      console.log(`🔍 useBattleAnalysis: Fetching from range: ${rangeToUse}`)
+      console.log(`🔍 useBattleAnalysis: Season: ${season}, Flight: ${destinysFlight}`)
+      const players = await BattleAnalyzer.fetchFromGoogleSheets(sheetsState.spreadsheetId, rangeToUse)
       
       if (players.length > 0) {
         console.log(`🔍 useBattleAnalysis: About to call calculateStats with season=${season}, destinysFlight=${destinysFlight}`)

@@ -297,9 +297,15 @@ const fetchSeasonData = async (season: number) => {
   // Set loading state
   isSeasonLoading.value = true
   
+  // Reset analysis state first to clear old data
+  resetAnalysis()
+  
   // Set the spreadsheet configuration for the selected season
   sheetsState.spreadsheetId = config.spreadsheetId
   sheetsState.range = config.range
+  
+  // Wait a tick to ensure state is updated
+  await new Promise(resolve => setTimeout(resolve, 0))
   
   // Automatically fetch data for the season
   try {
@@ -311,12 +317,14 @@ const fetchSeasonData = async (season: number) => {
     }
     console.log(`📊 Fetching data for Flight ${flight}, Season ${season} (analyzer season: ${analyzerSeason})`)
     console.log(`📊 Using spreadsheet range: ${config.range}`)
+    console.log(`📊 Current sheetsState.range: ${sheetsState.range}`)
     console.log(`📊 Expected bosses for ${flight}-${season}:`, {
       boss1: getBossForSeason(flight, season, 1)?.name || 'None',
       boss2: getBossForSeason(flight, season, 2)?.name || 'None',
       boss3: getBossForSeason(flight, season, 3)?.name || 'None'
     })
-    await fetchFromGoogleSheets(analyzerSeason, flight)
+    // Pass the range directly to ensure we use the correct one
+    await fetchFromGoogleSheets(analyzerSeason, flight, config.range)
   } catch (error) {
     console.error('Error fetching season data:', error)
   } finally {
@@ -326,9 +334,10 @@ const fetchSeasonData = async (season: number) => {
 }
 
 // Watch for active season changes and fetch data automatically
-watch(activeSeason, (newSeason) => {
+watch([activeSeason, currentDestinysFlight], ([newSeason, newFlight]) => {
+  console.log(`👀 Watch triggered: Season ${newSeason}, Flight ${newFlight}`)
   fetchSeasonData(newSeason)
-})
+}, { immediate: false })
 
 // Current Destiny's Flight (main season)
 const currentDestinysFlight = ref(24)
@@ -465,8 +474,10 @@ const getSeasonCount = () => {
 // Navigation methods for Destiny's Flights
 const navigateToDestinysFlight = (flight: number) => {
   if (bossSchedules[flight as keyof typeof bossSchedules]) {
+    console.log(`🔄 Navigating to Flight ${flight}`)
     currentDestinysFlight.value = flight
-    activeSeason.value = 1 // Reset to first season of new flight
+    // Reset to first season - this will trigger the watch which calls fetchSeasonData
+    activeSeason.value = 1
   }
 }
 
