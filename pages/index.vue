@@ -15,9 +15,13 @@ const {
   saveToDatabase
 } = useBattleAnalysis()
 
-// GSAP animations
+// GSAP animations and initialization
 onMounted(() => {
   // Add entrance animations here if needed
+  // Set active season based on current date after everything is initialized
+  activeSeason.value = getCurrentSeason()
+  // Trigger initial fetch
+  fetchSeasonData(activeSeason.value)
 })
 
 // Guild Battle Schedule Data
@@ -162,7 +166,8 @@ const getCurrentSeason = () => {
 }
 
 // Set active season based on current date
-activeSeason.value = getCurrentSeason()
+// Don't set immediately to avoid initialization issues - will be set after watch is set up
+// activeSeason.value = getCurrentSeason()
 
 // Function to check if current season has data
 const hasSeasonData = (season: number) => {
@@ -333,14 +338,14 @@ const fetchSeasonData = async (season: number) => {
   }
 }
 
+// Current Destiny's Flight (main season)
+const currentDestinysFlight = ref(24)
+
 // Watch for active season changes and fetch data automatically
 watch([activeSeason, currentDestinysFlight], ([newSeason, newFlight]) => {
   console.log(`👀 Watch triggered: Season ${newSeason}, Flight ${newFlight}`)
   fetchSeasonData(newSeason)
 }, { immediate: false })
-
-// Current Destiny's Flight (main season)
-const currentDestinysFlight = ref(24)
 
 // Function to determine Destiny's Flight based on season
 const getDestinysFlightFromSeason = (season: number) => {
