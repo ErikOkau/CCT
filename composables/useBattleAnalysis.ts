@@ -91,6 +91,8 @@ export const useBattleAnalysis = () => {
     } catch (error) {
       sheetsState.fetchError = error instanceof Error ? error.message : 'Failed to fetch from Google Sheets'
       console.error('Google Sheets fetch error:', error)
+      // Ensure analysisComplete is false on error
+      analysisState.analysisComplete = false
     } finally {
       sheetsState.isFetching = false
     }

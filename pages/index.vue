@@ -177,6 +177,9 @@ const hasSeasonData = (season: number) => {
     if (season === 2) return true // Season 21-2 now has data available
     if (season === 3) return true // Season 21-3 now has data available
     if (season === 4) return true // Season 21-4 now has data available
+  } else if (flight === 22) {
+    // Flight 22: All seasons have data available
+    if (season === 1 || season === 2 || season === 3 || season === 4) return true
   } else if (flight === 23 || flight === 24) {
     // Flights 23 and 24: All seasons have data available
     return true
@@ -190,7 +193,7 @@ const hasSeasonData = (season: number) => {
 // Function to get season display name
 const getSeasonDisplayName = (season: number) => {
   const flight = currentDestinysFlight.value
-  if (flight === 21 || flight === 23 || flight === 24) {
+  if (flight === 21 || flight === 22 || flight === 23 || flight === 24) {
     return `${flight}-${season}`
   }
   return `20-${season}`
@@ -209,6 +212,9 @@ const getSeasonStatusMessage = (season: number) => {
     if (season === 2) return 'Previous Season - Data Available'
     if (season === 3) return 'Previous Season - Data Available'
     if (season === 4) return 'Current Season - Data Available'
+  } else if (flight === 22) {
+    // Flight 22: All seasons have data available
+    return 'Previous Season - Data Available'
   } else if (flight === 23 || flight === 24) {
     // Flights 23 and 24: All seasons have data available
     return 'Previous Season - Data Available'
@@ -227,8 +233,8 @@ const getSeasonStatusIcon = (season: number) => {
     if (season === 2) return '📊' // Previous season with data available
     if (season === 3) return '📊' // Previous season with data available
     if (season === 4) return '📊' // Current season with data available
-  } else if (flight === 23 || flight === 24) {
-    // Flights 23 and 24: All seasons have data available
+  } else if (flight === 22 || flight === 23 || flight === 24) {
+    // Flights 22, 23, and 24: All seasons have data available
     return '📊'
   } else {
     // Destiny's Flight 20: All seasons are previous seasons with data available
@@ -259,6 +265,9 @@ const getSeasonDates = (season: number) => {
 // Loading state for season selection
 const isSeasonLoading = ref(false)
 
+// Track last fetched season/flight to prevent unnecessary resets
+const lastFetchedSeason = ref<{ flight: number; season: number } | null>(null)
+
 // Function to automatically fetch data for selected season
 const fetchSeasonData = async (season: number) => {
   let config: any
@@ -278,6 +287,13 @@ const fetchSeasonData = async (season: number) => {
     } else {
       config = seasonConfigurations[21] // Fallback to 21-1
     }
+  } else if (flight === 22) {
+    // Flight 22 seasons - similar to Flight 21 structure
+    // Note: Flight 22 configurations would need to be added to seasonConfigurations if data exists
+    // For now, return early as Flight 22 data may not be available
+    console.warn(`⚠️ Flight 22 data not configured yet`)
+    resetAnalysis()
+    return
   } else if (flight === 23) {
     // Flight 23 seasons
     const configKey = (230 + season) as keyof typeof seasonConfigurations
@@ -302,8 +318,16 @@ const fetchSeasonData = async (season: number) => {
   // Set loading state
   isSeasonLoading.value = true
   
-  // Reset analysis state first to clear old data
-  resetAnalysis()
+  // Only reset analysis state if we're switching to a different flight/season combination
+  // This prevents clearing data unnecessarily
+  const isNewSeason = !lastFetchedSeason.value || 
+    lastFetchedSeason.value.flight !== flight || 
+    lastFetchedSeason.value.season !== season
+  
+  if (isNewSeason) {
+    resetAnalysis()
+    lastFetchedSeason.value = { flight, season }
+  }
   
   // Set the spreadsheet configuration for the selected season
   sheetsState.spreadsheetId = config.spreadsheetId
@@ -316,8 +340,8 @@ const fetchSeasonData = async (season: number) => {
   try {
     // Map the season number correctly for the battle analyzer
     let analyzerSeason = season
-    if (flight === 21 || flight === 23 || flight === 24) {
-      // For flights 21, 23, and 24, keep the same season number for analyzer
+    if (flight === 21 || flight === 22 || flight === 23 || flight === 24) {
+      // For flights 21, 22, 23, and 24, keep the same season number for analyzer
       analyzerSeason = season
     }
     console.log(`📊 Fetching data for Flight ${flight}, Season ${season} (analyzer season: ${analyzerSeason})`)
@@ -330,8 +354,24 @@ const fetchSeasonData = async (season: number) => {
     })
     // Pass the range directly to ensure we use the correct one
     await fetchFromGoogleSheets(analyzerSeason, flight, config.range)
+    
+    // Verify data was loaded successfully
+    console.log(`✅ Data fetch completed for Flight ${flight}, Season ${season}`)
+    console.log(`✅ analysisComplete: ${analysisState.analysisComplete}`)
+    console.log(`✅ players count: ${analysisState.battleData.length}`)
+    console.log(`✅ hasSeasonData: ${hasSeasonData(season)}`)
+    console.log(`✅ isSeasonLoading: ${isSeasonLoading.value}`)
+    
+    // Double-check that analysisComplete is set
+    if (!analysisState.analysisComplete && analysisState.battleData.length > 0) {
+      console.warn(`⚠️ analysisComplete is false but we have data! Setting it to true.`)
+      analysisState.analysisComplete = true
+    }
   } catch (error) {
     console.error('Error fetching season data:', error)
+    // Ensure loading state is cleared even on error
+    isSeasonLoading.value = false
+    // Don't reset analysis on error - let the error message show
   } finally {
     // Clear loading state
     isSeasonLoading.value = false
@@ -341,10 +381,20 @@ const fetchSeasonData = async (season: number) => {
 // Current Destiny's Flight (main season)
 const currentDestinysFlight = ref(24)
 
+// Flag to prevent multiple simultaneous fetches
+let isFetchingSeason = false
+
 // Watch for active season changes and fetch data automatically
 watch([activeSeason, currentDestinysFlight], ([newSeason, newFlight]) => {
+  if (isFetchingSeason) {
+    console.log(`⏸️ Skipping fetch - already in progress`)
+    return
+  }
   console.log(`👀 Watch triggered: Season ${newSeason}, Flight ${newFlight}`)
-  fetchSeasonData(newSeason)
+  isFetchingSeason = true
+  fetchSeasonData(newSeason).finally(() => {
+    isFetchingSeason = false
+  })
 }, { immediate: false })
 
 // Function to determine Destiny's Flight based on season
@@ -391,6 +441,28 @@ const bossSchedules = {
       3: null // Empty
     },
     4: { // Season 21-4
+      1: null, // Empty
+      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
+      3: { name: 'Machine-God of the Eternal Void', image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' }
+    }
+  },
+  22: { // Destiny's Flight 22 (4x3 grid) - Same structure as Flight 21
+    1: { // Season 22-1
+      1: null, // Empty
+      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
+      3: { name: 'Machine-God of the Eternal Void', image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' }
+    },
+    2: { // Season 22-2
+      1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
+      2: null, // Empty
+      3: { name: 'Machine-God of the Eternal Void', image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' }
+    },
+    3: { // Season 22-3
+      1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
+      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
+      3: null // Empty
+    },
+    4: { // Season 22-4
       1: null, // Empty
       2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
       3: { name: 'Machine-God of the Eternal Void', image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' }
@@ -1650,7 +1722,7 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
     </section>
 
     <!-- Results Section -->
-    <section class="results-section" v-if="hasSeasonData(activeSeason) && analysisState.analysisComplete">
+    <section class="results-section" v-if="hasSeasonData(activeSeason) && analysisState.analysisComplete && !isSeasonLoading && analysisState.battleData.length > 0">
       <div class="container">
         <div class="results-header">
           <h2 class="section-title">Battle Analysis Results - Season {{ getSeasonDisplayName(activeSeason) }}</h2>
