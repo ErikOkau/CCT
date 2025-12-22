@@ -672,8 +672,9 @@ const getTicketStatusText = (player: any, season: number = activeSeason.value) =
 
 // Get correct guild rank for specific players
 const getPlayerGuildRank = (playerName: string) => {
+  const normalizedName = playerName.toLowerCase()
   if (playerName === 'Bestoutuber') return 'Leader'
-  if (playerName === 'jammifyvxxx') return 'Officer'
+  if (normalizedName === 'jammifyvx' || normalizedName === 'jammifyvxxx') return 'Officer'
   return 'Member'
 }
 
