@@ -673,7 +673,7 @@ const getTicketStatusText = (player: any, season: number = activeSeason.value) =
 // Get correct guild rank for specific players
 const getPlayerGuildRank = (playerName: string) => {
   if (playerName === 'Bestoutuber') return 'Leader'
-  if (playerName === 'brownmascara') return 'Officer'
+  if (playerName === 'jammifyvxxx') return 'Officer'
   return 'Member'
 }
 
@@ -1069,10 +1069,10 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
                <span class="info-label">Leader:</span>
                <span class="info-value">Bestoutuber</span>
              </div>
-             <div class="info-item">
-               <span class="info-label">Officer:</span>
-               <span class="info-value">brownmascara</span>
-             </div>
+            <div class="info-item">
+              <span class="info-label">Officer:</span>
+              <span class="info-value">jammifyvxxx</span>
+            </div>
              <div class="info-item">
                <span class="info-label">Guild Level:</span>
                <span class="info-value">70</span>

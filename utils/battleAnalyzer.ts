@@ -146,7 +146,7 @@ export class BattleAnalyzer {
    */
   private static getPlayerGuildRank(playerName: string): 'Leader' | 'Member' | 'Officer' {
     if (playerName === 'Bestoutuber') return 'Leader'
-    if (playerName === 'brownmascara') return 'Officer'
+    if (playerName === 'jammifyvxxx') return 'Officer'
     return 'Member'
   }
 
