@@ -33,7 +33,41 @@ export class BattleAnalyzer {
       })
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch Google Sheets data: ${response.status}`)
+        // Try to read the error message from the response body
+        let errorMessage = `Failed to fetch Google Sheets data: ${response.status}`
+        try {
+          const errorData = await response.json()
+          console.error('❌ Error response data:', errorData)
+          
+          // Try different possible error message fields
+          if (errorData.statusMessage) {
+            errorMessage = errorData.statusMessage
+          } else if (errorData.message) {
+            errorMessage = errorData.message
+          } else if (errorData.data?.originalError) {
+            errorMessage = errorData.data.originalError
+          } else if (errorData.data?.message) {
+            errorMessage = errorData.data.message
+          } else if (typeof errorData === 'string') {
+            errorMessage = errorData
+          }
+          
+          console.error('❌ Extracted error message:', errorMessage)
+        } catch (e) {
+          // If parsing fails, use the default message
+          console.warn('Could not parse error response as JSON:', e)
+          // Try to get text response
+          try {
+            const text = await response.text()
+            if (text) {
+              errorMessage = text
+              console.error('❌ Error response text:', text)
+            }
+          } catch (textError) {
+            console.warn('Could not read error response as text:', textError)
+          }
+        }
+        throw new Error(errorMessage)
       }
 
       const result = await response.json()

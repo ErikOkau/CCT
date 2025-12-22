@@ -1954,6 +1954,7 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
                         {{ getTicketsUsed(player, activeSeason) }}/18
                       </div>
                       <div class="ticket-status" :class="getTicketStatusClass(player, activeSeason)">
+
                         {{ getTicketStatusText(player, activeSeason) }}
                       </div>
                     </div>
