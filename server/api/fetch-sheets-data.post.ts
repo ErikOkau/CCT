@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   setHeader(event, 'Expires', '0')
   
   const body = await readBody(event)
-  const { spreadsheetId, range } = body
+  const { spreadsheetId, range, raw } = body
 
   if (!spreadsheetId) {
     throw new Error('Spreadsheet ID is required.')
@@ -27,9 +27,9 @@ export default defineEventHandler(async (event) => {
     const sheetName = parts[0]
     const cellRange = parts[1]
     
-    // If sheet name starts with a number or contains special characters, quote it
-    // Google Sheets API requires single quotes for sheet names starting with numbers
-    if (/^\d/.test(sheetName) || sheetName.includes('-')) {
+    // If sheet name starts with a number, contains special characters, or has spaces, quote it
+    // Google Sheets API requires single quotes for sheet names with spaces or special characters
+    if (/^\d/.test(sheetName) || sheetName.includes('-') || sheetName.includes(' ')) {
       // Only add quotes if not already quoted
       const quotedSheetName = sheetName.startsWith("'") && sheetName.endsWith("'") 
         ? sheetName 
@@ -91,6 +91,16 @@ export default defineEventHandler(async (event) => {
 
     console.log(`📊 Fetched ${rows.length} rows from Google Sheets`)
     console.log('First few rows:', rows.slice(0, 5))
+
+    // If raw flag is set, return raw rows instead of parsed data
+    if (raw) {
+      return {
+        message: 'Google Sheets data fetched successfully!',
+        data: rows,
+        values: rows,
+        totalRows: rows.length
+      }
+    }
 
     // Parse the spreadsheet data
     const players = parseSpreadsheetData(rows)

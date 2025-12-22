@@ -22,6 +22,8 @@ onMounted(() => {
   activeSeason.value = getCurrentSeason()
   // Trigger initial fetch
   fetchSeasonData(activeSeason.value)
+  // Fetch alliance rankings
+  fetchAllianceRankings()
 })
 
 // Guild Battle Schedule Data
@@ -1028,6 +1030,140 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
   }
 
   return ticketsUsed
+}
+
+// Alliance Ranking Data
+interface AlliancePlayer {
+  guildRank: number
+  playerName: string
+  clearTime: string | number
+  clearScore: number
+  serverRank: number
+}
+
+const allianceRankings = ref<AlliancePlayer[]>([])
+const allianceLoading = ref(false)
+const allianceError = ref<string | null>(null)
+
+// Function to fetch alliance rankings
+const fetchAllianceRankings = async () => {
+  allianceLoading.value = true
+  allianceError.value = null
+
+  try {
+    const spreadsheetId = '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs'
+    const range = "Cookie Alliance!A2:E31" // Rows 2-31, columns A-E (formatRange will add quotes if needed)
+
+    const response = await fetch('/api/fetch-sheets-data', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      },
+      body: JSON.stringify({
+        spreadsheetId,
+        range,
+        raw: true, // Request raw rows for alliance data
+        _t: Date.now()
+      }),
+      cache: 'no-store'
+    })
+
+    if (!response.ok) {
+      let errorMessage = `Failed to fetch alliance data: ${response.status}`
+      try {
+        const errorData = await response.json()
+        if (errorData.statusMessage) {
+          errorMessage = errorData.statusMessage
+        } else if (errorData.message) {
+          errorMessage = errorData.message
+        }
+      } catch (e) {
+        // If parsing fails, use the default message
+        console.warn('Could not parse error response:', e)
+      }
+      throw new Error(errorMessage)
+    }
+
+    const result = await response.json()
+    
+    // The API returns raw rows when raw: true is set
+    // Result format: { data: rows, values: rows, totalRows: number }
+    const rawRows = result.data || result.values || []
+    
+    if (!Array.isArray(rawRows) || rawRows.length === 0) {
+      throw new Error('No alliance data found')
+    }
+    
+    allianceRankings.value = parseAllianceDataFromRows(rawRows)
+
+    console.log(`✅ Successfully fetched ${allianceRankings.value.length} alliance players`)
+  } catch (error: any) {
+    console.error('Error fetching alliance rankings:', error)
+    allianceError.value = error.message || 'Failed to fetch alliance rankings'
+  } finally {
+    allianceLoading.value = false
+  }
+}
+
+// Parse alliance data from BattlePlayer format (fallback)
+const parseAllianceData = (data: any[]): AlliancePlayer[] => {
+  return []
+}
+
+// Parse alliance data from raw rows
+const parseAllianceDataFromRows = (rows: any[][]): AlliancePlayer[] => {
+  const players: AlliancePlayer[] = []
+  
+  // Rows are already A2:E31, so index 0 = row 2
+  rows.forEach((row, index) => {
+    if (!row || row.length < 5) return
+    
+    const guildRank = parseInt(row[0]) || index + 1 // Column A (index 0)
+    const playerName = row[1]?.toString().trim() || '' // Column B (index 1)
+    const clearTime = row[2] || '' // Column C (index 2) - can be time string or number
+    const clearScore = parseFloat(row[3]?.toString().replace(/,/g, '')) || 0 // Column D (index 3)
+    const serverRank = parseInt(row[4]) || 0 // Column E (index 4)
+    
+    if (playerName) {
+      players.push({
+        guildRank,
+        playerName,
+        clearTime,
+        clearScore,
+        serverRank
+      })
+    }
+  })
+  
+  return players
+}
+
+// Alliance rankings are fetched in the main onMounted hook above
+
+// Format score for display
+const formatAllianceScore = (score: number) => {
+  if (score >= 1000000000) {
+    return `${(score / 1000000000).toFixed(2)}B`
+  } else if (score >= 1000000) {
+    return `${(score / 1000000).toFixed(2)}M`
+  } else if (score >= 1000) {
+    return `${(score / 1000).toFixed(2)}K`
+  }
+  return score.toLocaleString()
+}
+
+// Format time for display
+const formatAllianceTime = (time: string | number) => {
+  if (typeof time === 'number') {
+    // If it's a number, assume it's seconds
+    const minutes = Math.floor(time / 60)
+    const seconds = Math.floor(time % 60)
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`
+  }
+  return time?.toString() || 'N/A'
 }
 
 </script>
@@ -2041,7 +2177,101 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
       </div>
     </section>
 
+    <!-- Alliance Ranking Section -->
+    <section class="alliance-ranking-section">
+      <div class="container">
+        <div class="alliance-header">
+          <h2 class="section-title">🏅 Cookie Alliance Ranking</h2>
+          <button @click="fetchAllianceRankings" class="refresh-button" :disabled="allianceLoading">
+            <span v-if="allianceLoading">⏳ Loading...</span>
+            <span v-else>🔄 Refresh</span>
+          </button>
+        </div>
 
+        <!-- Loading State -->
+        <div v-if="allianceLoading" class="alliance-loading">
+          <div class="loading-spinner">
+            <div class="spinner"></div>
+          </div>
+          <p>Loading alliance rankings...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="allianceError" class="alliance-error">
+          <div class="error-icon">⚠️</div>
+          <p>{{ allianceError }}</p>
+          <button @click="fetchAllianceRankings" class="retry-button">Retry</button>
+        </div>
+
+        <!-- Alliance Ranking Table -->
+        <div v-else-if="allianceRankings.length > 0" class="alliance-table-container">
+          <!-- Desktop Table -->
+          <div class="alliance-table desktop-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Guild Rank</th>
+                  <th>Player Name</th>
+                  <th>Clear Time</th>
+                  <th>Clear Score</th>
+                  <th>Server Rank</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="player in allianceRankings" :key="player.guildRank">
+                  <td class="rank-cell">
+                    <span class="alliance-rank-badge">{{ player.guildRank }}</span>
+                  </td>
+                  <td class="player-cell">
+                    <div class="alliance-player-name">{{ player.playerName }}</div>
+                    <div class="alliance-guild-rank" v-if="getPlayerGuildRank(player.playerName) !== 'Member'">
+                      {{ getPlayerGuildRank(player.playerName) }}
+                    </div>
+                  </td>
+                  <td class="time-cell">{{ formatAllianceTime(player.clearTime) }}</td>
+                  <td class="score-cell">{{ formatAllianceScore(player.clearScore) }}</td>
+                  <td class="server-rank-cell">
+                    <span class="server-rank-badge">#{{ player.serverRank }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Mobile Cards -->
+          <div class="alliance-mobile-cards">
+            <div v-for="player in allianceRankings" :key="player.guildRank" class="alliance-card">
+              <div class="alliance-card-header">
+                <div class="alliance-card-rank">#{{ player.guildRank }}</div>
+                <div class="alliance-card-name">{{ player.playerName }}</div>
+                <div class="alliance-card-guild-rank" v-if="getPlayerGuildRank(player.playerName) !== 'Member'">
+                  {{ getPlayerGuildRank(player.playerName) }}
+                </div>
+              </div>
+              <div class="alliance-card-stats">
+                <div class="alliance-stat-item">
+                  <span class="stat-label">Clear Time:</span>
+                  <span class="stat-value">{{ formatAllianceTime(player.clearTime) }}</span>
+                </div>
+                <div class="alliance-stat-item">
+                  <span class="stat-label">Clear Score:</span>
+                  <span class="stat-value score-value">{{ formatAllianceScore(player.clearScore) }}</span>
+                </div>
+                <div class="alliance-stat-item">
+                  <span class="stat-label">Server Rank:</span>
+                  <span class="stat-value">#{{ player.serverRank }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else class="alliance-empty">
+          <p>No alliance rankings available</p>
+        </div>
+      </div>
+    </section>
 
     <!-- Footer -->
     <footer class="footer">
@@ -2687,5 +2917,287 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
 .previous-with-data {
   --boss-color: #ffaa44;
   --boss-color-light: #ffcc66;
+}
+
+/* Alliance Ranking Section */
+.alliance-ranking-section {
+  padding: 4rem 0;
+  background: linear-gradient(135deg, rgba(40, 20, 60, 0.95) 0%, rgba(60, 30, 80, 0.95) 100%);
+  min-height: 50vh;
+}
+
+.alliance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.refresh-button {
+  background: linear-gradient(45deg, #9b59b6, #8e44ad);
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3);
+}
+
+.refresh-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(155, 89, 182, 0.4);
+  background: linear-gradient(45deg, #8e44ad, #9b59b6);
+}
+
+.refresh-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.alliance-loading,
+.alliance-error {
+  text-align: center;
+  padding: 3rem;
+}
+
+.alliance-error {
+  color: #ff6b6b;
+}
+
+.alliance-error .error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.retry-button {
+  margin-top: 1rem;
+  background: linear-gradient(45deg, #e74c3c, #c0392b);
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retry-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+}
+
+.alliance-table-container {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(155, 89, 182, 0.3);
+}
+
+.alliance-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.alliance-table thead {
+  background: linear-gradient(135deg, rgba(155, 89, 182, 0.3), rgba(142, 68, 173, 0.3));
+}
+
+.alliance-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid rgba(155, 89, 182, 0.5);
+}
+
+.alliance-table tbody tr {
+  border-bottom: 1px solid rgba(155, 89, 182, 0.2);
+  transition: all 0.3s ease;
+}
+
+.alliance-table tbody tr:hover {
+  background: rgba(155, 89, 182, 0.1);
+  transform: translateX(5px);
+}
+
+.alliance-table td {
+  padding: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.alliance-rank-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3);
+}
+
+.alliance-player-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #fff;
+  margin-bottom: 0.25rem;
+}
+
+.alliance-guild-rank {
+  display: inline-block;
+  background: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.time-cell {
+  font-family: 'Courier New', monospace;
+  color: #a29bfe;
+  font-weight: 500;
+}
+
+.score-cell {
+  color: #ffd700;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.server-rank-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #6c5ce7, #5f3dc4);
+  color: #fff;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+/* Mobile Alliance Cards */
+.alliance-mobile-cards {
+  display: none;
+}
+
+.alliance-card {
+  background: rgba(155, 89, 182, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(155, 89, 182, 0.3);
+  transition: all 0.3s ease;
+}
+
+.alliance-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(155, 89, 182, 0.3);
+  border-color: rgba(155, 89, 182, 0.5);
+}
+
+.alliance-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(155, 89, 182, 0.2);
+}
+
+.alliance-card-rank {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  min-width: 60px;
+  text-align: center;
+}
+
+.alliance-card-name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #fff;
+}
+
+.alliance-card-guild-rank {
+  background: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.alliance-card-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.alliance-stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.alliance-stat-item .stat-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+.alliance-stat-item .stat-value {
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.alliance-stat-item .stat-value.score-value {
+  color: #ffd700;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.alliance-empty {
+  text-align: center;
+  padding: 3rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.1rem;
+}
+
+/* Responsive Design for Alliance Section */
+@media (max-width: 768px) {
+  .alliance-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .alliance-table.desktop-table {
+    display: none;
+  }
+
+  .alliance-mobile-cards {
+    display: block;
+  }
+
+  .alliance-ranking-section {
+    padding: 2rem 0;
+  }
+
+  .alliance-table-container {
+    padding: 1rem;
+  }
 }
 </style>
