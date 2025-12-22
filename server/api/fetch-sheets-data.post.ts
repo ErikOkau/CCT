@@ -35,14 +35,31 @@ export default defineEventHandler(async (event) => {
     const sheets = google.sheets({ version: 'v4', auth })
     
     // Fetch data from Google Sheets
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: range || '20-1!A1:Z100', // Default to 20-1 sheet which contains guild battle data
-    })
+    let response
+    try {
+      response = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: range || '20-1!A1:Z100', // Default to 20-1 sheet which contains guild battle data
+      })
+    } catch (sheetsError: any) {
+      // Handle Google Sheets API specific errors
+      const errorCode = sheetsError.code || sheetsError.response?.status
+      const errorMessage = sheetsError.message || sheetsError.response?.data?.error?.message || 'Unknown error'
+      
+      if (errorCode === 400) {
+        throw new Error(`Invalid range or sheet not found: "${range || '20-1!A1:Z100'}". ${errorMessage}. Please check if the sheet exists in the spreadsheet.`)
+      } else if (errorCode === 404) {
+        throw new Error(`Spreadsheet or sheet not found: "${range || '20-1!A1:Z100'}". ${errorMessage}. Please check the spreadsheet ID and sheet name.`)
+      } else if (errorCode === 403) {
+        throw new Error(`Access denied. ${errorMessage}. Please ensure the service account has access to the spreadsheet.`)
+      }
+      // Re-throw with more context
+      throw new Error(`Google Sheets API error: ${errorMessage}`)
+    }
 
     const rows = response.data.values
     if (!rows || rows.length === 0) {
-      throw new Error('No data found in the spreadsheet.')
+      throw new Error(`No data found in the spreadsheet range: ${range || '20-1!A1:Z100'}. The sheet might be empty or the range is incorrect.`)
     }
 
     console.log(`📊 Fetched ${rows.length} rows from Google Sheets`)
@@ -66,24 +83,42 @@ export default defineEventHandler(async (event) => {
     console.error('❌ Error details:', {
       message: error.message,
       code: error.code,
+      response: error.response?.data,
       stack: error.stack
     })
     
     // Provide more detailed error messages
     let errorMessage = 'Failed to fetch Google Sheets data'
+    let statusCode = 500
+    
     if (error.message) {
       errorMessage = error.message
+      // Check if it's a sheet not found error
+      if (error.message.includes('sheet not found') || error.message.includes('Invalid range')) {
+        statusCode = 404
+      }
     } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
       errorMessage = 'Unable to connect to Google Sheets API. Please check your internet connection.'
-    } else if (error.code === 403) {
+      statusCode = 503
+    } else if (error.code === 403 || error.response?.status === 403) {
       errorMessage = 'Access denied. Please check Google Sheets credentials and permissions.'
-    } else if (error.code === 404) {
-      errorMessage = 'Spreadsheet not found. Please check the spreadsheet ID.'
+      statusCode = 403
+    } else if (error.code === 404 || error.response?.status === 404) {
+      errorMessage = 'Spreadsheet or sheet not found. Please check the spreadsheet ID and sheet name.'
+      statusCode = 404
+    } else if (error.code === 400 || error.response?.status === 400) {
+      errorMessage = `Invalid request: ${error.response?.data?.error?.message || error.message || 'Invalid range or sheet name'}`
+      statusCode = 400
     }
     
     throw createError({
-      statusCode: 500,
+      statusCode,
       statusMessage: `Google Sheets fetch error: ${errorMessage}`,
+      data: {
+        originalError: error.message,
+        code: error.code,
+        range: range || '20-1!A1:Z100'
+      }
     })
   }
 })
