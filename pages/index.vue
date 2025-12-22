@@ -1129,7 +1129,7 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
                </div>
                <div class="info-item">
                  <span class="info-icon">💎</span>
-                 <span class="info-text">114/114 RELICS - LEVEL 11+</span>
+                 <span class="info-text">114/114 RELICS - LEVEL 13+</span>
                </div>
              </div>
            </div>
