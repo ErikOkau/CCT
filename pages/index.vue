@@ -1176,7 +1176,7 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
                </div>
                <div class="requirement-item">
                  <span class="requirement-icon">🎫</span>
-                 <span class="requirement-text">USE 15/18 TICKETS</span>
+                 <span class="requirement-text">USE 18/18 TICKETS</span>
                </div>
                <div class="requirement-item">
                  <span class="requirement-icon">⚔️</span>
