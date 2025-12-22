@@ -60,37 +60,37 @@ const allSeasons = [
 
 // Season-specific data availability and spreadsheet configurations
 const seasonConfigurations = {
-  1: { 
+  1: {
     hasData: true,  // Season 20-1 (previous season) has data
     spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
     range: '20-1!A1:Z100' // Season 20-1 range
   },
-  2: { 
+  2: {
     hasData: true, // Season 20-2 (previous season) - now has data
     spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
     range: '20-2!A1:Z100' // Season 20-2 range
   },
-  3: { 
+  3: {
     hasData: true, // Season 20-3 (season is over) - now has data
     spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
     range: '20-3!A1:Z100' // Season 20-3 range
   },
-  21: { 
+  21: {
     hasData: true, // Season 21-1 now has data available
     spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
     range: '21-1!A1:Z100' // Season 21-1 range
   },
-  22: { 
+  22: {
     hasData: true, // Season 21-2 now has data available
     spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
     range: '21-2!A1:Z100' // Season 21-2 range
   },
-  23: { 
+  23: {
     hasData: true, // Season 21-3 now has data available
     spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
     range: '21-3!A1:Z100' // Season 21-3 range
   },
-  24: { 
+  24: {
     hasData: true, // Season 21-4 now has data available
     spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
     range: '21-4!A1:Z100' // Season 21-4 range
@@ -149,7 +149,7 @@ const seasonTypes = {
 const getCurrentSeason = () => {
   const now = new Date()
   const gmtPlus9 = new Date(now.getTime() + (9 * 60 * 60 * 1000)) // Convert to GMT+9
-  
+
   for (const season in seasonDates) {
     const seasonNum = parseInt(season) as 1 | 2 | 3 | 4
     const dates = seasonDates[seasonNum]
@@ -157,11 +157,11 @@ const getCurrentSeason = () => {
       return seasonNum
     }
   }
-  
+
   // If not in any season, return the most recent past season or default to 1
   if (gmtPlus9 < seasonDates[1].start) return 1
   if (gmtPlus9 > seasonDates[4].end) return 4
-  
+
   return 1
 }
 
@@ -241,18 +241,18 @@ const getSeasonStatusIcon = (season: number) => {
 const getSeasonDates = (season: number) => {
   const dates = seasonDates[season as keyof typeof seasonDates]
   if (!dates) return 'Unknown dates'
-  
-  const startDate = dates.start.toLocaleDateString('en-US', { 
-    month: '2-digit', 
-    day: '2-digit', 
-    year: '2-digit' 
+
+  const startDate = dates.start.toLocaleDateString('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: '2-digit'
   })
-  const endDate = dates.end.toLocaleDateString('en-US', { 
-    month: '2-digit', 
-    day: '2-digit', 
-    year: '2-digit' 
+  const endDate = dates.end.toLocaleDateString('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: '2-digit'
   })
-  
+
   return `${startDate} - ${endDate}`
 }
 
@@ -266,7 +266,7 @@ const lastFetchedSeason = ref<{ flight: number; season: number } | null>(null)
 const fetchSeasonData = async (season: number) => {
   let config: any
   const flight = currentDestinysFlight.value
-  
+
   // Handle Destiny's Flight 21 seasons
   if (flight === 21) {
     // For Destiny's Flight 21, use the correct season configuration
@@ -294,35 +294,35 @@ const fetchSeasonData = async (season: number) => {
   } else {
     config = seasonConfigurations[season as keyof typeof seasonConfigurations]
   }
-  
+
   if (!config || !config.hasData) {
     // Reset analysis state for seasons without data
     console.warn(`⚠️ No config found for Flight ${flight}, Season ${season}`)
     resetAnalysis()
     return
   }
-  
+
   // Set loading state
   isSeasonLoading.value = true
-  
+
   // Only reset analysis state if we're switching to a different flight/season combination
   // This prevents clearing data unnecessarily
-  const isNewSeason = !lastFetchedSeason.value || 
-    lastFetchedSeason.value.flight !== flight || 
+  const isNewSeason = !lastFetchedSeason.value ||
+    lastFetchedSeason.value.flight !== flight ||
     lastFetchedSeason.value.season !== season
-  
+
   if (isNewSeason) {
     resetAnalysis()
     lastFetchedSeason.value = { flight, season }
   }
-  
+
   // Set the spreadsheet configuration for the selected season
   sheetsState.spreadsheetId = config.spreadsheetId
   sheetsState.range = config.range
-  
+
   // Wait a tick to ensure state is updated
   await new Promise(resolve => setTimeout(resolve, 0))
-  
+
   // Automatically fetch data for the season
   try {
     // Map the season number correctly for the battle analyzer
@@ -341,14 +341,14 @@ const fetchSeasonData = async (season: number) => {
     })
     // Pass the range directly to ensure we use the correct one
     await fetchFromGoogleSheets(analyzerSeason, flight, config.range)
-    
+
     // Verify data was loaded successfully
     console.log(`✅ Data fetch completed for Flight ${flight}, Season ${season}`)
     console.log(`✅ analysisComplete: ${analysisState.analysisComplete}`)
     console.log(`✅ players count: ${analysisState.battleData.length}`)
     console.log(`✅ hasSeasonData: ${hasSeasonData(season)}`)
     console.log(`✅ isSeasonLoading: ${isSeasonLoading.value}`)
-    
+
     // Double-check that analysisComplete is set
     if (!analysisState.analysisComplete && analysisState.battleData.length > 0) {
       console.warn(`⚠️ analysisComplete is false but we have data! Setting it to true.`)
@@ -491,7 +491,7 @@ const isBossActiveInSeason = (bossName: string, destinysFlight: number, season: 
   if (!flightData) return false
   const seasonData = flightData[season as keyof typeof flightData]
   if (!seasonData) return false
-  
+
   // Check all positions for this boss
   for (let pos = 1; pos <= 3; pos++) {
     const boss = seasonData[pos as keyof typeof seasonData]
@@ -531,7 +531,7 @@ const canNavigateToFlight = (flight: number) => {
 const getNextFlight = (currentFlight: number, direction: 'prev' | 'next'): number | null => {
   const availableFlights = Object.keys(bossSchedules).map(Number).sort((a, b) => a - b)
   const currentIndex = availableFlights.indexOf(currentFlight)
-  
+
   if (direction === 'prev') {
     if (currentIndex > 0) {
       return availableFlights[currentIndex - 1]
@@ -548,7 +548,7 @@ const getNextFlight = (currentFlight: number, direction: 'prev' | 'next'): numbe
 const getTicketStatusClass = (player: any, season: number = activeSeason.value) => {
   let ticketsUsed = 0
   const flight = currentDestinysFlight.value
-  
+
   if (flight === 21) {
     if (season === 1) {
       // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void
@@ -601,7 +601,7 @@ const getTicketStatusClass = (player: any, season: number = activeSeason.value) 
     // Default fallback: Avatar of Destiny and Living Abyss
     ticketsUsed = player.avatarOfDestiny.battles + player.livingAbyss.battles
   }
-  
+
   if (ticketsUsed >= 18) return 'ticket-excellent'
   if (ticketsUsed >= 15) return 'ticket-good'
   if (ticketsUsed >= 10) return 'ticket-warning'
@@ -611,7 +611,7 @@ const getTicketStatusClass = (player: any, season: number = activeSeason.value) 
 const getTicketStatusText = (player: any, season: number = activeSeason.value) => {
   let ticketsUsed = 0
   const flight = currentDestinysFlight.value
-  
+
   if (flight === 21) {
     if (season === 1) {
       // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void
@@ -664,7 +664,7 @@ const getTicketStatusText = (player: any, season: number = activeSeason.value) =
     // Default fallback: Avatar of Destiny and Living Abyss
     ticketsUsed = player.avatarOfDestiny.battles + player.livingAbyss.battles
   }
-  
+
   if (ticketsUsed >= 18) return 'Yay'
   if (ticketsUsed >= 15) return 'Slothful'
   return 'At risk of disposal'
@@ -697,10 +697,10 @@ const getPlayerTotalDamageForGlory = (player: any, seasonId: string) => {
     // Fallback: sum all bosses
     return player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage + (player.machineGod?.damage || 0)
   }
-  
+
   const flight = parseInt(parts[0])
   const season = parseInt(parts[1])
-  
+
   // Flight 23 seasons
   if (flight === 23) {
     if (season === 1) {
@@ -771,10 +771,10 @@ const getPlayerTotalBattlesForGlory = (player: any, seasonId: string) => {
     // Fallback: sum all battles
     return player.redVelvetDragon.battles + player.avatarOfDestiny.battles + player.livingAbyss.battles + (player.machineGod?.battles || 0)
   }
-  
+
   const flight = parseInt(parts[0])
   const season = parseInt(parts[1])
-  
+
   // Flight 23 seasons
   if (flight === 23) {
     if (season === 1) {
@@ -844,11 +844,11 @@ const fetchSeasonDataForGlory = async (seasonId: string) => {
       '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
       `${seasonId}!A1:Z100`
     )
-    
+
     return {
       seasonId,
       players: battlePlayers,
-      totalDamage: battlePlayers.reduce((sum: number, player: any) => 
+      totalDamage: battlePlayers.reduce((sum: number, player: any) =>
         sum + getPlayerTotalDamageForGlory(player, seasonId), 0
       )
     }
@@ -861,12 +861,12 @@ const fetchSeasonDataForGlory = async (seasonId: string) => {
 // Function to load all Hall of Glory data
 const loadHallOfGloryData = async () => {
   hallOfGloryData.value.isLoading = true
-  
+
   try {
     const seasonDataPromises = allSeasons.map(season => fetchSeasonDataForGlory(season.id))
     const seasonResults = await Promise.all(seasonDataPromises)
     const validSeasonData = seasonResults.filter(data => data !== null)
-    
+
     // Calculate boss champions
     const bossChampions = {
       redVelvet: { player: null as string | null, damage: 0, season: '', tickets: 0 },
@@ -874,35 +874,35 @@ const loadHallOfGloryData = async () => {
       livingAbyss: { player: null as string | null, damage: 0, season: '', tickets: 0 },
       machineGod: { player: null as string | null, damage: 0, season: '', tickets: 0 }
     }
-    
+
     // Calculate season champions
     const seasonChampions: any[] = []
-    
-              validSeasonData.forEach(seasonData => {
-       // Find best player for this season (player with highest total damage)
-       let bestPlayer: any = null
-       let bestTotalDamage = 0
-       
-       seasonData.players.forEach((player: any) => {
-         const playerTotalDamage = getPlayerTotalDamageForGlory(player, seasonData.seasonId)
-         if (playerTotalDamage > bestTotalDamage) {
-           bestTotalDamage = playerTotalDamage
-           bestPlayer = player
-         }
-       })
-       
-       if (bestPlayer) {
-         const ticketsUsed = getPlayerTotalBattlesForGlory(bestPlayer, seasonData.seasonId)
-         
-         seasonChampions.push({
-           seasonId: seasonData.seasonId,
-           seasonName: seasonData.seasonId,
-           playerName: bestPlayer.playerName,
-           totalDamage: bestTotalDamage,
-           ticketsUsed
-         })
-       }
-      
+
+    validSeasonData.forEach(seasonData => {
+      // Find best player for this season (player with highest total damage)
+      let bestPlayer: any = null
+      let bestTotalDamage = 0
+
+      seasonData.players.forEach((player: any) => {
+        const playerTotalDamage = getPlayerTotalDamageForGlory(player, seasonData.seasonId)
+        if (playerTotalDamage > bestTotalDamage) {
+          bestTotalDamage = playerTotalDamage
+          bestPlayer = player
+        }
+      })
+
+      if (bestPlayer) {
+        const ticketsUsed = getPlayerTotalBattlesForGlory(bestPlayer, seasonData.seasonId)
+
+        seasonChampions.push({
+          seasonId: seasonData.seasonId,
+          seasonName: seasonData.seasonId,
+          playerName: bestPlayer.playerName,
+          totalDamage: bestTotalDamage,
+          ticketsUsed
+        })
+      }
+
       // Check for boss champions - look through ALL players in this season, not just the best overall
       seasonData.players.forEach(player => {
         // Check Red Velvet Dragon champion
@@ -914,7 +914,7 @@ const loadHallOfGloryData = async () => {
             tickets: player.redVelvetDragon.battles
           }
         }
-        
+
         // Check Avatar of Destiny champion
         if (player.avatarOfDestiny.damage > bossChampions.avatar.damage) {
           bossChampions.avatar = {
@@ -924,7 +924,7 @@ const loadHallOfGloryData = async () => {
             tickets: player.avatarOfDestiny.battles
           }
         }
-        
+
         // Check Living Abyss champion
         if (player.livingAbyss.damage > bossChampions.livingAbyss.damage) {
           bossChampions.livingAbyss = {
@@ -934,7 +934,7 @@ const loadHallOfGloryData = async () => {
             tickets: player.livingAbyss.battles
           }
         }
-        
+
         // Check Machine God champion
         if (player.machineGod && player.machineGod.damage > bossChampions.machineGod.damage) {
           console.log(`New Machine God champion: ${player.playerName} with ${player.machineGod.damage} damage in season ${seasonData.seasonId}`)
@@ -947,19 +947,19 @@ const loadHallOfGloryData = async () => {
         }
       })
     })
-    
+
     // Sort season champions by total damage
     seasonChampions.sort((a, b) => b.totalDamage - a.totalDamage)
-    
+
     console.log('Final boss champions:', bossChampions)
     console.log('Machine God champion:', bossChampions.machineGod)
-    
+
     hallOfGloryData.value = {
       bossChampions,
       seasonChampions: seasonChampions.slice(0, 3), // Top 3 seasons
       isLoading: false
     }
-    
+
   } catch (error) {
     console.error('Error loading Hall of Glory data:', error)
     hallOfGloryData.value.isLoading = false
@@ -1005,7 +1005,7 @@ const getSeasonStatusClass = () => {
 const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
   const flight = currentDestinysFlight.value
   let ticketsUsed = 0
-  
+
   if (flight === 21) {
     if (season === 1) ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
     else if (season === 2) ticketsUsed = player.redVelvetDragon.battles + (player.machineGod?.battles || 0)
@@ -1025,7 +1025,7 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
     else if (season === 2) ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
     else ticketsUsed = player.avatarOfDestiny.battles + player.livingAbyss.battles
   }
-  
+
   return ticketsUsed
 }
 
@@ -1040,333 +1040,345 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
           <img src="/img/cctLogo.png" alt="CCT Logo" class="nav-logo">
           <span class="nav-title">Chaos Control Team</span>
         </div>
-        
+
         <nav class="nav-menu">
           <NuxtLink to="/" class="nav-link">Home</NuxtLink>
         </nav>
       </div>
     </header>
 
-                   <!-- Hero Section -->
-     <section class="hero">
-       <div class="hero-content">
-         <div class="hero-text">
-           <div class="guild-badge">
-             <div class="guild-logo">
-               <img src="/img/cctLogo.png" alt="CCT Logo" class="guild-logo-img">
-             </div>
-             <div class="guild-name">Chaos Control Team</div>
-           </div>
-           <h1 class="hero-title">
-             <span class="gradient-text">Guild site & Battle</span>
-             <br>Analyzer
-           </h1>
-            <p class="hero-subtitle">
-              Welcome to CCT! 🦔🦊
-            </p>
-           <div class="guild-info">
-             <div class="info-item">
-               <span class="info-label">Leader:</span>
-               <span class="info-value">Bestoutuber</span>
-             </div>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-text">
+          <div class="guild-badge">
+            <div class="guild-logo">
+              <img src="/img/cctLogo.png" alt="CCT Logo" class="guild-logo-img">
+            </div>
+            <div class="guild-name">Chaos Control Team</div>
+          </div>
+          <h1 class="hero-title">
+            <span class="gradient-text">Guild site & Battle</span>
+            <br>Analyzer
+          </h1>
+          <p class="hero-subtitle">
+            Welcome to CCT! 🦔🦊
+          </p>
+          <div class="guild-info">
+            <div class="info-item">
+              <span class="info-label">Leader:</span>
+              <span class="info-value">Bestoutuber</span>
+            </div>
             <div class="info-item">
               <span class="info-label">Officer:</span>
               <span class="info-value">jammifyvxxx</span>
             </div>
-             <div class="info-item">
-               <span class="info-label">Guild Level:</span>
-               <span class="info-value">70</span>
-             </div>
-           </div>
-         </div>
-         <div class="hero-visual">
-           <div class="sonic-illustration">
-             <div class="sonic-character">🦔</div>
-             <div class="rings">
-               <div class="ring ring-1">💍</div>
-               <div class="ring ring-2">💍</div>
-               <div class="ring ring-3">💍</div>
-             </div>
-             <div class="chaos-emeralds">
-               <div class="emerald emerald-1">💎</div>
-               <div class="emerald emerald-2">💎</div>
-               <div class="emerald emerald-3">💎</div>
-             </div>
-           </div>
-         </div>
-       </div>
-     </section>
-
-     <!-- Guild Information & Requirements Section -->
-     <section class="guild-info-section">
-       <div class="container">
-         <div class="guild-info-header">
-           <h2 class="section-title">Guild Information & Requirements</h2>
-         </div>
-         
-         <div class="guild-info-grid">
-           <!-- Information Box -->
-           <div class="info-box">
-             <h3 class="box-title">📋 INFORMATION</h3>
-             <div class="info-list">
-               <div class="info-item">
-                 <span class="info-icon">🌐</span>
-                 <span class="info-text">HOLLYBERRY SERVER</span>
-               </div>
-               <div class="info-item">
-                 <span class="info-icon">⭐</span>
-                 <span class="info-text">LEVEL 70 GUILD</span>
-               </div>
-                               <div class="info-item">
-                  <div class="info-icon">
-                    <img src="/img/logo_gm3.png" alt="GM3 Logo" />
-                  </div>
-                  <span class="info-text">GRANDMASTER 3 - #40+</span>
-                </div>
-               <div class="info-item">
-                 <span class="info-icon">👑</span>
-                 <span class="info-text">TOP 1% ALLIANCE</span>
-               </div>
-               <div class="info-item">
-                 <span class="info-icon">💎</span>
-                 <span class="info-text">114/114 RELICS - LEVEL 13+</span>
-               </div>
-             </div>
-           </div>
-
-           <!-- Requirements Box -->
-           <div class="requirements-box">
-             <h3 class="box-title">🎯 REQUIREMENTS</h3>
-             <div class="requirements-list">
-                               <div class="requirement-item">
-                  <div class="requirement-icon">
-                    <img src="/img/Red_Velvet_Dragon.webp" alt="Red Velvet Dragon" />
-                  </div>
-                  <span class="requirement-text">13 BIL+ RED VELVET DRAGON</span>
-                </div>
-                <div class="requirement-item">
-                  <div class="requirement-icon">
-                    <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" alt="Avatar of Destiny" />
-                  </div>
-                  <span class="requirement-text">6.5 BIL+ AVATAR OF DESTINY</span>
-                </div>
-                <div class="requirement-item">
-                  <div class="requirement-icon">
-                    <img src="/img/Living_Licorice_Abyss.webp" alt="Living Licorice Abyss" />
-                  </div>
-                  <span class="requirement-text">18 BIL+ LIVING ABYSS</span>
-                </div>
-                <div class="requirement-item">
-                  <div class="requirement-icon">
-                    <img src="/img/Machine-God_of_the_Eternal_Void_guild_ready.webp" alt="Machine-God of the Eternal Void" />
-                  </div>
-                  <span class="requirement-text">13 BIL+ MACHINE-GOD OF THE ETERNAL VOID</span>
-                </div>
-               <div class="requirement-item">
-                 <span class="requirement-icon">📊</span>
-                 <span class="requirement-text">MUST BE CONSISTENT AT 100+ LVLS</span>
-               </div>
-               <div class="requirement-item">
-                 <span class="requirement-icon">🏰</span>
-                 <span class="requirement-text">KINGDOM LEVEL 50+</span>
-               </div>
-               <div class="requirement-item">
-                 <span class="requirement-icon">🤝</span>
-                 <span class="requirement-text">PARTAKE IN ALLIANCE + DONATE RELICS</span>
-               </div>
-               <div class="requirement-item">
-                 <span class="requirement-icon">🎫</span>
-                 <span class="requirement-text">USE 18/18 TICKETS</span>
-               </div>
-               <div class="requirement-item">
-                 <span class="requirement-icon">⚔️</span>
-                 <span class="requirement-text">PARTICIPATE IN GUILD EVENTS</span>
-               </div>
-             </div>
-           </div>
-
-           <!-- Other Box -->
-           <div class="other-box">
-             <h3 class="box-title">💬 OTHER</h3>
-             <div class="other-content">
-               <div class="other-item">
-                 <span class="other-icon">⚠️</span>
-                 <span class="other-text">PLEASE LET US KNOW ABOUT YOUR SITUATION IF YOU WILL BE INACTIVE!</span>
-               </div>
-               <div class="other-item">
-                 <span class="other-icon">🤗</span>
-                 <span class="other-text">DON'T BE AFRAID TO APPLY EVEN IF YOU'RE A BIT BELOW THE REQUIREMENTS! WE'RE HERE TO HELP!</span>
-               </div>
-             </div>
-           </div>
-                   </div>
+            <div class="info-item">
+              <span class="info-label">Guild Level:</span>
+              <span class="info-value">70</span>
+            </div>
+          </div>
         </div>
-      </section>
+        <div class="hero-visual">
+          <div class="sonic-illustration">
+            <div class="sonic-character">🦔</div>
+            <div class="rings">
+              <div class="ring ring-1">💍</div>
+              <div class="ring ring-2">💍</div>
+              <div class="ring ring-3">💍</div>
+            </div>
+            <div class="chaos-emeralds">
+              <div class="emerald emerald-1">💎</div>
+              <div class="emerald emerald-2">💎</div>
+              <div class="emerald emerald-3">💎</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-                       <!-- Hall of Glory Section -->
-       <section class="hall-of-glory-section">
-         <div class="container">
-           <h2 class="section-title">🏆 Hall of Glory</h2>
-           <p class="section-subtitle">All-Time Highest Guild Battle Performers</p>
-           
-           <!-- Load Button -->
-           <div class="glory-load-section" v-if="!hallOfGloryData.isLoading && hallOfGloryData.seasonChampions.length === 0">
-             <button @click="loadHallOfGloryData" class="glory-load-button">
-               <span class="load-icon">📊</span>
-               <span>Load All-Time Champions</span>
-             </button>
-                           <p class="load-note">Load data from seasons 17-1 to 24-3</p>
-           </div>
-           
-           <!-- Loading State -->
-           <div class="glory-loading" v-if="hallOfGloryData.isLoading">
-             <div class="loading-spinner">
-               <div class="spinner"></div>
-             </div>
-             <h3>Loading Hall of Glory Data...</h3>
-             <p>Fetching data from {{ allSeasons.length }} seasons</p>
-           </div>
-           
-           <!-- Boss Champions Grid -->
-           <div class="glory-grid" v-if="!hallOfGloryData.isLoading && hallOfGloryData.seasonChampions.length > 0">
-             <!-- Red Velvet Dragon Champion -->
-             <div class="glory-card red-velvet" v-if="hallOfGloryData.bossChampions.redVelvet.player">
-               <div class="glory-header">
-                 <div class="boss-icon">
-                   <img src="/img/Red_Velvet_Dragon.webp" alt="Red Velvet Dragon" />
-                 </div>
-                 <h3>Red Velvet Dragon</h3>
-                 <div class="champion-badge">🥇 Champion</div>
-               </div>
-               <div class="champion-info">
-                 <div class="champion-name">{{ hallOfGloryData.bossChampions.redVelvet.player }}</div>
-                 <div class="champion-damage">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.redVelvet.damage) }}</div>
-                 <div class="champion-details">
-                   <span class="detail-item">🎯 {{ hallOfGloryData.bossChampions.redVelvet.tickets }}/18 Tickets</span>
-                   <span class="detail-item">📅 Season {{ hallOfGloryData.bossChampions.redVelvet.season }}</span>
-                 </div>
-               </div>
-               <div class="glory-stats">
-                 <div class="stat-item">
-                   <span class="stat-label">Guild Record:</span>
-                   <span class="stat-value">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.redVelvet.damage) }}</span>
-                 </div>
-                 <div class="stat-item">
-                   <span class="stat-label">Season:</span>
-                   <span class="stat-value">{{ hallOfGloryData.bossChampions.redVelvet.season }}</span>
-                 </div>
-               </div>
-             </div>
+    <!-- Guild Information & Requirements Section -->
+    <section class="guild-info-section">
+      <div class="container">
+        <div class="guild-info-header">
+          <h2 class="section-title">Guild Information & Requirements</h2>
+        </div>
 
-             <!-- Machine God Champion -->
-             <div class="glory-card machine-god" v-if="hallOfGloryData.bossChampions.machineGod.player">
-               <div class="glory-header">
-                 <div class="boss-icon">
-                   <img src="/img/Machine-God_of_the_Eternal_Void_guild_ready.webp" alt="Machine-God of the Eternal Void" />
-                 </div>
-                 <h3>Machine God</h3>
-                 <div class="champion-badge">🥇 Champion</div>
-               </div>
-               <div class="champion-info">
-                 <div class="champion-name">{{ hallOfGloryData.bossChampions.machineGod.player }}</div>
-                 <div class="champion-damage">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.machineGod.damage) }}</div>
-                 <div class="champion-details">
-                   <span class="detail-item">🎯 {{ hallOfGloryData.bossChampions.machineGod.tickets }}/18 Tickets</span>
-                   <span class="detail-item">📅 Season {{ hallOfGloryData.bossChampions.machineGod.season }}</span>
-                 </div>
-               </div>
-               <div class="glory-stats">
-                 <div class="stat-item">
-                   <span class="stat-label">Guild Record:</span>
-                   <span class="stat-value">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.machineGod.damage) }}</span>
-                 </div>
-                 <div class="stat-item">
-                   <span class="stat-label">Season:</span>
-                   <span class="stat-value">{{ hallOfGloryData.bossChampions.machineGod.season }}</span>
-                 </div>
-               </div>
-             </div>
+        <div class="guild-info-grid">
+          <!-- Information Box -->
+          <div class="info-box">
+            <h3 class="box-title">📋 INFORMATION</h3>
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-icon">🌐</span>
+                <span class="info-text">HOLLYBERRY SERVER</span>
+              </div>
+              <div class="info-item">
+                <span class="info-icon">⭐</span>
+                <span class="info-text">LEVEL 70 GUILD</span>
+              </div>
+              <div class="info-item">
+                <div class="info-icon">
+                  <img src="/img/logo_gm3.png" alt="GM3 Logo" />
+                </div>
+                <span class="info-text">GRANDMASTER 3 - #40+</span>
+              </div>
+              <div class="info-item">
+                <span class="info-icon">👑</span>
+                <span class="info-text">TOP 1% ALLIANCE</span>
+              </div>
+              <div class="info-item">
+                <span class="info-icon">💎</span>
+                <span class="info-text">114/114 RELICS - LEVEL 13+</span>
+              </div>
+            </div>
+          </div>
 
-             <!-- Avatar of Destiny Champion -->
-             <div class="glory-card avatar" v-if="hallOfGloryData.bossChampions.avatar.player">
-               <div class="glory-header">
-                 <div class="boss-icon">
-                   <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" alt="Avatar of Destiny" />
-                 </div>
-                 <h3>Avatar of Destiny</h3>
-                 <div class="champion-badge">🥇 Champion</div>
-               </div>
-               <div class="champion-info">
-                 <div class="champion-name">{{ hallOfGloryData.bossChampions.avatar.player }}</div>
-                 <div class="champion-damage">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.avatar.damage) }}</div>
-                 <div class="champion-details">
-                   <span class="detail-item">🎯 {{ hallOfGloryData.bossChampions.avatar.tickets }}/18 Tickets</span>
-                   <span class="detail-item">📅 Season {{ hallOfGloryData.bossChampions.avatar.season }}</span>
-                 </div>
-               </div>
-               <div class="glory-stats">
-                 <div class="stat-item">
-                   <span class="stat-label">Guild Record:</span>
-                   <span class="stat-value">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.avatar.damage) }}</span>
-                 </div>
-                 <div class="stat-item">
-                   <span class="stat-label">Season:</span>
-                   <span class="stat-value">{{ hallOfGloryData.bossChampions.avatar.season }}</span>
-                 </div>
-               </div>
-             </div>
+          <!-- Requirements Box -->
+          <div class="requirements-box">
+            <h3 class="box-title">🎯 REQUIREMENTS</h3>
+            <div class="requirements-list">
+              <div class="requirement-item">
+                <div class="requirement-icon">
+                  <img src="/img/Red_Velvet_Dragon.webp" alt="Red Velvet Dragon" />
+                </div>
+                <span class="requirement-text">13 BIL+ RED VELVET DRAGON</span>
+              </div>
+              <div class="requirement-item">
+                <div class="requirement-icon">
+                  <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" alt="Avatar of Destiny" />
+                </div>
+                <span class="requirement-text">6.5 BIL+ AVATAR OF DESTINY</span>
+              </div>
+              <div class="requirement-item">
+                <div class="requirement-icon">
+                  <img src="/img/Living_Licorice_Abyss.webp" alt="Living Licorice Abyss" />
+                </div>
+                <span class="requirement-text">18 BIL+ LIVING ABYSS</span>
+              </div>
+              <div class="requirement-item">
+                <div class="requirement-icon">
+                  <img src="/img/Machine-God_of_the_Eternal_Void_guild_ready.webp"
+                    alt="Machine-God of the Eternal Void" />
+                </div>
+                <span class="requirement-text">13 BIL+ MACHINE-GOD OF THE ETERNAL VOID</span>
+              </div>
+              <div class="requirement-item">
+                <span class="requirement-icon">📊</span>
+                <span class="requirement-text">MUST BE CONSISTENT AT 100+ LVLS</span>
+              </div>
+              <div class="requirement-item">
+                <span class="requirement-icon">🏰</span>
+                <span class="requirement-text">KINGDOM LEVEL 50+</span>
+              </div>
+              <div class="requirement-item">
+                <span class="requirement-icon">🤝</span>
+                <span class="requirement-text">PARTAKE IN ALLIANCE + DONATE RELICS</span>
+              </div>
+              <div class="requirement-item">
+                <span class="requirement-icon">🎫</span>
+                <span class="requirement-text">USE 18/18 TICKETS</span>
+              </div>
+              <div class="requirement-item">
+                <span class="requirement-icon">⚔️</span>
+                <span class="requirement-text">PARTICIPATE IN GUILD EVENTS</span>
+              </div>
+            </div>
+          </div>
 
-             <!-- Living Abyss Champion -->
-             <div class="glory-card living-abyss" v-if="hallOfGloryData.bossChampions.livingAbyss.player">
-               <div class="glory-header">
-                 <div class="boss-icon">
-                   <img src="/img/Living_Licorice_Abyss.webp" alt="Living Licorice Abyss" />
-                 </div>
-                 <h3>Living Abyss</h3>
-                 <div class="champion-badge">🥇 Champion</div>
-               </div>
-               <div class="champion-info">
-                 <div class="champion-name">{{ hallOfGloryData.bossChampions.livingAbyss.player }}</div>
-                 <div class="champion-damage">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.livingAbyss.damage) }}</div>
-                 <div class="champion-details">
-                   <span class="detail-item">🎯 {{ hallOfGloryData.bossChampions.livingAbyss.tickets }}/18 Tickets</span>
-                   <span class="detail-item">📅 Season {{ hallOfGloryData.bossChampions.livingAbyss.season }}</span>
-                 </div>
-               </div>
-               <div class="glory-stats">
-                 <div class="stat-item">
-                   <span class="stat-label">Guild Record:</span>
-                   <span class="stat-value">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.livingAbyss.damage) }}</span>
-                 </div>
-                 <div class="stat-item">
-                   <span class="stat-label">Season:</span>
-                   <span class="stat-value">{{ hallOfGloryData.bossChampions.livingAbyss.season }}</span>
-                 </div>
-               </div>
-             </div>
-           </div>
+          <!-- Other Box -->
+          <div class="other-box">
+            <h3 class="box-title">💬 OTHER</h3>
+            <div class="other-content">
+              <div class="other-item">
+                <span class="other-icon">⚠️</span>
+                <span class="other-text">PLEASE LET US KNOW ABOUT YOUR SITUATION IF YOU WILL BE INACTIVE!</span>
+              </div>
+              <div class="other-item">
+                <span class="other-icon">🤗</span>
+                <span class="other-text">DON'T BE AFRAID TO APPLY EVEN IF YOU'RE A BIT BELOW THE REQUIREMENTS! WE'RE
+                  HERE TO HELP!</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-           <!-- Overall Season Champions -->
-           <div class="season-champions" v-if="!hallOfGloryData.isLoading && hallOfGloryData.seasonChampions.length > 0">
-             <h3 class="champions-title">🏅 Season Champions</h3>
-             <div class="champions-grid">
-               <div class="season-champion" v-for="champion in hallOfGloryData.seasonChampions" :key="champion.seasonId">
-                 <div class="season-info">
-                   <div class="season-name">Season {{ champion.seasonName }}</div>
-                   <div class="champion-name">{{ champion.playerName }}</div>
-                 </div>
-                 <div class="champion-stats">
-                   <div class="total-damage">{{ BattleAnalyzer.formatDamage(champion.totalDamage) }}</div>
-                   <div class="ticket-usage">{{ champion.ticketsUsed }}/18</div>
-                 </div>
-                 <div class="champion-badge">👑</div>
-               </div>
-             </div>
-           </div>
-         </div>
-       </section>
+    <!-- Hall of Glory Section -->
+    <section class="hall-of-glory-section">
+      <div class="container">
+        <h2 class="section-title">🏆 Hall of Glory</h2>
+        <p class="section-subtitle">All-Time Highest Guild Battle Performers</p>
 
-     <!-- Guild Battle Schedule Section -->
+        <!-- Load Button -->
+        <div class="glory-load-section"
+          v-if="!hallOfGloryData.isLoading && hallOfGloryData.seasonChampions.length === 0">
+          <button @click="loadHallOfGloryData" class="glory-load-button">
+            <span class="load-icon">📊</span>
+            <span>Load All-Time Champions</span>
+          </button>
+          <p class="load-note">Load data from seasons 17-1 to 24-3</p>
+        </div>
+
+        <!-- Loading State -->
+        <div class="glory-loading" v-if="hallOfGloryData.isLoading">
+          <div class="loading-spinner">
+            <div class="spinner"></div>
+          </div>
+          <h3>Loading Hall of Glory Data...</h3>
+          <p>Fetching data from {{ allSeasons.length }} seasons</p>
+        </div>
+
+        <!-- Boss Champions Grid -->
+        <div class="glory-grid" v-if="!hallOfGloryData.isLoading && hallOfGloryData.seasonChampions.length > 0">
+          <!-- Red Velvet Dragon Champion -->
+          <div class="glory-card red-velvet" v-if="hallOfGloryData.bossChampions.redVelvet.player">
+            <div class="glory-header">
+              <div class="boss-icon">
+                <img src="/img/Red_Velvet_Dragon.webp" alt="Red Velvet Dragon" />
+              </div>
+              <h3>Red Velvet Dragon</h3>
+              <div class="champion-badge">🥇 Champion</div>
+            </div>
+            <div class="champion-info">
+              <div class="champion-name">{{ hallOfGloryData.bossChampions.redVelvet.player }}</div>
+              <div class="champion-damage">{{
+                BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.redVelvet.damage) }}</div>
+              <div class="champion-details">
+                <span class="detail-item">🎯 {{ hallOfGloryData.bossChampions.redVelvet.tickets }}/18 Tickets</span>
+                <span class="detail-item">📅 Season {{ hallOfGloryData.bossChampions.redVelvet.season }}</span>
+              </div>
+            </div>
+            <div class="glory-stats">
+              <div class="stat-item">
+                <span class="stat-label">Guild Record:</span>
+                <span class="stat-value">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.redVelvet.damage)
+                  }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Season:</span>
+                <span class="stat-value">{{ hallOfGloryData.bossChampions.redVelvet.season }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Machine God Champion -->
+          <div class="glory-card machine-god" v-if="hallOfGloryData.bossChampions.machineGod.player">
+            <div class="glory-header">
+              <div class="boss-icon">
+                <img src="/img/Machine-God_of_the_Eternal_Void_guild_ready.webp"
+                  alt="Machine-God of the Eternal Void" />
+              </div>
+              <h3>Machine God</h3>
+              <div class="champion-badge">🥇 Champion</div>
+            </div>
+            <div class="champion-info">
+              <div class="champion-name">{{ hallOfGloryData.bossChampions.machineGod.player }}</div>
+              <div class="champion-damage">{{
+                BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.machineGod.damage) }}</div>
+              <div class="champion-details">
+                <span class="detail-item">🎯 {{ hallOfGloryData.bossChampions.machineGod.tickets }}/18 Tickets</span>
+                <span class="detail-item">📅 Season {{ hallOfGloryData.bossChampions.machineGod.season }}</span>
+              </div>
+            </div>
+            <div class="glory-stats">
+              <div class="stat-item">
+                <span class="stat-label">Guild Record:</span>
+                <span class="stat-value">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.machineGod.damage)
+                  }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Season:</span>
+                <span class="stat-value">{{ hallOfGloryData.bossChampions.machineGod.season }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Avatar of Destiny Champion -->
+          <div class="glory-card avatar" v-if="hallOfGloryData.bossChampions.avatar.player">
+            <div class="glory-header">
+              <div class="boss-icon">
+                <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" alt="Avatar of Destiny" />
+              </div>
+              <h3>Avatar of Destiny</h3>
+              <div class="champion-badge">🥇 Champion</div>
+            </div>
+            <div class="champion-info">
+              <div class="champion-name">{{ hallOfGloryData.bossChampions.avatar.player }}</div>
+              <div class="champion-damage">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.avatar.damage)
+                }}</div>
+              <div class="champion-details">
+                <span class="detail-item">🎯 {{ hallOfGloryData.bossChampions.avatar.tickets }}/18 Tickets</span>
+                <span class="detail-item">📅 Season {{ hallOfGloryData.bossChampions.avatar.season }}</span>
+              </div>
+            </div>
+            <div class="glory-stats">
+              <div class="stat-item">
+                <span class="stat-label">Guild Record:</span>
+                <span class="stat-value">{{ BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.avatar.damage)
+                  }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Season:</span>
+                <span class="stat-value">{{ hallOfGloryData.bossChampions.avatar.season }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Living Abyss Champion -->
+          <div class="glory-card living-abyss" v-if="hallOfGloryData.bossChampions.livingAbyss.player">
+            <div class="glory-header">
+              <div class="boss-icon">
+                <img src="/img/Living_Licorice_Abyss.webp" alt="Living Licorice Abyss" />
+              </div>
+              <h3>Living Abyss</h3>
+              <div class="champion-badge">🥇 Champion</div>
+            </div>
+            <div class="champion-info">
+              <div class="champion-name">{{ hallOfGloryData.bossChampions.livingAbyss.player }}</div>
+              <div class="champion-damage">{{
+                BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.livingAbyss.damage) }}</div>
+              <div class="champion-details">
+                <span class="detail-item">🎯 {{ hallOfGloryData.bossChampions.livingAbyss.tickets }}/18 Tickets</span>
+                <span class="detail-item">📅 Season {{ hallOfGloryData.bossChampions.livingAbyss.season }}</span>
+              </div>
+            </div>
+            <div class="glory-stats">
+              <div class="stat-item">
+                <span class="stat-label">Guild Record:</span>
+                <span class="stat-value">{{
+                  BattleAnalyzer.formatDamage(hallOfGloryData.bossChampions.livingAbyss.damage) }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Season:</span>
+                <span class="stat-value">{{ hallOfGloryData.bossChampions.livingAbyss.season }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Overall Season Champions -->
+        <div class="season-champions" v-if="!hallOfGloryData.isLoading && hallOfGloryData.seasonChampions.length > 0">
+          <h3 class="champions-title">🏅 Season Champions</h3>
+          <div class="champions-grid">
+            <div class="season-champion" v-for="champion in hallOfGloryData.seasonChampions" :key="champion.seasonId">
+              <div class="season-info">
+                <div class="season-name">Season {{ champion.seasonName }}</div>
+                <div class="champion-name">{{ champion.playerName }}</div>
+              </div>
+              <div class="champion-stats">
+                <div class="total-damage">{{ BattleAnalyzer.formatDamage(champion.totalDamage) }}</div>
+                <div class="ticket-usage">{{ champion.ticketsUsed }}/18</div>
+              </div>
+              <div class="champion-badge">👑</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Guild Battle Schedule Section -->
     <section class="schedule-section">
       <div class="schedule-container">
         <div class="schedule-header">
@@ -1378,35 +1390,26 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
         <div class="schedule-grid">
           <!-- Destiny's Flight Navigation -->
           <div class="destinys-flight-navigation">
-            <button 
-              class="flight-nav-arrow left" 
+            <button class="flight-nav-arrow left"
               @click="() => { const prevFlight = getNextFlight(currentDestinysFlight, 'prev'); if (prevFlight !== null) navigateToDestinysFlight(prevFlight); }"
-              :disabled="getNextFlight(currentDestinysFlight, 'prev') === null"
-            >
+              :disabled="getNextFlight(currentDestinysFlight, 'prev') === null">
               ←
             </button>
             <div class="flight-indicator">
               <span class="flight-number">{{ currentDestinysFlight }}</span>
               <span class="flight-label">Destiny's Flight</span>
             </div>
-            <button 
-              class="flight-nav-arrow right" 
+            <button class="flight-nav-arrow right"
               @click="() => { const nextFlight = getNextFlight(currentDestinysFlight, 'next'); if (nextFlight !== null) navigateToDestinysFlight(nextFlight); }"
-              :disabled="getNextFlight(currentDestinysFlight, 'next') === null"
-            >
+              :disabled="getNextFlight(currentDestinysFlight, 'next') === null">
               →
             </button>
           </div>
 
           <!-- Season Headers -->
           <div class="season-headers" :style="{ gridTemplateColumns: `repeat(${getSeasonCount()}, 1fr)` }">
-            <div 
-              v-for="season in getSeasonCount()" 
-              :key="season"
-              class="season-header" 
-              :class="{ active: activeSeason === season }"
-              @click="activeSeason = season"
-            >
+            <div v-for="season in getSeasonCount()" :key="season" class="season-header"
+              :class="{ active: activeSeason === season }" @click="activeSeason = season">
               <div class="season-name">Season {{ currentDestinysFlight }}-{{ season }}</div>
               <div class="season-dates">
                 <span v-if="currentDestinysFlight === 20">
@@ -1432,8 +1435,10 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
                   <span v-else-if="season === 3">12.11.25 - 12.17.25</span>
                 </span>
               </div>
-              <div v-if="activeSeason === season" class="current-indicator">{{ getSeasonStatusIcon(season) }} {{ getSeasonStatusMessage(season) }}</div>
-              <div v-if="!hasSeasonData(season)" class="coming-soon-indicator">{{ getSeasonStatusIcon(season) }} {{ getSeasonStatusMessage(season) }}</div>
+              <div v-if="activeSeason === season" class="current-indicator">{{ getSeasonStatusIcon(season) }} {{
+                getSeasonStatusMessage(season) }}</div>
+              <div v-if="!hasSeasonData(season)" class="coming-soon-indicator">{{ getSeasonStatusIcon(season) }} {{
+                getSeasonStatusMessage(season) }}</div>
             </div>
           </div>
 
@@ -1441,47 +1446,32 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
           <div class="boss-schedule" :style="{ gridTemplateColumns: `repeat(${getSeasonCount()}, 1fr)` }">
             <!-- Row 1: Red Velvet Dragon positions -->
             <template v-for="season in getSeasonCount()" :key="`row1-${season}`">
-              <div 
-                v-if="getBossForSeason(currentDestinysFlight, season, 1)"
-                class="boss-cell"
-              >
-                <img :src="getBossForSeason(currentDestinysFlight, season, 1)?.image" :alt="getBossForSeason(currentDestinysFlight, season, 1)?.name" class="boss-image">
+              <div v-if="getBossForSeason(currentDestinysFlight, season, 1)" class="boss-cell">
+                <img :src="getBossForSeason(currentDestinysFlight, season, 1)?.image"
+                  :alt="getBossForSeason(currentDestinysFlight, season, 1)?.name" class="boss-image">
                 <div class="boss-name">{{ getBossForSeason(currentDestinysFlight, season, 1)?.name }}</div>
               </div>
-              <div 
-                v-else
-                class="boss-cell empty"
-              ></div>
+              <div v-else class="boss-cell empty"></div>
             </template>
-            
+
             <!-- Row 2: Avatar of Destiny positions -->
             <template v-for="season in getSeasonCount()" :key="`row2-${season}`">
-              <div 
-                v-if="getBossForSeason(currentDestinysFlight, season, 2)"
-                class="boss-cell"
-              >
-                <img :src="getBossForSeason(currentDestinysFlight, season, 2)?.image" :alt="getBossForSeason(currentDestinysFlight, season, 2)?.name" class="boss-image">
+              <div v-if="getBossForSeason(currentDestinysFlight, season, 2)" class="boss-cell">
+                <img :src="getBossForSeason(currentDestinysFlight, season, 2)?.image"
+                  :alt="getBossForSeason(currentDestinysFlight, season, 2)?.name" class="boss-image">
                 <div class="boss-name">{{ getBossForSeason(currentDestinysFlight, season, 2)?.name }}</div>
               </div>
-              <div 
-                v-else
-                class="boss-cell empty"
-              ></div>
+              <div v-else class="boss-cell empty"></div>
             </template>
-            
+
             <!-- Row 3: Living Abyss/Machine-God positions -->
             <template v-for="season in getSeasonCount()" :key="`row3-${season}`">
-              <div 
-                v-if="getBossForSeason(currentDestinysFlight, season, 3)"
-                class="boss-cell"
-              >
-                <img :src="getBossForSeason(currentDestinysFlight, season, 3)?.image" :alt="getBossForSeason(currentDestinysFlight, season, 3)?.name" class="boss-image">
+              <div v-if="getBossForSeason(currentDestinysFlight, season, 3)" class="boss-cell">
+                <img :src="getBossForSeason(currentDestinysFlight, season, 3)?.image"
+                  :alt="getBossForSeason(currentDestinysFlight, season, 3)?.name" class="boss-image">
                 <div class="boss-name">{{ getBossForSeason(currentDestinysFlight, season, 3)?.name }}</div>
               </div>
-              <div 
-                v-else
-                class="boss-cell empty"
-              ></div>
+              <div v-else class="boss-cell empty"></div>
             </template>
           </div>
 
@@ -1490,15 +1480,13 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
           <!-- Mobile: Show only selected season -->
           <div class="boss-schedule-mobile">
             <div class="mobile-boss-list">
-              <div
-                v-for="boss in mobileBossList"
-                :key="boss.position"
-                class="mobile-boss-item"
-              >
+              <div v-for="boss in mobileBossList" :key="boss.position" class="mobile-boss-item">
                 <img :src="boss.image" :alt="boss.name" class="mobile-boss-image">
                 <div class="mobile-boss-name">{{ boss.name }}</div>
               </div>
-              <div v-if="!getBossForSeason(currentDestinysFlight, activeSeason, 1) && !getBossForSeason(currentDestinysFlight, activeSeason, 2) && !getBossForSeason(currentDestinysFlight, activeSeason, 3)" class="mobile-no-bosses">
+              <div
+                v-if="!getBossForSeason(currentDestinysFlight, activeSeason, 1) && !getBossForSeason(currentDestinysFlight, activeSeason, 2) && !getBossForSeason(currentDestinysFlight, activeSeason, 3)"
+                class="mobile-no-bosses">
                 <div class="no-bosses-icon">📅</div>
                 <div class="no-bosses-text">No bosses scheduled for this season</div>
               </div>
@@ -1516,7 +1504,8 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
             <div class="spinner"></div>
           </div>
           <h2 class="loading-title">Loading Season Data...</h2>
-          <p class="loading-subtitle">Fetching battle analysis data for Season {{ getSeasonDisplayName(activeSeason) }}</p>
+          <p class="loading-subtitle">Fetching battle analysis data for Season {{ getSeasonDisplayName(activeSeason) }}
+          </p>
           <div class="loading-details">
             <div class="loading-detail">
               <span class="loading-icon">📊</span>
@@ -1555,11 +1544,12 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
     </section>
 
     <!-- Season Status Section -->
-    <section v-if="!hasSeasonData(activeSeason) && !isSeasonLoading && !sheetsState.fetchError" class="coming-soon-section" :class="getSeasonStatusClass()">
+    <section v-if="!hasSeasonData(activeSeason) && !isSeasonLoading && !sheetsState.fetchError"
+      class="coming-soon-section" :class="getSeasonStatusClass()">
       <div class="container">
         <div class="coming-soon-content">
           <div class="coming-soon-icon">{{ getSeasonStatusIcon(activeSeason) }}</div>
-          
+
           <!-- Dynamic title and subtitle based on season status -->
           <h2 class="coming-soon-title">
             <span v-if="currentDestinysFlight === 21 && activeSeason === 1">Season Just Finished</span>
@@ -1569,16 +1559,22 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
             <span v-else-if="currentDestinysFlight === 20 && activeSeason === 3">Previous Season</span>
             <span v-else>No Data Available</span>
           </h2>
-          
+
           <p class="coming-soon-subtitle">
-            <span v-if="currentDestinysFlight === 21 && activeSeason === 1">Season 21-1 has just ended and is currently being tallied.</span>
-            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 2">Season 21-2 is a previous season with battle data available.</span>
-            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 3">Season 21-3 is a previous season with battle data available.</span>
-            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 4">Season 21-4 is currently active with battle data available.</span>
-            <span v-else-if="currentDestinysFlight === 20 && activeSeason === 3">Season 20-3 is a previous season with battle data available.</span>
+            <span v-if="currentDestinysFlight === 21 && activeSeason === 1">Season 21-1 has just ended and is currently
+              being tallied.</span>
+            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 2">Season 21-2 is a previous season with
+              battle data available.</span>
+            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 3">Season 21-3 is a previous season with
+              battle data available.</span>
+            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 4">Season 21-4 is currently active with
+              battle
+              data available.</span>
+            <span v-else-if="currentDestinysFlight === 20 && activeSeason === 3">Season 20-3 is a previous season with
+              battle data available.</span>
             <span v-else>No battle analysis data is available for this season.</span>
           </p>
-          
+
           <!-- Helpful Information Cards -->
           <div class="coming-soon-info">
             <!-- Season 21-1: Tallying -->
@@ -1643,7 +1639,8 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
               <div class="info-card current">
                 <div class="info-icon">⚔️</div>
                 <h3>Battles in Progress</h3>
-                <p>This season is currently running with battle data available. Check the analysis below for detailed performance metrics.</p>
+                <p>This season is currently running with battle data available. Check the analysis below for detailed
+                  performance metrics.</p>
               </div>
               <div class="info-card current">
                 <div class="info-icon">📊</div>
@@ -1678,7 +1675,8 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
             </template>
 
             <!-- Default: Generic current/upcoming info -->
-            <template v-if="!(currentDestinysFlight === 21 && [1, 2, 3, 4].indexOf(activeSeason) !== -1) && !(currentDestinysFlight === 20 && activeSeason === 3)">
+            <template
+              v-if="!(currentDestinysFlight === 21 && [1, 2, 3, 4].indexOf(activeSeason) !== -1) && !(currentDestinysFlight === 20 && activeSeason === 3)">
               <div class="info-card" v-if="getSeasonType(activeSeason) === 'current'">
                 <div class="info-icon">📊</div>
                 <h3>Data Collection</h3>
@@ -1706,7 +1704,8 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
     </section>
 
     <!-- Results Section -->
-    <section class="results-section" v-if="hasSeasonData(activeSeason) && analysisState.analysisComplete && !isSeasonLoading && analysisState.battleData.length > 0">
+    <section class="results-section"
+      v-if="hasSeasonData(activeSeason) && analysisState.analysisComplete && !isSeasonLoading && analysisState.battleData.length > 0">
       <div class="container">
         <div class="results-header">
           <h2 class="section-title">Battle Analysis Results - Season {{ getSeasonDisplayName(activeSeason) }}</h2>
@@ -1718,11 +1717,13 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
             <div class="stat-label">Total Players</div>
           </div>
           <div class="stat-card">
-            <div class="stat-number">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.highestDamage || 0) }}</div>
+            <div class="stat-number">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.highestDamage || 0) }}
+            </div>
             <div class="stat-label">Highest Season Total</div>
           </div>
           <div class="stat-card">
-            <div class="stat-number">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.averageDamage || 0) }}</div>
+            <div class="stat-number">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.averageDamage || 0) }}
+            </div>
             <div class="stat-label">Average Season Total</div>
           </div>
           <div class="stat-card">
@@ -1735,12 +1736,11 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
         <!-- Boss-specific stats -->
         <div class="boss-stats-grid">
           <!-- Red Velvet Dragon - only show if active in this season -->
-          <div v-if="isBossActiveInSeason('Red Velvet Dragon', currentDestinysFlight, activeSeason)" class="boss-stat-card red-velvet">
+          <div v-if="isBossActiveInSeason('Red Velvet Dragon', currentDestinysFlight, activeSeason)"
+            class="boss-stat-card red-velvet">
             <div class="boss-stat-header">
               <div class="boss-icon">
-                <img src="/img/Red_Velvet_Dragon.webp" 
-                     alt="Red Velvet Dragon"
-                     class="boss-icon-image">
+                <img src="/img/Red_Velvet_Dragon.webp" alt="Red Velvet Dragon" class="boss-icon-image">
               </div>
               <h3>Red Velvet Dragon</h3>
             </div>
@@ -1751,22 +1751,24 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
               </div>
               <div class="boss-stat-item">
                 <span class="stat-label">Total Damage:</span>
-                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.redVelvetStats.totalDamage || 0) }}</span>
+                <span class="stat-value">{{
+                  BattleAnalyzer.formatDamage(analysisState.battleStats?.redVelvetStats.totalDamage || 0) }}</span>
               </div>
               <div class="boss-stat-item">
                 <span class="stat-label">Average Damage:</span>
-                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.redVelvetStats.averageDamage || 0) }}</span>
+                <span class="stat-value">{{
+                  BattleAnalyzer.formatDamage(analysisState.battleStats?.redVelvetStats.averageDamage || 0) }}</span>
               </div>
             </div>
           </div>
 
           <!-- Avatar of Destiny - only show if active in this season -->
-          <div v-if="isBossActiveInSeason('Avatar of Destiny', currentDestinysFlight, activeSeason)" class="boss-stat-card avatar">
+          <div v-if="isBossActiveInSeason('Avatar of Destiny', currentDestinysFlight, activeSeason)"
+            class="boss-stat-card avatar">
             <div class="boss-stat-header">
               <div class="boss-icon">
-                <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" 
-                     alt="Avatar of Destiny"
-                     class="boss-icon-image">
+                <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" alt="Avatar of Destiny"
+                  class="boss-icon-image">
               </div>
               <h3>Avatar of Destiny</h3>
             </div>
@@ -1777,22 +1779,25 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
               </div>
               <div class="boss-stat-item">
                 <span class="stat-label">Total Damage:</span>
-                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.avatarStats.totalDamage || 0) }}</span>
+                <span class="stat-value">{{
+                  BattleAnalyzer.formatDamage(analysisState.battleStats?.avatarStats.totalDamage
+                  || 0) }}</span>
               </div>
               <div class="boss-stat-item">
                 <span class="stat-label">Average Damage:</span>
-                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.avatarStats.averageDamage || 0) }}</span>
+                <span class="stat-value">{{
+                  BattleAnalyzer.formatDamage(analysisState.battleStats?.avatarStats.averageDamage
+                  || 0) }}</span>
               </div>
             </div>
           </div>
 
           <!-- Living Abyss - only show if active in this season -->
-          <div v-if="isBossActiveInSeason('Living Abyss', currentDestinysFlight, activeSeason)" class="boss-stat-card living-abyss">
+          <div v-if="isBossActiveInSeason('Living Abyss', currentDestinysFlight, activeSeason)"
+            class="boss-stat-card living-abyss">
             <div class="boss-stat-header">
               <div class="boss-icon">
-                <img src="/img/Living_Licorice_Abyss.webp" 
-                     alt="Living Abyss"
-                     class="boss-icon-image">
+                <img src="/img/Living_Licorice_Abyss.webp" alt="Living Abyss" class="boss-icon-image">
               </div>
               <h3>Living Abyss</h3>
             </div>
@@ -1803,22 +1808,24 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
               </div>
               <div class="boss-stat-item">
                 <span class="stat-label">Total Damage:</span>
-                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.totalDamage || 0) }}</span>
+                <span class="stat-value">{{
+                  BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.totalDamage || 0) }}</span>
               </div>
               <div class="boss-stat-item">
                 <span class="stat-label">Average Damage:</span>
-                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.averageDamage || 0) }}</span>
+                <span class="stat-value">{{
+                  BattleAnalyzer.formatDamage(analysisState.battleStats?.livingAbyssStats.averageDamage || 0) }}</span>
               </div>
             </div>
           </div>
 
           <!-- Machine God - only show if active in this season -->
-          <div v-if="isBossActiveInSeason('Machine-God of the Eternal Void', currentDestinysFlight, activeSeason)" class="boss-stat-card machine-god">
+          <div v-if="isBossActiveInSeason('Machine-God of the Eternal Void', currentDestinysFlight, activeSeason)"
+            class="boss-stat-card machine-god">
             <div class="boss-stat-header">
               <div class="boss-icon">
-                <img src="/img/Machine-God_of_the_Eternal_Void_guild_ready.webp" 
-                     alt="Machine-God of the Eternal Void"
-                     class="boss-icon-image">
+                <img src="/img/Machine-God_of_the_Eternal_Void_guild_ready.webp" alt="Machine-God of the Eternal Void"
+                  class="boss-icon-image">
               </div>
               <h3>Machine God of the Eternal Void</h3>
             </div>
@@ -1829,11 +1836,13 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
               </div>
               <div class="boss-stat-item">
                 <span class="stat-label">Total Damage:</span>
-                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.machineGodStats.totalDamage || 0) }}</span>
+                <span class="stat-value">{{
+                  BattleAnalyzer.formatDamage(analysisState.battleStats?.machineGodStats.totalDamage || 0) }}</span>
               </div>
               <div class="boss-stat-item">
                 <span class="stat-label">Average Damage:</span>
-                <span class="stat-value">{{ BattleAnalyzer.formatDamage(analysisState.battleStats?.machineGodStats.averageDamage || 0) }}</span>
+                <span class="stat-value">{{
+                  BattleAnalyzer.formatDamage(analysisState.battleStats?.machineGodStats.averageDamage || 0) }}</span>
               </div>
             </div>
           </div>
@@ -1857,7 +1866,7 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
               {{ showAllPlayers ? 'Show Top 5' : 'Show All Players' }}
             </button>
           </div>
-          
+
           <!-- Desktop Table -->
           <div class="table-container desktop-table">
             <table>
@@ -1867,7 +1876,9 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
                   <th>Player</th>
                   <th>Red Velvet Dragon</th>
                   <th>Avatar of Destiny</th>
-                  <th>{{ (currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? 'Machine God of the Eternal Void' : 'Living Abyss' }}</th>
+                  <th>{{ (currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24)
+                    ?
+                    'Machine God of the Eternal Void' : 'Living Abyss' }}</th>
                   <th>Season Total</th>
                   <th>Tickets Used</th>
                   <th>Guild Rank</th>
@@ -1903,14 +1914,28 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
                   </td>
                   <td class="damage-cell">
                     <div class="damage-info">
-                      <div class="damage-value">{{ BattleAnalyzer.formatDamage((currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? (player.machineGod?.damage || 0) : player.livingAbyss.damage) }}</div>
-                      <div class="battles-count">x{{ (currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? (player.machineGod?.battles || 0) : player.livingAbyss.battles }}</div>
+                      <div class="damage-value">{{ BattleAnalyzer.formatDamage((currentDestinysFlight === 21 ||
+                        currentDestinysFlight === 23 || currentDestinysFlight === 24) ? (player.machineGod?.damage || 0)
+                        :
+                        player.livingAbyss.damage) }}</div>
+                      <div class="battles-count">x{{ (currentDestinysFlight === 21 || currentDestinysFlight === 23 ||
+                        currentDestinysFlight === 24) ? (player.machineGod?.battles || 0) : player.livingAbyss.battles
+                        }}
+                      </div>
                     </div>
                   </td>
                   <td class="damage-cell">
                     <div class="damage-info">
-                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage + player.avatarOfDestiny.damage + ((currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? (player.machineGod?.damage || 0) : player.livingAbyss.damage)) }}</div>
-                      <div class="battles-count">x{{ player.redVelvetDragon.battles + player.avatarOfDestiny.battles + ((currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? (player.machineGod?.battles || 0) : player.livingAbyss.battles) }}</div>
+                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage +
+                        player.avatarOfDestiny.damage + ((currentDestinysFlight === 21 || currentDestinysFlight === 23
+                          ||
+                          currentDestinysFlight === 24) ? (player.machineGod?.damage || 0) : player.livingAbyss.damage))
+                        }}
+                      </div>
+                      <div class="battles-count">x{{ player.redVelvetDragon.battles + player.avatarOfDestiny.battles +
+                        ((currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24)
+                          ?
+                        (player.machineGod?.battles || 0) : player.livingAbyss.battles) }}</div>
                     </div>
                   </td>
                   <td class="ticket-cell">
@@ -1925,7 +1950,8 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
                     </div>
                   </td>
                   <td class="rank-cell">
-                    <span class="guild-rank-badge" :class="BattleAnalyzer.getGuildRankBadgeClass(getPlayerGuildRank(player.playerName))">
+                    <span class="guild-rank-badge"
+                      :class="BattleAnalyzer.getGuildRankBadgeClass(getPlayerGuildRank(player.playerName))">
                       {{ getPlayerGuildRank(player.playerName) }}
                     </span>
                   </td>
@@ -1942,53 +1968,62 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
                   #{{ player.rank }}
                 </div>
                 <div class="mobile-player-name">{{ player.playerName }}</div>
-                <div class="mobile-guild-rank" :class="BattleAnalyzer.getGuildRankBadgeClass(getPlayerGuildRank(player.playerName))">
+                <div class="mobile-guild-rank"
+                  :class="BattleAnalyzer.getGuildRankBadgeClass(getPlayerGuildRank(player.playerName))">
                   {{ getPlayerGuildRank(player.playerName) }}
                 </div>
               </div>
-              
+
               <div class="mobile-boss-damage">
                 <div class="mobile-boss-damage-item">
                   <div class="mobile-boss-icon">
-                    <img src="/img/Red_Velvet_Dragon.webp" 
-                         alt="Red Velvet Dragon"
-                         class="boss-icon-image">
+                    <img src="/img/Red_Velvet_Dragon.webp" alt="Red Velvet Dragon" class="boss-icon-image">
                   </div>
                   <div class="mobile-boss-damage-info">
-                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage) }}</div>
+                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage) }}
+                    </div>
                     <div class="mobile-battles-count">x{{ player.redVelvetDragon.battles }}</div>
                   </div>
                 </div>
-                
+
                 <div class="mobile-boss-damage-item">
                   <div class="mobile-boss-icon">
-                    <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" 
-                         alt="Avatar of Destiny"
-                         class="boss-icon-image">
+                    <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" alt="Avatar of Destiny"
+                      class="boss-icon-image">
                   </div>
                   <div class="mobile-boss-damage-info">
-                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(player.avatarOfDestiny.damage) }}</div>
+                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(player.avatarOfDestiny.damage) }}
+                    </div>
                     <div class="mobile-battles-count">x{{ player.avatarOfDestiny.battles }}</div>
                   </div>
                 </div>
-                
+
                 <div class="mobile-boss-damage-item">
                   <div class="mobile-boss-icon">
-                    <img :src="(currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' : '/img/Living_Licorice_Abyss.webp'" 
-                         :alt="(currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? 'Machine God of the Eternal Void' : 'Living Abyss'"
-                         class="boss-icon-image">
+                    <img
+                      :src="(currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' : '/img/Living_Licorice_Abyss.webp'"
+                      :alt="(currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? 'Machine God of the Eternal Void' : 'Living Abyss'"
+                      class="boss-icon-image">
                   </div>
                   <div class="mobile-boss-damage-info">
-                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage((currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? (player.machineGod?.damage || 0) : player.livingAbyss.damage) }}</div>
-                    <div class="mobile-battles-count">x{{ (currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? (player.machineGod?.battles || 0) : player.livingAbyss.battles }}</div>
+                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage((currentDestinysFlight === 21 ||
+                      currentDestinysFlight === 23 || currentDestinysFlight === 24) ? (player.machineGod?.damage || 0) :
+                      player.livingAbyss.damage) }}</div>
+                    <div class="mobile-battles-count">x{{ (currentDestinysFlight === 21 || currentDestinysFlight === 23
+                      ||
+                      currentDestinysFlight === 24) ? (player.machineGod?.battles || 0) : player.livingAbyss.battles }}
+                    </div>
                   </div>
                 </div>
               </div>
-              
+
               <div class="mobile-total-section">
                 <div class="mobile-total-damage">
                   <div class="mobile-total-label">Season Total:</div>
-                  <div class="mobile-total-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage + player.avatarOfDestiny.damage + ((currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? (player.machineGod?.damage || 0) : player.livingAbyss.damage)) }}</div>
+                  <div class="mobile-total-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage +
+                    player.avatarOfDestiny.damage + ((currentDestinysFlight === 21 || currentDestinysFlight === 23 ||
+                      currentDestinysFlight === 24) ? (player.machineGod?.damage || 0) : player.livingAbyss.damage)) }}
+                  </div>
                 </div>
                 <div class="mobile-ticket-status" :class="getTicketStatusClass(player, activeSeason)">
                   <div class="mobile-ticket-count">{{ getTicketsUsed(player, activeSeason) }}/18</div>
@@ -1997,15 +2032,15 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
               </div>
             </div>
           </div>
-          
+
           <p class="table-note">
-            {{ showAllPlayers ? `Showing all ${analysisState.battleData.length} players.` : 'Showing top 5 players.' }} 
+            {{ showAllPlayers ? `Showing all ${analysisState.battleData.length} players.` : 'Showing top 5 players.' }}
           </p>
         </div>
       </div>
     </section>
 
-    
+
 
     <!-- Footer -->
     <footer class="footer">
@@ -2234,7 +2269,9 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
   z-index: 1;
 }
 
-.info-box, .requirements-box, .other-box {
+.info-box,
+.requirements-box,
+.other-box {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   padding: 2rem;
@@ -2244,7 +2281,9 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
   transition: all 0.3s ease;
 }
 
-.info-box:hover, .requirements-box:hover, .other-box:hover {
+.info-box:hover,
+.requirements-box:hover,
+.other-box:hover {
   transform: translateY(-5px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
   border-color: rgba(255, 215, 0, 0.3);
@@ -2259,13 +2298,15 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
 }
 
-.info-list, .requirements-list {
+.info-list,
+.requirements-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.info-item, .requirement-item {
+.info-item,
+.requirement-item {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -2276,13 +2317,15 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
   transition: all 0.3s ease;
 }
 
-.info-item:hover, .requirement-item:hover {
+.info-item:hover,
+.requirement-item:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.2);
   transform: translateX(5px);
 }
 
-.info-icon, .requirement-icon {
+.info-icon,
+.requirement-icon {
   font-size: 1.2rem;
   width: 30px;
   text-align: center;
@@ -2305,7 +2348,8 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
   margin: 0 auto;
 }
 
-.info-text, .requirement-text {
+.info-text,
+.requirement-text {
   font-weight: 500;
   color: rgba(255, 255, 255, 0.9);
   font-size: 0.95rem;
@@ -2352,94 +2396,98 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
   .hero {
     padding: 3rem 0;
   }
-  
+
   .hero-content {
     grid-template-columns: 1fr;
     gap: 2rem;
     padding: 0 1rem;
   }
-  
+
   .hero-title {
     font-size: 2.5rem;
   }
-  
+
   .sonic-illustration {
     width: 200px;
     height: 200px;
   }
-  
+
   .sonic-character {
     font-size: 5rem;
   }
-  
+
   .guild-info-section {
     padding: 2rem 0;
   }
-  
+
   .section-title {
     font-size: 2rem;
   }
-  
+
   .guild-info-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
     padding: 0 1rem;
   }
-  
-  .info-box, .requirements-box, .other-box {
+
+  .info-box,
+  .requirements-box,
+  .other-box {
     padding: 1.5rem;
   }
-  
-  .info-text, .requirement-text, .other-text {
+
+  .info-text,
+  .requirement-text,
+  .other-text {
     font-size: 0.85rem;
   }
-  
+
   .hall-of-glory-section {
     padding: 2rem 0;
   }
-  
+
   .hall-of-glory-section .section-title {
     font-size: 2.5rem;
   }
-  
+
   .section-subtitle {
     font-size: 1rem;
   }
-  
+
   .glory-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
-  
+
   .glory-card {
     padding: 1.5rem;
   }
-  
+
   .glory-header .boss-icon {
     width: 80px;
     height: 80px;
   }
-  
+
   .glory-header h3 {
     font-size: 1.5rem;
   }
-  
+
   .champion-damage {
     font-size: 2rem;
   }
-  
+
   .champions-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
+
   .season-champion {
     padding: 1rem;
     flex-direction: column;
     text-align: center;
     gap: 1rem;
   }
-  
+
   .champion-stats {
     margin: 0;
   }
@@ -2503,7 +2551,8 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
   margin-bottom: 0.5rem;
 }
 
-.current-indicator, .coming-soon-indicator {
+.current-indicator,
+.coming-soon-indicator {
   font-size: 0.8rem;
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
@@ -2528,15 +2577,15 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
   .nav-container {
     padding: 0 1rem;
   }
-  
+
   .nav-menu {
     gap: 1rem;
   }
-  
+
   .nav-title {
     display: none;
   }
-  
+
   .user-menu {
     flex-direction: column;
     gap: 0.5rem;
