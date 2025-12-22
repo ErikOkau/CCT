@@ -1161,9 +1161,11 @@ const formatAllianceTime = (time: string | number) => {
     // If it's a number, assume it's seconds
     const minutes = Math.floor(time / 60)
     const seconds = Math.floor(time % 60)
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`
+    return `${minutes}:${seconds.toString().padStart(2, '0')}s`
   }
-  return time?.toString() || 'N/A'
+  const timeStr = time?.toString() || 'N/A'
+  // Add 's' suffix if it doesn't already have it and it's not 'N/A'
+  return timeStr === 'N/A' ? timeStr : `${timeStr}s`
 }
 
 </script>
