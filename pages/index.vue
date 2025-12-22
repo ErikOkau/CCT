@@ -116,6 +116,27 @@ const seasonConfigurations = {
     spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
     range: '23-4!A1:Z100'
   },
+  // Flight 22 seasons
+  221: {
+    hasData: true,
+    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
+    range: '22-1!A1:Z100'
+  },
+  222: {
+    hasData: true,
+    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
+    range: '22-2!A1:Z100'
+  },
+  223: {
+    hasData: true,
+    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
+    range: '22-3!A1:Z100'
+  },
+  224: {
+    hasData: true,
+    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
+    range: '22-4!A1:Z100'
+  },
   // Flight 24 seasons
   241: {
     hasData: true,
@@ -288,12 +309,10 @@ const fetchSeasonData = async (season: number) => {
       config = seasonConfigurations[21] // Fallback to 21-1
     }
   } else if (flight === 22) {
-    // Flight 22 seasons - similar to Flight 21 structure
-    // Note: Flight 22 configurations would need to be added to seasonConfigurations if data exists
-    // For now, return early as Flight 22 data may not be available
-    console.warn(`⚠️ Flight 22 data not configured yet`)
-    resetAnalysis()
-    return
+    // Flight 22 seasons
+    const configKey = (220 + season) as keyof typeof seasonConfigurations
+    config = seasonConfigurations[configKey] || seasonConfigurations[221]
+    console.log(`🔍 Flight 22, Season ${season}: Using config key ${configKey}, range: ${config?.range}`)
   } else if (flight === 23) {
     // Flight 23 seasons
     const configKey = (230 + season) as keyof typeof seasonConfigurations
