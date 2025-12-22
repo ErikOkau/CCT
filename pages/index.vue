@@ -116,27 +116,6 @@ const seasonConfigurations = {
     spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
     range: '23-4!A1:Z100'
   },
-  // Flight 22 seasons
-  221: {
-    hasData: true,
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '22-1!A1:Z100'
-  },
-  222: {
-    hasData: true,
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '22-2!A1:Z100'
-  },
-  223: {
-    hasData: true,
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '22-3!A1:Z100'
-  },
-  224: {
-    hasData: true,
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '22-4!A1:Z100'
-  },
   // Flight 24 seasons
   241: {
     hasData: true,
@@ -198,9 +177,6 @@ const hasSeasonData = (season: number) => {
     if (season === 2) return true // Season 21-2 now has data available
     if (season === 3) return true // Season 21-3 now has data available
     if (season === 4) return true // Season 21-4 now has data available
-  } else if (flight === 22) {
-    // Flight 22: All seasons have data available
-    if (season === 1 || season === 2 || season === 3 || season === 4) return true
   } else if (flight === 23 || flight === 24) {
     // Flights 23 and 24: All seasons have data available
     return true
@@ -214,7 +190,7 @@ const hasSeasonData = (season: number) => {
 // Function to get season display name
 const getSeasonDisplayName = (season: number) => {
   const flight = currentDestinysFlight.value
-  if (flight === 21 || flight === 22 || flight === 23 || flight === 24) {
+  if (flight === 21 || flight === 23 || flight === 24) {
     return `${flight}-${season}`
   }
   return `20-${season}`
@@ -233,9 +209,6 @@ const getSeasonStatusMessage = (season: number) => {
     if (season === 2) return 'Previous Season - Data Available'
     if (season === 3) return 'Previous Season - Data Available'
     if (season === 4) return 'Current Season - Data Available'
-  } else if (flight === 22) {
-    // Flight 22: All seasons have data available
-    return 'Previous Season - Data Available'
   } else if (flight === 23 || flight === 24) {
     // Flights 23 and 24: All seasons have data available
     return 'Previous Season - Data Available'
@@ -254,8 +227,8 @@ const getSeasonStatusIcon = (season: number) => {
     if (season === 2) return '📊' // Previous season with data available
     if (season === 3) return '📊' // Previous season with data available
     if (season === 4) return '📊' // Current season with data available
-  } else if (flight === 22 || flight === 23 || flight === 24) {
-    // Flights 22, 23, and 24: All seasons have data available
+  } else if (flight === 23 || flight === 24) {
+    // Flights 23 and 24: All seasons have data available
     return '📊'
   } else {
     // Destiny's Flight 20: All seasons are previous seasons with data available
@@ -308,11 +281,6 @@ const fetchSeasonData = async (season: number) => {
     } else {
       config = seasonConfigurations[21] // Fallback to 21-1
     }
-  } else if (flight === 22) {
-    // Flight 22 seasons
-    const configKey = (220 + season) as keyof typeof seasonConfigurations
-    config = seasonConfigurations[configKey] || seasonConfigurations[221]
-    console.log(`🔍 Flight 22, Season ${season}: Using config key ${configKey}, range: ${config?.range}`)
   } else if (flight === 23) {
     // Flight 23 seasons
     const configKey = (230 + season) as keyof typeof seasonConfigurations
@@ -359,8 +327,8 @@ const fetchSeasonData = async (season: number) => {
   try {
     // Map the season number correctly for the battle analyzer
     let analyzerSeason = season
-    if (flight === 21 || flight === 22 || flight === 23 || flight === 24) {
-      // For flights 21, 22, 23, and 24, keep the same season number for analyzer
+    if (flight === 21 || flight === 23 || flight === 24) {
+      // For flights 21, 23, and 24, keep the same season number for analyzer
       analyzerSeason = season
     }
     console.log(`📊 Fetching data for Flight ${flight}, Season ${season} (analyzer season: ${analyzerSeason})`)
@@ -460,28 +428,6 @@ const bossSchedules = {
       3: null // Empty
     },
     4: { // Season 21-4
-      1: null, // Empty
-      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
-      3: { name: 'Machine-God of the Eternal Void', image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' }
-    }
-  },
-  22: { // Destiny's Flight 22 (4x3 grid) - Same structure as Flight 21
-    1: { // Season 22-1
-      1: null, // Empty
-      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
-      3: { name: 'Machine-God of the Eternal Void', image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' }
-    },
-    2: { // Season 22-2
-      1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
-      2: null, // Empty
-      3: { name: 'Machine-God of the Eternal Void', image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' }
-    },
-    3: { // Season 22-3
-      1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
-      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
-      3: null // Empty
-    },
-    4: { // Season 22-4
       1: null, // Empty
       2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
       3: { name: 'Machine-God of the Eternal Void', image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' }

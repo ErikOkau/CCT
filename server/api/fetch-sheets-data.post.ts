@@ -16,6 +16,33 @@ export default defineEventHandler(async (event) => {
     throw new Error('Spreadsheet ID is required.')
   }
 
+  // Helper function to properly format sheet names that might need quoting
+  const formatRange = (rangeStr: string): string => {
+    if (!rangeStr) return '20-1!A1:Z100'
+    
+    // Extract sheet name and range parts
+    const parts = rangeStr.split('!')
+    if (parts.length !== 2) return rangeStr
+    
+    const sheetName = parts[0]
+    const cellRange = parts[1]
+    
+    // If sheet name starts with a number or contains special characters, quote it
+    // Google Sheets API requires single quotes for sheet names starting with numbers
+    if (/^\d/.test(sheetName) || sheetName.includes('-')) {
+      // Only add quotes if not already quoted
+      const quotedSheetName = sheetName.startsWith("'") && sheetName.endsWith("'") 
+        ? sheetName 
+        : `'${sheetName}'`
+      return `${quotedSheetName}!${cellRange}`
+    }
+    
+    return rangeStr
+  }
+  
+  const formattedRange = formatRange(range || '20-1!A1:Z100')
+  console.log(`📊 Original range: ${range || '20-1!A1:Z100'}, Formatted range: ${formattedRange}`)
+
   try {
     // Get credentials from environment variable
     const credentialsJson = process.env.GOOGLE_SHEETS_CREDENTIALS
@@ -39,7 +66,7 @@ export default defineEventHandler(async (event) => {
     try {
       response = await sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: range || '20-1!A1:Z100', // Default to 20-1 sheet which contains guild battle data
+        range: formattedRange,
       })
     } catch (sheetsError: any) {
       // Handle Google Sheets API specific errors
@@ -47,9 +74,9 @@ export default defineEventHandler(async (event) => {
       const errorMessage = sheetsError.message || sheetsError.response?.data?.error?.message || 'Unknown error'
       
       if (errorCode === 400) {
-        throw new Error(`Invalid range or sheet not found: "${range || '20-1!A1:Z100'}". ${errorMessage}. Please check if the sheet exists in the spreadsheet.`)
+        throw new Error(`Invalid range or sheet not found: "${formattedRange}". ${errorMessage}. Please check if the sheet exists in the spreadsheet.`)
       } else if (errorCode === 404) {
-        throw new Error(`Spreadsheet or sheet not found: "${range || '20-1!A1:Z100'}". ${errorMessage}. Please check the spreadsheet ID and sheet name.`)
+        throw new Error(`Spreadsheet or sheet not found: "${formattedRange}". ${errorMessage}. Please check the spreadsheet ID and sheet name.`)
       } else if (errorCode === 403) {
         throw new Error(`Access denied. ${errorMessage}. Please ensure the service account has access to the spreadsheet.`)
       }
@@ -59,7 +86,7 @@ export default defineEventHandler(async (event) => {
 
     const rows = response.data.values
     if (!rows || rows.length === 0) {
-      throw new Error(`No data found in the spreadsheet range: ${range || '20-1!A1:Z100'}. The sheet might be empty or the range is incorrect.`)
+      throw new Error(`No data found in the spreadsheet range: ${formattedRange}. The sheet might be empty or the range is incorrect.`)
     }
 
     console.log(`📊 Fetched ${rows.length} rows from Google Sheets`)
@@ -117,7 +144,7 @@ export default defineEventHandler(async (event) => {
       data: {
         originalError: error.message,
         code: error.code,
-        range: range || '20-1!A1:Z100'
+        range: formattedRange || range || '20-1!A1:Z100'
       }
     })
   }

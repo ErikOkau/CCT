@@ -3,8 +3,8 @@ import { ref } from 'vue'
 import { BattleAnalyzer } from '~/utils/battleAnalyzer'
 import type { BattlePlayer } from '~/types/battle'
 
-// 1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs
-const spreadsheetId = ref('13uDLh7GciSYBO_S4KpXvVY8JTQQlqAb2m_7DEAB-wYo')
+// 13uDLh7GciSYBO_S4KpXvVY8JTQQlqAb2m_7DEAB-wYo
+const spreadsheetId = ref('1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs')
 const range = ref('20-1!A1:Z100') // Sheet 20-1 contains the guild battle data
 const parsedPlayers = ref<BattlePlayer[]>([])
 const error = ref('')
