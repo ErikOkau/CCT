@@ -1589,8 +1589,27 @@ const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
       </div>
     </section>
 
+    <!-- Error Display Section -->
+    <section v-if="sheetsState.fetchError && !isSeasonLoading && !analysisState.analysisComplete" class="error-section">
+      <div class="container">
+        <div class="error-content">
+          <div class="error-icon">⚠️</div>
+          <h2 class="error-title">Error Loading Season Data</h2>
+          <p class="error-message">{{ sheetsState.fetchError }}</p>
+          <div class="error-help">
+            <p><strong>Common solutions:</strong></p>
+            <ul>
+              <li>Check if the sheet exists in your Google Spreadsheet with the exact name shown in the error</li>
+              <li>Verify that the service account has access to the spreadsheet</li>
+              <li>Ensure the spreadsheet ID is correct</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Season Status Section -->
-    <section v-if="!hasSeasonData(activeSeason) && !isSeasonLoading" class="coming-soon-section" :class="getSeasonStatusClass()">
+    <section v-if="!hasSeasonData(activeSeason) && !isSeasonLoading && !sheetsState.fetchError" class="coming-soon-section" :class="getSeasonStatusClass()">
       <div class="container">
         <div class="coming-soon-content">
           <div class="coming-soon-icon">{{ getSeasonStatusIcon(activeSeason) }}</div>
