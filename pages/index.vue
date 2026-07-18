@@ -9,6 +9,7 @@ import {
   getBossForSeason,
   getFlightSeasons,
   getLatestFlightAndSeason,
+  getPlayerBossStat,
   getPlayerThirdBossStat,
   getPlayerTickets,
   getPlayerTotalBattlesBySeasonId,
@@ -16,6 +17,9 @@ import {
   getPlayerTotalDamageBySeasonId,
   getSeasonDisplayName as formatSeasonDisplayName,
   getSeasonSpreadsheetConfig,
+  getSecondBossDisplayName,
+  getSecondBossField,
+  getSecondBossImage,
   getThirdBossDisplayName,
   getThirdBossImage,
   hasSeasonData as seasonHasData,
@@ -489,6 +493,14 @@ const getSeasonStatusClass = () => {
   return 'default'
 }
 
+const secondBossColumnName = computed(() =>
+  getSecondBossDisplayName(currentDestinysFlight.value)
+)
+
+const secondBossColumnImage = computed(() =>
+  getSecondBossImage(currentDestinysFlight.value)
+)
+
 const thirdBossColumnName = computed(() =>
   getThirdBossDisplayName(currentDestinysFlight.value, activeSeason.value)
 )
@@ -499,6 +511,12 @@ const thirdBossColumnImage = computed(() =>
 
 const getPlayerSeasonTotalDamage = (player: any, season: number = activeSeason.value) =>
   getPlayerTotalDamage(player, currentDestinysFlight.value, season)
+
+const getPlayerSecondBossDamage = (player: any) =>
+  getPlayerBossStat(player, getSecondBossField(currentDestinysFlight.value), 'damage')
+
+const getPlayerSecondBossBattles = (player: any) =>
+  getPlayerBossStat(player, getSecondBossField(currentDestinysFlight.value), 'battles')
 
 const getPlayerThirdBossDamage = (player: any, season: number = activeSeason.value) =>
   getPlayerThirdBossStat(player, currentDestinysFlight.value, season, 'damage')
@@ -1072,7 +1090,7 @@ const formatAllianceTime = (time: string | number) => {
               <div v-else class="boss-cell empty"></div>
             </template>
 
-            <!-- Row 2: Avatar of Destiny positions -->
+            <!-- Row 2: Avatar of Destiny (≤25) or Machine God (26+) -->
             <template v-for="season in currentFlightSeasons" :key="`row2-${season}`">
               <div v-if="getBossForSeason(currentDestinysFlight, season, 2)" class="boss-cell">
                 <img :src="getBossForSeason(currentDestinysFlight, season, 2)?.image"
@@ -1082,7 +1100,7 @@ const formatAllianceTime = (time: string | number) => {
               <div v-else class="boss-cell empty"></div>
             </template>
 
-            <!-- Row 3: Living Abyss/Machine-God positions -->
+            <!-- Row 3: Machine God / Living Abyss (per season schedule) -->
             <template v-for="season in currentFlightSeasons" :key="`row3-${season}`">
               <div v-if="getBossForSeason(currentDestinysFlight, season, 3)" class="boss-cell">
                 <img :src="getBossForSeason(currentDestinysFlight, season, 3)?.image"
@@ -1424,7 +1442,7 @@ const formatAllianceTime = (time: string | number) => {
                   <th>Rank</th>
                   <th>Player</th>
                   <th>Red Velvet Dragon</th>
-                  <th>Avatar of Destiny</th>
+                  <th>{{ secondBossColumnName }}</th>
                   <th>{{ thirdBossColumnName }}</th>
                   <th>Season Total</th>
                   <th>Tickets Used</th>
@@ -1455,8 +1473,8 @@ const formatAllianceTime = (time: string | number) => {
                   </td>
                   <td class="damage-cell">
                     <div class="damage-info">
-                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(player.avatarOfDestiny.damage) }}</div>
-                      <div class="battles-count">x{{ player.avatarOfDestiny.battles }}</div>
+                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(getPlayerSecondBossDamage(player)) }}</div>
+                      <div class="battles-count">x{{ getPlayerSecondBossBattles(player) }}</div>
                     </div>
                   </td>
                   <td class="damage-cell">
@@ -1522,13 +1540,12 @@ const formatAllianceTime = (time: string | number) => {
 
                 <div class="mobile-boss-damage-item">
                   <div class="mobile-boss-icon">
-                    <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" alt="Avatar of Destiny"
-                      class="boss-icon-image">
+                    <img :src="secondBossColumnImage" :alt="secondBossColumnName" class="boss-icon-image">
                   </div>
                   <div class="mobile-boss-damage-info">
-                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(player.avatarOfDestiny.damage) }}
+                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(getPlayerSecondBossDamage(player)) }}
                     </div>
-                    <div class="mobile-battles-count">x{{ player.avatarOfDestiny.battles }}</div>
+                    <div class="mobile-battles-count">x{{ getPlayerSecondBossBattles(player) }}</div>
                   </div>
                 </div>
 
