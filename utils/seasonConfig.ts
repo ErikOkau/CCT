@@ -122,6 +122,17 @@ export function getSeasonSheetRange(flight: number, season: number): string {
   return `${flight}-${season}!A1:Z100`
 }
 
+export function parseSeasonId(seasonId: string): { flight: number; season: number } | null {
+  const parts = seasonId.split('-')
+  if (parts.length !== 2) return null
+
+  const flight = parseInt(parts[0], 10)
+  const season = parseInt(parts[1], 10)
+  if (Number.isNaN(flight) || Number.isNaN(season)) return null
+
+  return { flight, season }
+}
+
 export function getSeasonSpreadsheetConfig(flight: number, season: number) {
   if (!hasSeasonData(flight, season)) {
     return null
@@ -132,17 +143,6 @@ export function getSeasonSpreadsheetConfig(flight: number, season: number) {
     spreadsheetId: SPREADSHEET_ID,
     range: getSeasonSheetRange(flight, season)
   }
-}
-
-export function parseSeasonId(seasonId: string): { flight: number; season: number } | null {
-  const parts = seasonId.split('-')
-  if (parts.length !== 2) return null
-
-  const flight = parseInt(parts[0], 10)
-  const season = parseInt(parts[1], 10)
-  if (Number.isNaN(flight) || Number.isNaN(season)) return null
-
-  return { flight, season }
 }
 
 export function getBossForSeason(flight: number, season: number, position: number) {

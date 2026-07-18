@@ -465,14 +465,13 @@ const showAllPlayers = ref(false)
 const displayedPlayers = computed(() => showAllPlayers.value ? analysisState.battleData : analysisState.previewData)
 const toggleShowAllPlayers = () => { showAllPlayers.value = !showAllPlayers.value }
 
-// Computed property for mobile boss list
+// Computed property for mobile boss list (boss slots are always positions 1-3)
 const mobileBossList = computed(() => {
   const bosses = []
-  const seasonCount = getSeasonCount()
-  for (let i = 1; i <= seasonCount; i++) {
-    const boss = getBossForSeason(currentDestinysFlight.value, activeSeason.value, i)
+  for (let position = 1; position <= 3; position++) {
+    const boss = getBossForSeason(currentDestinysFlight.value, activeSeason.value, position)
     if (boss) {
-      bosses.push({ ...boss, position: i })
+      bosses.push({ ...boss, position })
     }
   }
   return bosses
@@ -531,7 +530,7 @@ const fetchAllianceRankings = async () => {
   allianceError.value = null
 
   try {
-    const spreadsheetId = '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs'
+    const spreadsheetId = SPREADSHEET_ID
     const range = "Cookie Alliance!A2:E31" // Rows 2-31, columns A-E (formatRange will add quotes if needed)
 
     const response = await fetch('/api/fetch-sheets-data', {
@@ -1025,9 +1024,9 @@ const formatAllianceTime = (time: string | number) => {
             </button>
           </div>
 
-          <!-- Season Headers -->
+          <!-- Season Headers — use actual season IDs (e.g. Flight 25 is 2,3,4 not 1,2,3) -->
           <div class="season-headers" :style="{ gridTemplateColumns: `repeat(${getSeasonCount()}, 1fr)` }">
-            <div v-for="season in getSeasonCount()" :key="season" class="season-header"
+            <div v-for="season in currentFlightSeasons" :key="season" class="season-header"
               :class="{ active: activeSeason === season }" @click="activeSeason = season">
               <div class="season-name">Season {{ currentDestinysFlight }}-{{ season }}</div>
               <div class="season-dates">
@@ -1064,7 +1063,7 @@ const formatAllianceTime = (time: string | number) => {
           <!-- Boss Schedule Grid -->
           <div class="boss-schedule" :style="{ gridTemplateColumns: `repeat(${getSeasonCount()}, 1fr)` }">
             <!-- Row 1: Red Velvet Dragon positions -->
-            <template v-for="season in getSeasonCount()" :key="`row1-${season}`">
+            <template v-for="season in currentFlightSeasons" :key="`row1-${season}`">
               <div v-if="getBossForSeason(currentDestinysFlight, season, 1)" class="boss-cell">
                 <img :src="getBossForSeason(currentDestinysFlight, season, 1)?.image"
                   :alt="getBossForSeason(currentDestinysFlight, season, 1)?.name" class="boss-image">
@@ -1074,7 +1073,7 @@ const formatAllianceTime = (time: string | number) => {
             </template>
 
             <!-- Row 2: Avatar of Destiny positions -->
-            <template v-for="season in getSeasonCount()" :key="`row2-${season}`">
+            <template v-for="season in currentFlightSeasons" :key="`row2-${season}`">
               <div v-if="getBossForSeason(currentDestinysFlight, season, 2)" class="boss-cell">
                 <img :src="getBossForSeason(currentDestinysFlight, season, 2)?.image"
                   :alt="getBossForSeason(currentDestinysFlight, season, 2)?.name" class="boss-image">
@@ -1084,7 +1083,7 @@ const formatAllianceTime = (time: string | number) => {
             </template>
 
             <!-- Row 3: Living Abyss/Machine-God positions -->
-            <template v-for="season in getSeasonCount()" :key="`row3-${season}`">
+            <template v-for="season in currentFlightSeasons" :key="`row3-${season}`">
               <div v-if="getBossForSeason(currentDestinysFlight, season, 3)" class="boss-cell">
                 <img :src="getBossForSeason(currentDestinysFlight, season, 3)?.image"
                   :alt="getBossForSeason(currentDestinysFlight, season, 3)?.name" class="boss-image">
