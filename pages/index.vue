@@ -308,8 +308,8 @@ const getTicketStatusText = (player: any, season: number = activeSeason.value) =
 // Get correct guild rank for specific players
 const getPlayerGuildRank = (playerName: string) => {
   const normalizedName = playerName.toLowerCase()
-  if (playerName === 'Bestoutuber') return 'Leader'
-  if (normalizedName === 'jammifyvx' || normalizedName === 'jammifyvxxx') return 'Officer'
+  if (normalizedName === 'jammifyvx') return 'Leader'
+  if (normalizedName === 'poppyyys') return 'Officer'
   return 'Member'
 }
 
@@ -703,11 +703,11 @@ const formatAllianceTime = (time: string | number) => {
           <div class="guild-info">
             <div class="info-item">
               <span class="info-label">Leader:</span>
-              <span class="info-value">Bestoutuber</span>
+              <span class="info-value">Jammifyvx</span>
             </div>
             <div class="info-item">
               <span class="info-label">Officer:</span>
-              <span class="info-value">jammifyvxxx</span>
+              <span class="info-value">Poppyyys</span>
             </div>
             <div class="info-item">
               <span class="info-label">Guild Level:</span>
@@ -755,9 +755,9 @@ const formatAllianceTime = (time: string | number) => {
               </div>
               <div class="info-item">
                 <div class="info-icon">
-                  <img src="/img/logo_gm3.png" alt="GM3 Logo" />
+                  <img src="/img/challenger_2.png" alt="Challenger II Logo" />
                 </div>
-                <span class="info-text">GRANDMASTER 3 - #40+</span>
+                <span class="info-text">CHALLENGER II - #30+</span>
               </div>
               <div class="info-item">
                 <span class="info-icon">👑</span>
@@ -778,26 +778,20 @@ const formatAllianceTime = (time: string | number) => {
                 <div class="requirement-icon">
                   <img src="/img/Red_Velvet_Dragon.webp" alt="Red Velvet Dragon" />
                 </div>
-                <span class="requirement-text">13 BIL+ RED VELVET DRAGON</span>
-              </div>
-              <div class="requirement-item">
-                <div class="requirement-icon">
-                  <img src="/img/Avatar_of_destiny_guild_battle_ready.webp" alt="Avatar of Destiny" />
-                </div>
-                <span class="requirement-text">6.5 BIL+ AVATAR OF DESTINY</span>
+                <span class="requirement-text">28 BIL+ RED VELVET DRAGON</span>
               </div>
               <div class="requirement-item">
                 <div class="requirement-icon">
                   <img src="/img/Living_Licorice_Abyss.webp" alt="Living Licorice Abyss" />
                 </div>
-                <span class="requirement-text">18 BIL+ LIVING ABYSS</span>
+                <span class="requirement-text">28 BIL+ LIVING ABYSS</span>
               </div>
               <div class="requirement-item">
                 <div class="requirement-icon">
                   <img src="/img/Machine-God_of_the_Eternal_Void_guild_ready.webp"
                     alt="Machine-God of the Eternal Void" />
                 </div>
-                <span class="requirement-text">13 BIL+ MACHINE-GOD OF THE ETERNAL VOID</span>
+                <span class="requirement-text">28 BIL+ MACHINE-GOD OF THE ETERNAL VOID</span>
               </div>
               <div class="requirement-item">
                 <span class="requirement-icon">📊</span>

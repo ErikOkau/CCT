@@ -175,8 +175,9 @@ export class BattleAnalyzer {
    * Get correct guild rank for specific players
    */
   private static getPlayerGuildRank(playerName: string): 'Leader' | 'Member' | 'Officer' {
-    if (playerName === 'Bestoutuber') return 'Leader'
-    if (playerName === 'jammifyvxxx') return 'Officer'
+    const normalizedName = playerName.toLowerCase()
+    if (normalizedName === 'jammifyvx') return 'Leader'
+    if (normalizedName === 'poppyyys') return 'Officer'
     return 'Member'
   }
 
@@ -368,11 +369,12 @@ export class BattleAnalyzer {
     livingAbyss: boolean
     machineGod: boolean
   } {
+    const requirement = 28000000000 // 28B
     return {
-      redVelvet: player.redVelvetDragon.damage >= 11000000000, // 11B
-      avatar: player.avatarOfDestiny.damage >= 6000000000, // 6B
-      livingAbyss: player.livingAbyss.damage >= 16000000000, // 16B
-      machineGod: player.machineGod ? player.machineGod.damage >= 10000000000 : false // 10B
+      redVelvet: player.redVelvetDragon.damage >= requirement,
+      avatar: player.avatarOfDestiny.damage >= requirement,
+      livingAbyss: player.livingAbyss.damage >= requirement,
+      machineGod: player.machineGod ? player.machineGod.damage >= requirement : false
     }
   }
 
