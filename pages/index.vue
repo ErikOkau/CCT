@@ -2,6 +2,27 @@
 import { onMounted, computed, ref, watch } from 'vue'
 import { useBattleAnalysis } from '~/composables/useBattleAnalysis'
 import { BattleAnalyzer } from '~/utils/battleAnalyzer'
+import {
+  allSeasons,
+  bossSchedules,
+  getAvailableFlights,
+  getBossForSeason,
+  getFlightSeasons,
+  getLatestFlightAndSeason,
+  getPlayerThirdBossStat,
+  getPlayerTickets,
+  getPlayerTotalBattlesBySeasonId,
+  getPlayerTotalDamage,
+  getPlayerTotalDamageBySeasonId,
+  getSeasonDisplayName as formatSeasonDisplayName,
+  getSeasonSpreadsheetConfig,
+  getThirdBossDisplayName,
+  getThirdBossImage,
+  hasSeasonData as seasonHasData,
+  isBossActiveInSeason,
+  isLatestSeason,
+  SPREADSHEET_ID
+} from '~/utils/seasonConfig'
 
 
 
@@ -17,19 +38,16 @@ const {
 
 // GSAP animations and initialization
 onMounted(() => {
-  // Add entrance animations here if needed
-  // Set active season based on current date after everything is initialized
-  activeSeason.value = getCurrentSeason()
-  // Trigger initial fetch
   fetchSeasonData(activeSeason.value)
-  // Fetch alliance rankings
   fetchAllianceRankings()
 })
 
 // Guild Battle Schedule Data
-const activeSeason = ref(1) // Will be calculated based on current date
+const latestSeason = getLatestFlightAndSeason()
+const activeSeason = ref(latestSeason.season)
+const currentDestinysFlight = ref(latestSeason.flight)
 
-// Season date ranges (in GMT+9 timezone)
+// Season date ranges (in GMT+9 timezone) - used for legacy Flight 20 schedule display
 const seasonDates = {
   1: { start: new Date('2025-08-07T00:00:00+09:00'), end: new Date('2025-08-13T23:59:59+09:00') },
   2: { start: new Date('2025-08-14T00:00:00+09:00'), end: new Date('2025-08-20T23:59:59+09:00') },
@@ -37,106 +55,7 @@ const seasonDates = {
   4: { start: new Date('2025-08-28T00:00:00+09:00'), end: new Date('2025-09-03T23:59:59+09:00') }
 }
 
-// All available seasons with their configurations (only after 16-4, excluding "Copy of 18-1")
-const allSeasons = [
-  { id: '17-1', name: 'Season 17-1', hasData: true },
-  { id: '17-2', name: 'Season 17-2', hasData: true },
-  { id: '17-3', name: 'Season 17-3', hasData: true },
-  { id: '17-4', name: 'Season 17-4', hasData: true },
-  { id: '18-1', name: 'Season 18-1', hasData: true },
-  { id: '20-1', name: 'Season 20-1', hasData: true },
-  { id: '20-2', name: 'Season 20-2', hasData: true },
-  { id: '20-3', name: 'Season 20-3', hasData: true },
-  { id: '21-1', name: 'Season 21-1', hasData: true },
-  { id: '21-2', name: 'Season 21-2', hasData: true },
-  { id: '21-3', name: 'Season 21-3', hasData: true },
-  { id: '21-4', name: 'Season 21-4', hasData: true },
-  { id: '23-1', name: 'Season 23-1', hasData: true },
-  { id: '23-2', name: 'Season 23-2', hasData: true },
-  { id: '23-3', name: 'Season 23-3', hasData: true },
-  { id: '23-4', name: 'Season 23-4', hasData: true },
-  { id: '24-1', name: 'Season 24-1', hasData: true },
-  { id: '24-2', name: 'Season 24-2', hasData: true },
-  { id: '24-3', name: 'Season 24-3', hasData: true }
-]
-
-// Season-specific data availability and spreadsheet configurations
-const seasonConfigurations = {
-  1: {
-    hasData: true,  // Season 20-1 (previous season) has data
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '20-1!A1:Z100' // Season 20-1 range
-  },
-  2: {
-    hasData: true, // Season 20-2 (previous season) - now has data
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '20-2!A1:Z100' // Season 20-2 range
-  },
-  3: {
-    hasData: true, // Season 20-3 (season is over) - now has data
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '20-3!A1:Z100' // Season 20-3 range
-  },
-  21: {
-    hasData: true, // Season 21-1 now has data available
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '21-1!A1:Z100' // Season 21-1 range
-  },
-  22: {
-    hasData: true, // Season 21-2 now has data available
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '21-2!A1:Z100' // Season 21-2 range
-  },
-  23: {
-    hasData: true, // Season 21-3 now has data available
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '21-3!A1:Z100' // Season 21-3 range
-  },
-  24: {
-    hasData: true, // Season 21-4 now has data available
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '21-4!A1:Z100' // Season 21-4 range
-  },
-  // Flight 23 seasons
-  231: {
-    hasData: true,
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '23-1!A1:Z100'
-  },
-  232: {
-    hasData: true,
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '23-2!A1:Z100'
-  },
-  233: {
-    hasData: true,
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '23-3!A1:Z100'
-  },
-  234: {
-    hasData: true,
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '23-4!A1:Z100'
-  },
-  // Flight 24 seasons
-  241: {
-    hasData: true,
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '24-1!A1:Z100'
-  },
-  242: {
-    hasData: true,
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '24-2!A1:Z100'
-  },
-  243: {
-    hasData: true,
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '24-3!A1:Z100'
-  }
-}
-
-// Season types for display purposes
+// Season types for display purposes (legacy Flight 20/21 UI)
 const seasonTypes = {
   1: 'previous',  // Season 20-1 - previous season
   2: 'previous',  // Season 20-2 - previous season  
@@ -173,29 +92,12 @@ const getCurrentSeason = () => {
 
 // Function to check if current season has data
 const hasSeasonData = (season: number) => {
-  const flight = currentDestinysFlight.value
-  if (flight === 21) {
-    if (season === 1) return true // Season 21-1 now has data available
-    if (season === 2) return true // Season 21-2 now has data available
-    if (season === 3) return true // Season 21-3 now has data available
-    if (season === 4) return true // Season 21-4 now has data available
-  } else if (flight === 23 || flight === 24) {
-    // Flights 23 and 24: All seasons have data available
-    return true
-  } else {
-    // Destiny's Flight 20: All seasons are previous seasons with data available
-    if (season === 1 || season === 2 || season === 3) return true
-  }
-  return false
+  return seasonHasData(currentDestinysFlight.value, season)
 }
 
 // Function to get season display name
 const getSeasonDisplayName = (season: number) => {
-  const flight = currentDestinysFlight.value
-  if (flight === 21 || flight === 23 || flight === 24) {
-    return `${flight}-${season}`
-  }
-  return `20-${season}`
+  return formatSeasonDisplayName(currentDestinysFlight.value, season)
 }
 
 // Function to get season type
@@ -206,35 +108,19 @@ const getSeasonType = (season: number) => {
 // Function to get season status message
 const getSeasonStatusMessage = (season: number) => {
   const flight = currentDestinysFlight.value
-  if (flight === 21) {
-    if (season === 1) return 'Previous Season - Data Available'
-    if (season === 2) return 'Previous Season - Data Available'
-    if (season === 3) return 'Previous Season - Data Available'
-    if (season === 4) return 'Current Season - Data Available'
-  } else if (flight === 23 || flight === 24) {
-    // Flights 23 and 24: All seasons have data available
+  if (isLatestSeason(flight, season)) {
+    return 'Current Season - Data Available'
+  }
+  if (hasSeasonData(season)) {
     return 'Previous Season - Data Available'
-  } else {
-    // Destiny's Flight 20: All seasons are previous seasons with data available
-    if (season === 1 || season === 2 || season === 3) return 'Previous Season - Data Available'
   }
   return 'Unknown Status'
 }
 
 // Function to get season status icon
 const getSeasonStatusIcon = (season: number) => {
-  const flight = currentDestinysFlight.value
-  if (flight === 21) {
-    if (season === 1) return '📊' // Previous season with data available
-    if (season === 2) return '📊' // Previous season with data available
-    if (season === 3) return '📊' // Previous season with data available
-    if (season === 4) return '📊' // Current season with data available
-  } else if (flight === 23 || flight === 24) {
-    // Flights 23 and 24: All seasons have data available
+  if (hasSeasonData(season)) {
     return '📊'
-  } else {
-    // Destiny's Flight 20: All seasons are previous seasons with data available
-    if (season === 1 || season === 2 || season === 3) return '📊' // Previous
   }
   return '❓'
 }
@@ -266,39 +152,10 @@ const lastFetchedSeason = ref<{ flight: number; season: number } | null>(null)
 
 // Function to automatically fetch data for selected season
 const fetchSeasonData = async (season: number) => {
-  let config: any
   const flight = currentDestinysFlight.value
-
-  // Handle Destiny's Flight 21 seasons
-  if (flight === 21) {
-    // For Destiny's Flight 21, use the correct season configuration
-    if (season === 1) {
-      config = seasonConfigurations[21] // Season 21-1: AoD + Machine God
-    } else if (season === 2) {
-      config = seasonConfigurations[22] // Season 21-2: RVD + Machine God
-    } else if (season === 3) {
-      config = seasonConfigurations[23] // Season 21-3: RVD + AOD
-    } else if (season === 4) {
-      config = seasonConfigurations[24] // Season 21-4: AoD + Machine God
-    } else {
-      config = seasonConfigurations[21] // Fallback to 21-1
-    }
-  } else if (flight === 23) {
-    // Flight 23 seasons
-    const configKey = (230 + season) as keyof typeof seasonConfigurations
-    config = seasonConfigurations[configKey] || seasonConfigurations[231]
-    console.log(`🔍 Flight 23, Season ${season}: Using config key ${configKey}, range: ${config?.range}`)
-  } else if (flight === 24) {
-    // Flight 24 seasons
-    const configKey = (240 + season) as keyof typeof seasonConfigurations
-    config = seasonConfigurations[configKey] || seasonConfigurations[241]
-    console.log(`🔍 Flight 24, Season ${season}: Using config key ${configKey}, range: ${config?.range}`)
-  } else {
-    config = seasonConfigurations[season as keyof typeof seasonConfigurations]
-  }
+  const config = getSeasonSpreadsheetConfig(flight, season)
 
   if (!config || !config.hasData) {
-    // Reset analysis state for seasons without data
     console.warn(`⚠️ No config found for Flight ${flight}, Season ${season}`)
     resetAnalysis()
     return
@@ -327,13 +184,7 @@ const fetchSeasonData = async (season: number) => {
 
   // Automatically fetch data for the season
   try {
-    // Map the season number correctly for the battle analyzer
-    let analyzerSeason = season
-    if (flight === 21 || flight === 23 || flight === 24) {
-      // For flights 21, 23, and 24, keep the same season number for analyzer
-      analyzerSeason = season
-    }
-    console.log(`📊 Fetching data for Flight ${flight}, Season ${season} (analyzer season: ${analyzerSeason})`)
+    console.log(`📊 Fetching data for Flight ${flight}, Season ${season}`)
     console.log(`📊 Using spreadsheet range: ${config.range}`)
     console.log(`📊 Current sheetsState.range: ${sheetsState.range}`)
     console.log(`📊 Expected bosses for ${flight}-${season}:`, {
@@ -341,8 +192,7 @@ const fetchSeasonData = async (season: number) => {
       boss2: getBossForSeason(flight, season, 2)?.name || 'None',
       boss3: getBossForSeason(flight, season, 3)?.name || 'None'
     })
-    // Pass the range directly to ensure we use the correct one
-    await fetchFromGoogleSheets(analyzerSeason, flight, config.range)
+    await fetchFromGoogleSheets(season, flight, config.range)
 
     // Verify data was loaded successfully
     console.log(`✅ Data fetch completed for Flight ${flight}, Season ${season}`)
@@ -366,9 +216,6 @@ const fetchSeasonData = async (season: number) => {
     isSeasonLoading.value = false
   }
 }
-
-// Current Destiny's Flight (main season)
-const currentDestinysFlight = ref(24)
 
 // Flag to prevent multiple simultaneous fetches
 let isFetchingSeason = false
@@ -394,144 +241,34 @@ const getDestinysFlightFromSeason = (season: number) => {
   return 20
 }
 
-// Boss schedule data for different Destiny's Flights
-const bossSchedules = {
-  20: { // Destiny's Flight 20 (3x3 grid)
-    1: { // Season 20-1
-      1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
-      2: null, // Empty
-      3: { name: 'Living Abyss', image: '/img/Living_Licorice_Abyss.webp' }
-    },
-    2: { // Season 20-2
-      1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
-      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
-      3: null // Empty
-    },
-    3: { // Season 20-3
-      1: null, // Empty
-      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
-      3: { name: 'Living Abyss', image: '/img/Living_Licorice_Abyss.webp' }
-    }
-  },
-  21: { // Destiny's Flight 21 (4x3 grid)
-    1: { // Season 21-1
-      1: null, // Empty
-      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
-      3: { name: 'Machine-God of the Eternal Void', image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' }
-    },
-    2: { // Season 21-2
-      1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
-      2: null, // Empty
-      3: { name: 'Machine-God of the Eternal Void', image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' }
-    },
-    3: { // Season 21-3
-      1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
-      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
-      3: null // Empty
-    },
-    4: { // Season 21-4
-      1: null, // Empty
-      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
-      3: { name: 'Machine-God of the Eternal Void', image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' }
-    }
-  },
-  23: { // Destiny's Flight 23 (4x3 grid)
-    1: { // Season 23-1: RVD and AOD
-      1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
-      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
-      3: null // Empty
-    },
-    2: { // Season 23-2: AOD and Machine God
-      1: null, // Empty
-      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
-      3: { name: 'Machine-God of the Eternal Void', image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' }
-    },
-    3: { // Season 23-3: RVD and Machine God
-      1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
-      2: null, // Empty
-      3: { name: 'Machine-God of the Eternal Void', image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' }
-    },
-    4: { // Season 23-4: RVD and AOD
-      1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
-      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
-      3: null // Empty
-    }
-  },
-  24: { // Destiny's Flight 24 (3x3 grid)
-    1: { // Season 24-1: AOD and Machine God
-      1: null, // Empty
-      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
-      3: { name: 'Machine-God of the Eternal Void', image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' }
-    },
-    2: { // Season 24-2: RVD and Machine God
-      1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
-      2: null, // Empty
-      3: { name: 'Machine-God of the Eternal Void', image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' }
-    },
-    3: { // Season 24-3: RVD and AOD
-      1: { name: 'Red Velvet Dragon', image: '/img/Red_Velvet_Dragon.webp' },
-      2: { name: 'Avatar of Destiny', image: '/img/Avatar_of_destiny_guild_battle_ready.webp' },
-      3: null // Empty
-    }
-  }
-}
-
-// Method to get boss for specific Destiny's Flight, season and position
-const getBossForSeason = (destinysFlight: number, season: number, position: number) => {
-  const flightData = bossSchedules[destinysFlight as keyof typeof bossSchedules]
-  if (!flightData) return null
-  const seasonData = flightData[season as keyof typeof flightData]
-  if (!seasonData) return null
-  const boss = seasonData[position as keyof typeof seasonData] || null
-  console.log(`getBossForSeason(${destinysFlight}, ${season}, ${position}):`, boss)
-  return boss
-}
-
-// Helper function to check if a boss is active in the current season
-const isBossActiveInSeason = (bossName: string, destinysFlight: number, season: number): boolean => {
-  const flightData = bossSchedules[destinysFlight as keyof typeof bossSchedules]
-  if (!flightData) return false
-  const seasonData = flightData[season as keyof typeof flightData]
-  if (!seasonData) return false
-
-  // Check all positions for this boss
-  for (let pos = 1; pos <= 3; pos++) {
-    const boss = seasonData[pos as keyof typeof seasonData]
-    if (boss && boss.name === bossName) {
-      return true
-    }
-  }
-  return false
-}
-
 // Method to get current Destiny's Flight boss schedule
 const getCurrentBossSchedule = () => {
-  return bossSchedules[currentDestinysFlight.value as keyof typeof bossSchedules]
+  return bossSchedules[currentDestinysFlight.value]
 }
+
+const currentFlightSeasons = computed(() => getFlightSeasons(currentDestinysFlight.value))
 
 // Method to get number of seasons for current Destiny's Flight
 const getSeasonCount = () => {
-  const schedule = getCurrentBossSchedule()
-  return schedule ? Object.keys(schedule).length : 3
+  return currentFlightSeasons.value.length
 }
 
 // Navigation methods for Destiny's Flights
 const navigateToDestinysFlight = (flight: number) => {
-  if (bossSchedules[flight as keyof typeof bossSchedules]) {
+  if (bossSchedules[flight]) {
     console.log(`🔄 Navigating to Flight ${flight}`)
     currentDestinysFlight.value = flight
-    // Reset to first season - this will trigger the watch which calls fetchSeasonData
-    activeSeason.value = 1
+    activeSeason.value = getFlightSeasons(flight)[0]
   }
 }
 
 const canNavigateToFlight = (flight: number) => {
-  return !!bossSchedules[flight as keyof typeof bossSchedules]
+  return !!bossSchedules[flight]
 }
 
 // Get the next available flight (for navigation)
 const getNextFlight = (currentFlight: number, direction: 'prev' | 'next'): number | null => {
-  const availableFlights = Object.keys(bossSchedules).map(Number).sort((a, b) => a - b)
+  const availableFlights = getAvailableFlights()
   const currentIndex = availableFlights.indexOf(currentFlight)
 
   if (direction === 'prev') {
@@ -546,63 +283,9 @@ const getNextFlight = (currentFlight: number, direction: 'prev' | 'next'): numbe
   return null
 }
 
-// Ticket status helper methods - Updated for different seasons
+// Ticket status helper methods
 const getTicketStatusClass = (player: any, season: number = activeSeason.value) => {
-  let ticketsUsed = 0
-  const flight = currentDestinysFlight.value
-
-  if (flight === 21) {
-    if (season === 1) {
-      // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void
-      ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
-    } else if (season === 2) {
-      // Season 21-2: Red Velvet Dragon and Machine God of the Eternal Void
-      ticketsUsed = player.redVelvetDragon.battles + (player.machineGod?.battles || 0)
-    } else if (season === 3) {
-      // Season 21-3: Red Velvet Dragon and Avatar of Destiny
-      ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-    } else if (season === 4) {
-      // Season 21-4: Avatar of Destiny and Machine God of the Eternal Void
-      ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
-    }
-  } else if (flight === 23) {
-    if (season === 1) {
-      // Season 23-1: Red Velvet Dragon and Avatar of Destiny
-      ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-    } else if (season === 2) {
-      // Season 23-2: Avatar of Destiny and Machine God
-      ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
-    } else if (season === 3) {
-      // Season 23-3: Red Velvet Dragon and Machine God
-      ticketsUsed = player.redVelvetDragon.battles + (player.machineGod?.battles || 0)
-    } else if (season === 4) {
-      // Season 23-4: Red Velvet Dragon and Avatar of Destiny
-      ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-    }
-  } else if (flight === 24) {
-    if (season === 1) {
-      // Season 24-1: Avatar of Destiny and Machine God
-      ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
-    } else if (season === 2) {
-      // Season 24-2: Red Velvet Dragon and Machine God
-      ticketsUsed = player.redVelvetDragon.battles + (player.machineGod?.battles || 0)
-    } else if (season === 3) {
-      // Season 24-3: Red Velvet Dragon and Avatar of Destiny
-      ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-    }
-  } else if (season === 1) {
-    // Season 20-1: Red Velvet Dragon and Living Abyss
-    ticketsUsed = player.redVelvetDragon.battles + player.livingAbyss.battles
-  } else if (season === 2) {
-    // Season 20-2: Red Velvet Dragon and Avatar of Destiny
-    ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-  } else if (season === 3) {
-    // Season 20-3: Avatar of Destiny and Living Abyss
-    ticketsUsed = player.avatarOfDestiny.battles + player.livingAbyss.battles
-  } else {
-    // Default fallback: Avatar of Destiny and Living Abyss
-    ticketsUsed = player.avatarOfDestiny.battles + player.livingAbyss.battles
-  }
+  const ticketsUsed = getPlayerTickets(player, currentDestinysFlight.value, season)
 
   if (ticketsUsed >= 18) return 'ticket-excellent'
   if (ticketsUsed >= 15) return 'ticket-good'
@@ -611,61 +294,7 @@ const getTicketStatusClass = (player: any, season: number = activeSeason.value) 
 }
 
 const getTicketStatusText = (player: any, season: number = activeSeason.value) => {
-  let ticketsUsed = 0
-  const flight = currentDestinysFlight.value
-
-  if (flight === 21) {
-    if (season === 1) {
-      // Season 21-1: Avatar of Destiny and Machine God of the Eternal Void
-      ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
-    } else if (season === 2) {
-      // Season 21-2: Red Velvet Dragon and Machine God of the Eternal Void
-      ticketsUsed = player.redVelvetDragon.battles + (player.machineGod?.battles || 0)
-    } else if (season === 3) {
-      // Season 21-3: Red Velvet Dragon and Avatar of Destiny
-      ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-    } else if (season === 4) {
-      // Season 21-4: Avatar of Destiny and Machine God of the Eternal Void
-      ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
-    }
-  } else if (flight === 23) {
-    if (season === 1) {
-      // Season 23-1: Red Velvet Dragon and Avatar of Destiny
-      ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-    } else if (season === 2) {
-      // Season 23-2: Avatar of Destiny and Machine God
-      ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
-    } else if (season === 3) {
-      // Season 23-3: Red Velvet Dragon and Machine God
-      ticketsUsed = player.redVelvetDragon.battles + (player.machineGod?.battles || 0)
-    } else if (season === 4) {
-      // Season 23-4: Red Velvet Dragon and Avatar of Destiny
-      ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-    }
-  } else if (flight === 24) {
-    if (season === 1) {
-      // Season 24-1: Avatar of Destiny and Machine God
-      ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
-    } else if (season === 2) {
-      // Season 24-2: Red Velvet Dragon and Machine God
-      ticketsUsed = player.redVelvetDragon.battles + (player.machineGod?.battles || 0)
-    } else if (season === 3) {
-      // Season 24-3: Red Velvet Dragon and Avatar of Destiny
-      ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-    }
-  } else if (season === 1) {
-    // Season 20-1: Red Velvet Dragon and Living Abyss
-    ticketsUsed = player.redVelvetDragon.battles + player.livingAbyss.battles
-  } else if (season === 2) {
-    // Season 20-2: Red Velvet Dragon and Avatar of Destiny
-    ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-  } else if (season === 3) {
-    // Season 20-3: Avatar of Destiny and Living Abyss
-    ticketsUsed = player.avatarOfDestiny.battles + player.livingAbyss.battles
-  } else {
-    // Default fallback: Avatar of Destiny and Living Abyss
-    ticketsUsed = player.avatarOfDestiny.battles + player.livingAbyss.battles
-  }
+  const ticketsUsed = getPlayerTickets(player, currentDestinysFlight.value, season)
 
   if (ticketsUsed >= 18) return 'Yay'
   if (ticketsUsed >= 15) return 'Slothful'
@@ -694,157 +323,19 @@ const hallOfGloryData = ref({
 
 // Helper function to get total damage for a player based on active bosses in a season
 const getPlayerTotalDamageForGlory = (player: any, seasonId: string) => {
-  // Parse season ID (e.g., "23-1" -> flight: 23, season: 1)
-  const parts = seasonId.split('-')
-  if (parts.length !== 2) {
-    // Fallback: sum all bosses
-    return player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage + (player.machineGod?.damage || 0)
-  }
-
-  const flight = parseInt(parts[0])
-  const season = parseInt(parts[1])
-
-  // Flight 23 seasons
-  if (flight === 23) {
-    if (season === 1) {
-      // Season 23-1: Red Velvet Dragon and Avatar of Destiny
-      return player.redVelvetDragon.damage + player.avatarOfDestiny.damage
-    } else if (season === 2) {
-      // Season 23-2: Avatar of Destiny and Machine God
-      return player.avatarOfDestiny.damage + (player.machineGod?.damage || 0)
-    } else if (season === 3) {
-      // Season 23-3: Red Velvet Dragon and Machine God
-      return player.redVelvetDragon.damage + (player.machineGod?.damage || 0)
-    } else if (season === 4) {
-      // Season 23-4: Red Velvet Dragon and Avatar of Destiny
-      return player.redVelvetDragon.damage + player.avatarOfDestiny.damage
-    }
-  }
-  // Flight 24 seasons
-  if (flight === 24) {
-    if (season === 1) {
-      // Season 24-1: Avatar of Destiny and Machine God
-      return player.avatarOfDestiny.damage + (player.machineGod?.damage || 0)
-    } else if (season === 2) {
-      // Season 24-2: Red Velvet Dragon and Machine God
-      return player.redVelvetDragon.damage + (player.machineGod?.damage || 0)
-    } else if (season === 3) {
-      // Season 24-3: Red Velvet Dragon and Avatar of Destiny
-      return player.redVelvetDragon.damage + player.avatarOfDestiny.damage
-    }
-  }
-  // Flight 21 seasons
-  if (flight === 21) {
-    if (season === 1) {
-      // Season 21-1: Avatar of Destiny and Machine God
-      return player.avatarOfDestiny.damage + (player.machineGod?.damage || 0)
-    } else if (season === 2) {
-      // Season 21-2: Red Velvet Dragon and Machine God
-      return player.redVelvetDragon.damage + (player.machineGod?.damage || 0)
-    } else if (season === 3) {
-      // Season 21-3: Red Velvet Dragon and Avatar of Destiny
-      return player.redVelvetDragon.damage + player.avatarOfDestiny.damage
-    } else if (season === 4) {
-      // Season 21-4: Avatar of Destiny and Machine God
-      return player.avatarOfDestiny.damage + (player.machineGod?.damage || 0)
-    }
-  }
-  // Flight 20 seasons
-  if (flight === 20) {
-    if (season === 1) {
-      // Season 20-1: Red Velvet Dragon and Living Abyss
-      return player.redVelvetDragon.damage + player.livingAbyss.damage
-    } else if (season === 2) {
-      // Season 20-2: Red Velvet Dragon and Avatar of Destiny
-      return player.redVelvetDragon.damage + player.avatarOfDestiny.damage
-    } else if (season === 3) {
-      // Season 20-3: Avatar of Destiny and Living Abyss
-      return player.avatarOfDestiny.damage + player.livingAbyss.damage
-    }
-  }
-  // Default: sum all bosses
-  return player.redVelvetDragon.damage + player.avatarOfDestiny.damage + player.livingAbyss.damage + (player.machineGod?.damage || 0)
+  return getPlayerTotalDamageBySeasonId(player, seasonId)
 }
 
 // Helper function to get total battles for a player based on active bosses in a season
 const getPlayerTotalBattlesForGlory = (player: any, seasonId: string) => {
-  // Parse season ID (e.g., "23-1" -> flight: 23, season: 1)
-  const parts = seasonId.split('-')
-  if (parts.length !== 2) {
-    // Fallback: sum all battles
-    return player.redVelvetDragon.battles + player.avatarOfDestiny.battles + player.livingAbyss.battles + (player.machineGod?.battles || 0)
-  }
-
-  const flight = parseInt(parts[0])
-  const season = parseInt(parts[1])
-
-  // Flight 23 seasons
-  if (flight === 23) {
-    if (season === 1) {
-      // Season 23-1: Red Velvet Dragon and Avatar of Destiny
-      return player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-    } else if (season === 2) {
-      // Season 23-2: Avatar of Destiny and Machine God
-      return player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
-    } else if (season === 3) {
-      // Season 23-3: Red Velvet Dragon and Machine God
-      return player.redVelvetDragon.battles + (player.machineGod?.battles || 0)
-    } else if (season === 4) {
-      // Season 23-4: Red Velvet Dragon and Avatar of Destiny
-      return player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-    }
-  }
-  // Flight 24 seasons
-  if (flight === 24) {
-    if (season === 1) {
-      // Season 24-1: Avatar of Destiny and Machine God
-      return player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
-    } else if (season === 2) {
-      // Season 24-2: Red Velvet Dragon and Machine God
-      return player.redVelvetDragon.battles + (player.machineGod?.battles || 0)
-    } else if (season === 3) {
-      // Season 24-3: Red Velvet Dragon and Avatar of Destiny
-      return player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-    }
-  }
-  // Flight 21 seasons
-  if (flight === 21) {
-    if (season === 1) {
-      // Season 21-1: Avatar of Destiny and Machine God
-      return player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
-    } else if (season === 2) {
-      // Season 21-2: Red Velvet Dragon and Machine God
-      return player.redVelvetDragon.battles + (player.machineGod?.battles || 0)
-    } else if (season === 3) {
-      // Season 21-3: Red Velvet Dragon and Avatar of Destiny
-      return player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-    } else if (season === 4) {
-      // Season 21-4: Avatar of Destiny and Machine God
-      return player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
-    }
-  }
-  // Flight 20 seasons
-  if (flight === 20) {
-    if (season === 1) {
-      // Season 20-1: Red Velvet Dragon and Living Abyss
-      return player.redVelvetDragon.battles + player.livingAbyss.battles
-    } else if (season === 2) {
-      // Season 20-2: Red Velvet Dragon and Avatar of Destiny
-      return player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-    } else if (season === 3) {
-      // Season 20-3: Avatar of Destiny and Living Abyss
-      return player.avatarOfDestiny.battles + player.livingAbyss.battles
-    }
-  }
-  // Default: sum all battles
-  return player.redVelvetDragon.battles + player.avatarOfDestiny.battles + player.livingAbyss.battles + (player.machineGod?.battles || 0)
+  return getPlayerTotalBattlesBySeasonId(player, seasonId)
 }
 
 // Function to fetch data for a specific season
 const fetchSeasonDataForGlory = async (seasonId: string) => {
   try {
     const battlePlayers = await BattleAnalyzer.fetchFromGoogleSheets(
-      '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
+      SPREADSHEET_ID,
       `${seasonId}!A1:Z100`
     )
 
@@ -990,46 +481,35 @@ const mobileBossList = computed(() => {
 // Helper functions for season status display
 const getSeasonStatusClass = () => {
   const flight = currentDestinysFlight.value
-  if (flight === 21) {
-    if (activeSeason.value === 1) return 'tallying'
-    if (activeSeason.value === 2) return 'tallying'
-    if (activeSeason.value === 3) return 'tallying'
-    if (activeSeason.value === 4) return 'current'
-  } else if (flight === 23 || flight === 24) {
-    // Flights 23 and 24: All seasons are previous seasons
-    return 'previous'
-  } else if (flight === 20 && activeSeason.value === 3) {
+  if (isLatestSeason(flight, activeSeason.value)) {
+    return 'current'
+  }
+  if (hasSeasonData(activeSeason.value)) {
     return 'previous'
   }
   return 'default'
 }
 
+const thirdBossColumnName = computed(() =>
+  getThirdBossDisplayName(currentDestinysFlight.value, activeSeason.value)
+)
+
+const thirdBossColumnImage = computed(() =>
+  getThirdBossImage(currentDestinysFlight.value, activeSeason.value)
+)
+
+const getPlayerSeasonTotalDamage = (player: any, season: number = activeSeason.value) =>
+  getPlayerTotalDamage(player, currentDestinysFlight.value, season)
+
+const getPlayerThirdBossDamage = (player: any, season: number = activeSeason.value) =>
+  getPlayerThirdBossStat(player, currentDestinysFlight.value, season, 'damage')
+
+const getPlayerThirdBossBattles = (player: any, season: number = activeSeason.value) =>
+  getPlayerThirdBossStat(player, currentDestinysFlight.value, season, 'battles')
+
 // Helper function to get tickets used for display
 const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
-  const flight = currentDestinysFlight.value
-  let ticketsUsed = 0
-
-  if (flight === 21) {
-    if (season === 1) ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
-    else if (season === 2) ticketsUsed = player.redVelvetDragon.battles + (player.machineGod?.battles || 0)
-    else if (season === 3) ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-    else if (season === 4) ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
-  } else if (flight === 23) {
-    if (season === 1) ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-    else if (season === 2) ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
-    else if (season === 3) ticketsUsed = player.redVelvetDragon.battles + (player.machineGod?.battles || 0)
-    else if (season === 4) ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-  } else if (flight === 24) {
-    if (season === 1) ticketsUsed = player.avatarOfDestiny.battles + (player.machineGod?.battles || 0)
-    else if (season === 2) ticketsUsed = player.redVelvetDragon.battles + (player.machineGod?.battles || 0)
-    else if (season === 3) ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-  } else {
-    if (season === 1) ticketsUsed = player.redVelvetDragon.battles + player.livingAbyss.battles
-    else if (season === 2) ticketsUsed = player.redVelvetDragon.battles + player.avatarOfDestiny.battles
-    else ticketsUsed = player.avatarOfDestiny.battles + player.livingAbyss.battles
-  }
-
-  return ticketsUsed
+  return getPlayerTickets(player, currentDestinysFlight.value, season)
 }
 
 // Alliance Ranking Data
@@ -1357,7 +837,7 @@ const formatAllianceTime = (time: string | number) => {
             <span class="load-icon">📊</span>
             <span>Load All-Time Champions</span>
           </button>
-          <p class="load-note">Load data from seasons 17-1 to 24-3</p>
+          <p class="load-note">Load data from seasons {{ allSeasons[0]?.id }} to {{ allSeasons[allSeasons.length - 1]?.id }}</p>
         </div>
 
         <!-- Loading State -->
@@ -1691,90 +1171,24 @@ const formatAllianceTime = (time: string | number) => {
 
           <!-- Dynamic title and subtitle based on season status -->
           <h2 class="coming-soon-title">
-            <span v-if="currentDestinysFlight === 21 && activeSeason === 1">Season Just Finished</span>
-            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 2">Previous Season</span>
-            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 3">Previous Season</span>
-            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 4">Current Season</span>
-            <span v-else-if="currentDestinysFlight === 20 && activeSeason === 3">Previous Season</span>
+            <span v-if="isLatestSeason(currentDestinysFlight, activeSeason)">Current Season</span>
+            <span v-else-if="hasSeasonData(activeSeason)">Previous Season</span>
             <span v-else>No Data Available</span>
           </h2>
 
           <p class="coming-soon-subtitle">
-            <span v-if="currentDestinysFlight === 21 && activeSeason === 1">Season 21-1 has just ended and is currently
-              being tallied.</span>
-            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 2">Season 21-2 is a previous season with
-              battle data available.</span>
-            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 3">Season 21-3 is a previous season with
-              battle data available.</span>
-            <span v-else-if="currentDestinysFlight === 21 && activeSeason === 4">Season 21-4 is currently active with
-              battle
-              data available.</span>
-            <span v-else-if="currentDestinysFlight === 20 && activeSeason === 3">Season 20-3 is a previous season with
-              battle data available.</span>
+            <span v-if="isLatestSeason(currentDestinysFlight, activeSeason)">
+              Season {{ getSeasonDisplayName(activeSeason) }} is currently active with battle data available.
+            </span>
+            <span v-else-if="hasSeasonData(activeSeason)">
+              Season {{ getSeasonDisplayName(activeSeason) }} is a previous season with battle data available.
+            </span>
             <span v-else>No battle analysis data is available for this season.</span>
           </p>
 
           <!-- Helpful Information Cards -->
           <div class="coming-soon-info">
-            <!-- Season 21-1: Tallying -->
-            <template v-if="currentDestinysFlight === 21 && activeSeason === 1">
-              <div class="info-card tallying">
-                <div class="info-icon">📈</div>
-                <h3>Tallying Results</h3>
-                <p>Final scores and rankings are being calculated. Check back soon for the complete results.</p>
-              </div>
-              <div class="info-card tallying">
-                <div class="info-icon">🏆</div>
-                <h3>Champions</h3>
-                <p>Top performers and guild rankings will be available once tallying is complete.</p>
-              </div>
-              <div class="info-card tallying">
-                <div class="info-icon">📅</div>
-                <h3>Next Season</h3>
-                <p>Season 21-2 is currently active. Check the boss schedule above for current battles.</p>
-              </div>
-            </template>
-
-            <!-- Season 21-2: Previous Season -->
-            <template v-if="currentDestinysFlight === 21 && activeSeason === 2">
-              <div class="info-card previous">
-                <div class="info-icon">📊</div>
-                <h3>Data Available</h3>
-                <p>This season has completed and all battle data is available for review.</p>
-              </div>
-              <div class="info-card previous">
-                <div class="info-icon">🏆</div>
-                <h3>Final Results</h3>
-                <p>Check the Hall of Glory below to see final rankings and champions.</p>
-              </div>
-              <div class="info-card previous">
-                <div class="info-icon">📈</div>
-                <h3>Performance Analysis</h3>
-                <p>Review your guild's performance and identify areas for improvement.</p>
-              </div>
-            </template>
-
-            <!-- Season 21-3: Previous Season -->
-            <template v-if="currentDestinysFlight === 21 && activeSeason === 3">
-              <div class="info-card previous">
-                <div class="info-icon">📊</div>
-                <h3>Data Available</h3>
-                <p>This season has completed and all battle data is available for review.</p>
-              </div>
-              <div class="info-card previous">
-                <div class="info-icon">🏆</div>
-                <h3>Final Results</h3>
-                <p>Check the Hall of Glory below to see final rankings and champions.</p>
-              </div>
-              <div class="info-card previous">
-                <div class="info-icon">📈</div>
-                <h3>Performance Analysis</h3>
-                <p>Review your guild's performance and identify areas for improvement.</p>
-              </div>
-            </template>
-
-            <!-- Season 21-4: Current Season -->
-            <template v-if="currentDestinysFlight === 21 && activeSeason === 4">
+            <template v-if="isLatestSeason(currentDestinysFlight, activeSeason)">
               <div class="info-card current">
                 <div class="info-icon">⚔️</div>
                 <h3>Battles in Progress</h3>
@@ -1793,9 +1207,7 @@ const formatAllianceTime = (time: string | number) => {
               </div>
             </template>
 
-
-            <!-- Season 20-3: Previous with Data -->
-            <template v-if="currentDestinysFlight === 20 && activeSeason === 3">
+            <template v-else-if="hasSeasonData(activeSeason)">
               <div class="info-card previous">
                 <div class="info-icon">📊</div>
                 <h3>Data Available</h3>
@@ -1814,8 +1226,7 @@ const formatAllianceTime = (time: string | number) => {
             </template>
 
             <!-- Default: Generic current/upcoming info -->
-            <template
-              v-if="!(currentDestinysFlight === 21 && [1, 2, 3, 4].indexOf(activeSeason) !== -1) && !(currentDestinysFlight === 20 && activeSeason === 3)">
+            <template v-else>
               <div class="info-card" v-if="getSeasonType(activeSeason) === 'current'">
                 <div class="info-icon">📊</div>
                 <h3>Data Collection</h3>
@@ -2015,9 +1426,7 @@ const formatAllianceTime = (time: string | number) => {
                   <th>Player</th>
                   <th>Red Velvet Dragon</th>
                   <th>Avatar of Destiny</th>
-                  <th>{{ (currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24)
-                    ?
-                    'Machine God of the Eternal Void' : 'Living Abyss' }}</th>
+                  <th>{{ thirdBossColumnName }}</th>
                   <th>Season Total</th>
                   <th>Tickets Used</th>
                   <th>Guild Rank</th>
@@ -2053,28 +1462,15 @@ const formatAllianceTime = (time: string | number) => {
                   </td>
                   <td class="damage-cell">
                     <div class="damage-info">
-                      <div class="damage-value">{{ BattleAnalyzer.formatDamage((currentDestinysFlight === 21 ||
-                        currentDestinysFlight === 23 || currentDestinysFlight === 24) ? (player.machineGod?.damage || 0)
-                        :
-                        player.livingAbyss.damage) }}</div>
-                      <div class="battles-count">x{{ (currentDestinysFlight === 21 || currentDestinysFlight === 23 ||
-                        currentDestinysFlight === 24) ? (player.machineGod?.battles || 0) : player.livingAbyss.battles
-                        }}
-                      </div>
+                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(getPlayerThirdBossDamage(player)) }}</div>
+                      <div class="battles-count">x{{ getPlayerThirdBossBattles(player) }}</div>
                     </div>
                   </td>
                   <td class="damage-cell">
                     <div class="damage-info">
-                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage +
-                        player.avatarOfDestiny.damage + ((currentDestinysFlight === 21 || currentDestinysFlight === 23
-                          ||
-                          currentDestinysFlight === 24) ? (player.machineGod?.damage || 0) : player.livingAbyss.damage))
-                        }}
+                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(getPlayerSeasonTotalDamage(player)) }}
                       </div>
-                      <div class="battles-count">x{{ player.redVelvetDragon.battles + player.avatarOfDestiny.battles +
-                        ((currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24)
-                          ?
-                        (player.machineGod?.battles || 0) : player.livingAbyss.battles) }}</div>
+                      <div class="battles-count">x{{ getTicketsUsed(player, activeSeason) }}</div>
                     </div>
                   </td>
                   <td class="ticket-cell">
@@ -2139,19 +1535,12 @@ const formatAllianceTime = (time: string | number) => {
 
                 <div class="mobile-boss-damage-item">
                   <div class="mobile-boss-icon">
-                    <img
-                      :src="(currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp' : '/img/Living_Licorice_Abyss.webp'"
-                      :alt="(currentDestinysFlight === 21 || currentDestinysFlight === 23 || currentDestinysFlight === 24) ? 'Machine God of the Eternal Void' : 'Living Abyss'"
-                      class="boss-icon-image">
+                    <img :src="thirdBossColumnImage" :alt="thirdBossColumnName" class="boss-icon-image">
                   </div>
                   <div class="mobile-boss-damage-info">
-                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage((currentDestinysFlight === 21 ||
-                      currentDestinysFlight === 23 || currentDestinysFlight === 24) ? (player.machineGod?.damage || 0) :
-                      player.livingAbyss.damage) }}</div>
-                    <div class="mobile-battles-count">x{{ (currentDestinysFlight === 21 || currentDestinysFlight === 23
-                      ||
-                      currentDestinysFlight === 24) ? (player.machineGod?.battles || 0) : player.livingAbyss.battles }}
+                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(getPlayerThirdBossDamage(player)) }}
                     </div>
+                    <div class="mobile-battles-count">x{{ getPlayerThirdBossBattles(player) }}</div>
                   </div>
                 </div>
               </div>
@@ -2159,9 +1548,7 @@ const formatAllianceTime = (time: string | number) => {
               <div class="mobile-total-section">
                 <div class="mobile-total-damage">
                   <div class="mobile-total-label">Season Total:</div>
-                  <div class="mobile-total-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage +
-                    player.avatarOfDestiny.damage + ((currentDestinysFlight === 21 || currentDestinysFlight === 23 ||
-                      currentDestinysFlight === 24) ? (player.machineGod?.damage || 0) : player.livingAbyss.damage)) }}
+                  <div class="mobile-total-value">{{ BattleAnalyzer.formatDamage(getPlayerSeasonTotalDamage(player)) }}
                   </div>
                 </div>
                 <div class="mobile-ticket-status" :class="getTicketStatusClass(player, activeSeason)">

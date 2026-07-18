@@ -1,6 +1,9 @@
 import { ref, reactive } from 'vue'
 import type { BattlePlayer, BattleStats, FileValidationResult, UploadState, DatabaseFormData } from '~/types/battle'
 import { BattleAnalyzer } from '~/utils/battleAnalyzer'
+import { getLatestFlightAndSeason, getSeasonSheetRange, SPREADSHEET_ID } from '~/utils/seasonConfig'
+
+const latestSeason = getLatestFlightAndSeason()
 
 export const useBattleAnalysis = () => {
   // Analysis state
@@ -14,8 +17,8 @@ export const useBattleAnalysis = () => {
 
   // Google Sheets state
   const sheetsState = reactive({
-    spreadsheetId: '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs',
-    range: '20-1!A1:Z100',
+    spreadsheetId: SPREADSHEET_ID,
+    range: getSeasonSheetRange(latestSeason.flight, latestSeason.season),
     isFetching: false,
     fetchError: '',
     fetchSuccess: false
@@ -23,7 +26,7 @@ export const useBattleAnalysis = () => {
 
   // Database form state
   const databaseForm = reactive<DatabaseFormData>({
-    seasonName: '20-2',
+    seasonName: `${latestSeason.flight}-${latestSeason.season}`,
     guildName: 'Chaos Control Team',
     isSavingToDatabase: false,
     saveSuccess: false,
