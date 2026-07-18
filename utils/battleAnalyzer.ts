@@ -2,7 +2,9 @@ import type { BattlePlayer, BattleStats, GoogleSheetsData } from '~/types/battle
 import {
   getPlayerTotalBattles as getSeasonPlayerTotalBattles,
   getPlayerTotalDamage as getSeasonPlayerTotalDamage,
-  getTicketStats
+  getTicketStats,
+  parseSeasonId,
+  zeroInactiveBossStatsForPlayers
 } from '~/utils/seasonConfig'
 
 export class BattleAnalyzer {
@@ -13,10 +15,30 @@ export class BattleAnalyzer {
     supportedImageTypes: ['image/jpeg', 'image/png', 'image/webp']
   }
 
+  private static resolveSeasonContext(
+    range?: string,
+    flight?: number,
+    season?: number
+  ): { flight: number; season: number } | null {
+    if (typeof flight === 'number' && typeof season === 'number') {
+      return { flight, season }
+    }
+
+    const sheetName = range?.split('!')[0]?.replace(/^'|'$/g, '')
+    return sheetName ? parseSeasonId(sheetName) : null
+  }
+
   /**
-   * Fetch data from Google Sheets and convert to BattlePlayer format
+   * Fetch data from Google Sheets and convert to BattlePlayer format.
+   * When flight/season are known (or parseable from the sheet range), inactive
+   * boss columns are zeroed so leftover spreadsheet values are not shown.
    */
-  static async fetchFromGoogleSheets(spreadsheetId: string, range?: string): Promise<BattlePlayer[]> {
+  static async fetchFromGoogleSheets(
+    spreadsheetId: string,
+    range?: string,
+    flight?: number,
+    season?: number
+  ): Promise<BattlePlayer[]> {
     console.log(`📊 Fetching data from Google Sheets: ${spreadsheetId}`)
     console.log(`📊 Using range: ${range || 'A1:Z100'}`)
 
@@ -79,23 +101,26 @@ export class BattleAnalyzer {
       const sheetsData: GoogleSheetsData[] = result.data
 
       // Convert Google Sheets data to BattlePlayer format
-      const battlePlayers = this.convertSheetsDataToBattlePlayers(sheetsData)
+      let battlePlayers = this.convertSheetsDataToBattlePlayers(sheetsData)
 
-      // Debug: Log Machine God data
-      const playersWithMG = battlePlayers.filter(p => p.machineGod && p.machineGod.battles > 0)
-      console.log(`🔍 BattleAnalyzer: ${playersWithMG.length} players with Machine God data`)
-      if (playersWithMG.length > 0) {
-        console.log('🔍 Sample Machine God players:', playersWithMG.slice(0, 3).map(p => ({
-          name: p.playerName,
-          mgBattles: p.machineGod.battles,
-          mgDamage: p.machineGod.damage
-        })))
+      const seasonContext = this.resolveSeasonContext(range, flight, season)
+      if (seasonContext) {
+        console.log(`🧹 Zeroing inactive bosses for ${seasonContext.flight}-${seasonContext.season}`)
+        battlePlayers = zeroInactiveBossStatsForPlayers(
+          battlePlayers,
+          seasonContext.flight,
+          seasonContext.season
+        )
       }
 
-      // Sort by total damage across all bosses (highest first)
+      // Sort by season-relevant total damage (highest first)
       battlePlayers.sort((a, b) => {
-        const totalDamageA = a.redVelvetDragon.damage + a.avatarOfDestiny.damage + a.livingAbyss.damage + (a.machineGod?.damage || 0)
-        const totalDamageB = b.redVelvetDragon.damage + b.avatarOfDestiny.damage + b.livingAbyss.damage + (b.machineGod?.damage || 0)
+        const totalDamageA = seasonContext
+          ? getSeasonPlayerTotalDamage(a, seasonContext.flight, seasonContext.season)
+          : a.redVelvetDragon.damage + a.avatarOfDestiny.damage + a.livingAbyss.damage + (a.machineGod?.damage || 0)
+        const totalDamageB = seasonContext
+          ? getSeasonPlayerTotalDamage(b, seasonContext.flight, seasonContext.season)
+          : b.redVelvetDragon.damage + b.avatarOfDestiny.damage + b.livingAbyss.damage + (b.machineGod?.damage || 0)
         return totalDamageB - totalDamageA
       })
 

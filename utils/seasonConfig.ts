@@ -334,6 +334,45 @@ export function isLatestSeason(flight: number, season: number): boolean {
   return flight === latest.flight && season === latest.season
 }
 
+const EMPTY_BOSS_STATS = { damage: 0, battles: 0, avgDamagePerTicket: 0 }
+
+/**
+ * Clear damage/tickets for bosses not in this season's rotation.
+ * Spreadsheet tabs often keep leftover values in inactive boss columns.
+ */
+export function zeroInactiveBossStats(player: BattlePlayer, flight: number, season: number): BattlePlayer {
+  const active = new Set(getActiveBossFields(flight, season))
+
+  return {
+    ...player,
+    redVelvetDragon: active.has('redVelvetDragon')
+      ? { ...player.redVelvetDragon }
+      : { ...EMPTY_BOSS_STATS },
+    avatarOfDestiny: active.has('avatarOfDestiny')
+      ? { ...player.avatarOfDestiny }
+      : { ...EMPTY_BOSS_STATS },
+    livingAbyss: active.has('livingAbyss')
+      ? { ...player.livingAbyss }
+      : { ...EMPTY_BOSS_STATS },
+    machineGod: active.has('machineGod')
+      ? { ...(player.machineGod || EMPTY_BOSS_STATS) }
+      : { ...EMPTY_BOSS_STATS }
+  }
+}
+
+export function zeroInactiveBossStatsForPlayers(
+  players: BattlePlayer[],
+  flight: number,
+  season: number
+): BattlePlayer[] {
+  // Only strip columns when this flight/season has an explicit schedule.
+  // Historical tabs (e.g. 17-x) have no schedule — leave raw sheet values alone.
+  if (!bossSchedules[flight]?.[season]) {
+    return players
+  }
+  return players.map(player => zeroInactiveBossStats(player, flight, season))
+}
+
 export function getPlayerTickets(player: BattlePlayer, flight: number, season: number): number {
   return getActiveBossFields(flight, season).reduce(
     (sum, field) => sum + getBossValue(player, field, 'battles'),

@@ -65,7 +65,12 @@ export const useBattleAnalysis = () => {
     try {
       console.log(`🔍 useBattleAnalysis: Fetching from range: ${rangeToUse}`)
       console.log(`🔍 useBattleAnalysis: Season: ${season}, Flight: ${destinysFlight}`)
-      const players = await BattleAnalyzer.fetchFromGoogleSheets(sheetsState.spreadsheetId, rangeToUse)
+      const players = await BattleAnalyzer.fetchFromGoogleSheets(
+        sheetsState.spreadsheetId,
+        rangeToUse,
+        destinysFlight,
+        season
+      )
       
       if (players.length > 0) {
         console.log(`🔍 useBattleAnalysis: About to call calculateStats with season=${season}, destinysFlight=${destinysFlight}`)
