@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { getGuide } from '~/utils/guildGuides'
-import { aodCookies, cremeToppingSets, mintBreakpoints } from '~/utils/aodGuide'
+import { aodCookies, cremeToppingSets, mintBreakpoints, puddingToppingSets } from '~/utils/aodGuide'
 
 const guide = getGuide('aod')
 const mintIndex = ref(0)
 const ferretIndex = ref(0)
 const mintAtkSpdUp = ref(false)
+const puddingSet = ref<(typeof puddingToppingSets)[number]['id']>('2candy')
 const cremeSet = ref<(typeof cremeToppingSets)[number]['id']>('4rasp')
 
+const selectedPudding = computed(() => puddingToppingSets.find(set => set.id === puddingSet.value) || puddingToppingSets[0])
 const selectedCreme = computed(() => cremeToppingSets.find(set => set.id === cremeSet.value) || cremeToppingSets[0])
 const effectiveMintIndex = computed(() => Math.max(0, mintIndex.value - (mintAtkSpdUp.value ? 1 : 0)))
 const selectedMint = computed(() => mintBreakpoints[effectiveMintIndex.value])
@@ -37,12 +39,19 @@ watch([mintIndex, mintAtkSpdUp], () => {
         <article class="gear-card">
           <img class="card-portrait" src="/img/guides/aod/pudding.png" alt="Pudding à la Mode">
           <h3>Pudding à la Mode</h3>
-          <div class="gear-row"><span>Toppings</span><strong>2 Amp Buff, or SPD + CRIT + CD</strong></div>
+          <div class="gear-row">
+            <span>Toppings</span>
+            <select v-model="puddingSet">
+              <option v-for="set in puddingToppingSets" :key="set.id" :value="set.id">{{ set.label }}</option>
+            </select>
+          </div>
           <div class="gear-row"><span>Tart</span><strong>DMG vs all enemies</strong></div>
           <div class="gear-row"><span>Beascuit</span><strong>4× ATK SPD%</strong></div>
           <div class="gear-row"><span>ATK SPD</span><strong>79.5% min</strong></div>
           <div class="gear-row"><span>CRIT</span><strong>21.5% is enough</strong></div>
-          <div class="gear-row"><span>CD</span><strong>3%+</strong></div>
+          <div class="gear-row"><span>CD</span><strong>3.5–4.2%</strong></div>
+          <div class="gear-row"><span>Amp Buff</span><strong>{{ selectedPudding.amp }}</strong></div>
+          <p v-if="puddingSet === '1candy'" class="hint">Use this set if you cannot reach the CRIT req.</p>
         </article>
 
         <article class="gear-card">
@@ -141,10 +150,6 @@ watch([mintIndex, mintAtkSpdUp], () => {
           </table>
         </div>
       </section>
-    </template>
-
-    <template #notes>
-      <p>Pudding, Mint, and Crème: DMG vs all enemies tart. Ferret: increased team DMG tart. Star Coral: DMG vs all enemies tart. Pudding and Crème Brûlée: 4× ATK SPD% beascuit. Mint, Star Coral, and Cream Ferret: full cooldown% beascuit.</p>
     </template>
   </BossGuideLayout>
 </template>

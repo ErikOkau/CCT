@@ -75,6 +75,19 @@ export const mintBreakpoints: MintBreakpoint[] = [
   }
 ]
 
+export const puddingToppingSets = [
+  {
+    id: '2candy',
+    label: '2 Candy + 3 Caramel + 1 CRIT',
+    amp: '15%+'
+  },
+  {
+    id: '1candy',
+    label: '1 Candy + 2 CRIT + 3 Caramel (if CRIT is short)',
+    amp: '8.5%+'
+  }
+] as const
+
 export const cremeToppingSets = [
   { id: '4rasp', label: '4 Raspberry + 2 Caramel', spd: '74.2%' },
   { id: '3rasp', label: '3 Raspberry + 3 Caramel', spd: '75.3%' }
@@ -87,10 +100,10 @@ export const aodCookies = [
     short: 'Pudding',
     role: 'ATK SPD DPS',
     image: '/img/guides/aod/pudding.png',
-    toppings: 'Prefer 2 Amplify Buff. If you cannot, prioritize ATK SPD + CRIT + CD.',
+    toppings: '2 Candy + 3 Caramel + 1 CRIT, or 1 Candy + 2 CRIT + 3 Caramel if CRIT is short.',
     tart: 'DMG vs all enemies',
     beascuit: '4× ATK SPD%',
-    stats: 'ATK SPD 79.5% min · CRIT 21.5% is enough · CD 3%+'
+    stats: 'ATK SPD 79.5% min · CRIT 21.5% is enough · CD 3.5–4.2% · Amp Buff 15%+ (8.5%+ on alt set)'
   },
   {
     id: 'mint',
