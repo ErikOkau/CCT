@@ -20,15 +20,15 @@ export const linzerSets = [
     id: 'high',
     label: 'High skill level',
     cd: '11.4%',
-    dr: '75% DR',
+    dr: '74.1% DR',
     aspd: '37.x%+ ATK SPD (as high as possible)'
   },
   {
     id: 'low',
     label: 'Low skill level',
     cd: '11.9%',
-    dr: '~65% DR (up to 74.1% if max skill lvl)',
-    aspd: '40%+ ATK SPD (as high as possible)'
+    dr: '~65% DR',
+    aspd: '37.x%+ ATK SPD (as high as possible)'
   }
 ] as const
 
