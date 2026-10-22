@@ -1,5 +1,6 @@
 import type { BossField } from './guildBattleBosses'
-import { getActiveBossFields } from './seasonConfig'
+import { matchBossFieldFromHeader } from './guildBattleBosses'
+import { getActiveBossFields, hasSeasonBossSchedule } from './seasonConfig'
 
 export const SHEET_MAX_GUILD_SIZE = 30
 
@@ -93,23 +94,74 @@ function mergeBossStat(
   return existing
 }
 
-export function isRankedMemberRow(row: unknown[]): boolean {
+export function isSheetFooterRow(row: unknown[]): boolean {
   if (!row || row.length === 0) return false
   const firstCell = row[0]?.toString() ?? ''
-  if (
+  return (
     firstCell.includes('DAMAGE REQ') ||
     firstCell.includes('DAMAGE GOAL') ||
     firstCell.includes('Min Tickets')
-  ) {
-    return false
+  )
+}
+
+/** Boss names from sheet row 1 (each block’s “Members” header sits under the boss title). */
+export function detectActiveBossFieldsFromSheetHeader(rows: unknown[][]): BossField[] {
+  const header = rows[0] ?? []
+  const found: BossField[] = []
+  for (const slice of SHEET_BOSS_SLICES) {
+    const titleCell = (header[slice.nameCol] ?? header[slice.rankCol + 1] ?? '')
+      .toString()
+      .trim()
+    if (!titleCell) continue
+    const field = matchBossFieldFromHeader(titleCell)
+    if (field && !found.includes(field)) found.push(field)
   }
-  return SHEET_BOSS_SLICES.some(({ rankCol, nameCol, damageCol }) => {
-    const rank = parseInt(row[rankCol]?.toString().trim(), 10)
-    const hasRank =
-      Number.isInteger(rank) && rank >= 1 && rank <= SHEET_MAX_GUILD_SIZE + 2
-    const hasMember =
-      !!normalizeSheetPlayerName(row[nameCol]) || parseDamageCell(row[damageCol]) > 0
-    return hasRank && hasMember
+  return found
+}
+
+function rankInSliceValid(row: unknown[], slice: SheetBossSlice): boolean {
+  const rankRaw = row[slice.rankCol]?.toString().trim() ?? ''
+  if (!rankRaw) return true
+  const rank = parseInt(rankRaw, 10)
+  return Number.isInteger(rank) && rank >= 1 && rank <= SHEET_MAX_GUILD_SIZE
+}
+
+function ingestSliceCell(
+  playerMap: Map<string, ParsedSheetPlayer>,
+  slice: SheetBossSlice,
+  row: unknown[]
+) {
+  if ((row.length ?? 0) < slice.avgCol + 1) return
+  if (!rankInSliceValid(row, slice)) return
+
+  const name = normalizeSheetPlayerName(row[slice.nameCol])
+  if (!name) return
+
+  const damage = parseDamageCell(row[slice.damageCol])
+  const battlesRaw = parseInt(row[slice.battlesCol]?.toString() ?? '', 10) || 0
+  const battles = damage > 0 ? battlesRaw : 0
+  const avg = parseInt(row[slice.avgCol]?.toString() ?? '', 10) || 0
+  if (damage <= 0 && battles <= 0) return
+
+  const key = sheetPlayerKey(name)
+  let player = playerMap.get(key)
+  if (!player) {
+    player = {
+      playerName: name,
+      redVelvetDragon: emptyBossStats(),
+      avatarOfDestiny: emptyBossStats(),
+      livingAbyss: emptyBossStats(),
+      machineGod: emptyBossStats()
+    }
+    playerMap.set(key, player)
+  } else if (name.length > player.playerName.length) {
+    player.playerName = name
+  }
+
+  player[slice.field] = mergeBossStat(player[slice.field], {
+    damage,
+    battles,
+    avgDamagePerTicket: avg
   })
 }
 
@@ -125,53 +177,38 @@ export function parseSpreadsheetRowsToPlayers(
   rows: unknown[][],
   options?: { flight?: number; season?: number }
 ): ParsedSheetPlayer[] {
-  const activeFields =
+  const fromHeader = detectActiveBossFieldsFromSheetHeader(rows)
+  const fromSeason =
     options?.flight != null && options?.season != null
-      ? new Set(getActiveBossFields(options.flight, options.season))
-      : null
+      ? getActiveBossFields(options.flight, options.season)
+      : []
 
-  const slices = activeFields
-    ? SHEET_BOSS_SLICES.filter(s => activeFields.has(s.field))
-    : SHEET_BOSS_SLICES
+  const useSeasonSchedule =
+    options?.flight != null &&
+    options?.season != null &&
+    hasSeasonBossSchedule(options.flight, options.season)
 
-  const dataRows = rows.slice(2)
-  const playerRows = dataRows.filter(isRankedMemberRow)
+  const activeList = useSeasonSchedule
+    ? fromSeason
+    : fromHeader.length >= 2
+      ? fromHeader
+      : fromSeason.length > 0
+        ? fromSeason
+        : fromHeader
+
+  const activeFields = new Set(activeList)
+  const slices =
+    activeFields.size > 0
+      ? SHEET_BOSS_SLICES.filter(s => activeFields.has(s.field))
+      : SHEET_BOSS_SLICES
+
+  const dataRows = rows.slice(2).filter(r => r && !isSheetFooterRow(r))
   const playerMap = new Map<string, ParsedSheetPlayer>()
 
-  for (const row of playerRows) {
-    if (row.length < 20) continue
-
-    for (const slice of slices) {
-      const name = normalizeSheetPlayerName(row[slice.nameCol])
-      if (!name) continue
-
-      const damage = parseDamageCell(row[slice.damageCol])
-      const battlesRaw = parseInt(row[slice.battlesCol]?.toString() ?? '', 10) || 0
-      const battles = damage > 0 ? battlesRaw : 0
-      const avg = parseInt(row[slice.avgCol]?.toString() ?? '', 10) || 0
-      if (damage <= 0 && battles <= 0) continue
-
-      const key = sheetPlayerKey(name)
-      let player = playerMap.get(key)
-      if (!player) {
-        player = {
-          playerName: name,
-          redVelvetDragon: emptyBossStats(),
-          avatarOfDestiny: emptyBossStats(),
-          livingAbyss: emptyBossStats(),
-          machineGod: emptyBossStats()
-        }
-        playerMap.set(key, player)
-      } else if (name.length > player.playerName.length) {
-        player.playerName = name
-      }
-
-      const field = slice.field
-      player[field] = mergeBossStat(player[field], {
-        damage,
-        battles,
-        avgDamagePerTicket: avg
-      })
+  // Each boss column is its own damage ranking — the same player can appear on different rows.
+  for (const slice of slices) {
+    for (const row of dataRows) {
+      ingestSliceCell(playerMap, slice, row)
     }
   }
 

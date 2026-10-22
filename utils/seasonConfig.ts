@@ -68,7 +68,7 @@ export const FLIGHT_SEASONS: Record<number, number[]> = {
   30: [1, 2, 3, 4],
   31: [1, 2, 3],
   33: [2],
-  34: [1, 2],
+  34: [1, 2, 3],
   35: [1, 2, 3, 4]
 }
 
@@ -121,7 +121,8 @@ export const bossSchedules: Record<number, FlightBossSchedule> = {
   },
   34: {
     1: LA_MG_AOD, // 34-1: Living Abyss + Machine God
-    2: AOD_MG     // 34-2: Avatar of Destiny + Machine God
+    2: AOD_MG,    // 34-2: Avatar of Destiny + Machine God
+    3: LA_MG_AOD  // 34-3: Living Abyss + Machine God
   },
   35: {
     1: AOD_MG,    // 35-1: Avatar of Destiny + Machine God
@@ -144,7 +145,7 @@ export const ALL_SEASON_IDS = [
   '29-1',
   '30-1', '30-2', '30-3', '30-4',
   '31-1', '31-2', '31-3',
-  '34-1', '34-2',
+  '34-1', '34-2', '34-3',
   '35-1', '35-2', '35-3', '35-4'
 ]
 
@@ -247,6 +248,10 @@ export function isBossActiveInSeason(bossName: string, flight: number, season: n
     }
   }
   return false
+}
+
+export function hasSeasonBossSchedule(flight: number, season: number): boolean {
+  return bossSchedules[flight]?.[season] != null
 }
 
 export function getActiveBossFields(flight: number, season: number): BossField[] {
