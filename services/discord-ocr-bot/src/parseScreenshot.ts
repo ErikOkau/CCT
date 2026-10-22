@@ -14,7 +14,7 @@ import { dedupeWarnings } from '../../../utils/guildBattlePlayerMerge.ts'
 import { getOcrProvider, parseParticipantsScreenshotVision } from './openaiVision.ts'
 import { ocrBuffer, terminateOcrWorker } from './ocrSession.ts'
 
-export { MAX_IMAGES }
+export { MAX_IMAGES } from '../../../utils/guildBattleOcrParse.ts'
 
 const TABLE_CROP = { left: 0, top: 0.11, width: 1, height: 0.8 }
 const HEADER_CROP = { left: 0.22, top: 0.08, width: 0.76, height: 0.12 }
@@ -132,6 +132,7 @@ export async function parseParticipantsScreenshot(
 
   return {
     seasonId: ocrSeasonId ?? seasonId,
+    uiParticipantCount: null,
     headerBosses,
     rows: filterAndDedupeOcrRows(parsed.rows),
     warnings
@@ -148,6 +149,7 @@ export async function parseParticipantsImages(
   const allRows: OcrPlayerRow[] = []
   const warnings: string[] = []
   let headerBosses: BossField[] = []
+  let uiParticipantCount: number | null = null
   const detectedSeasons: string[] = []
   const usedOpenAi = getOcrProvider() === 'openai'
 
@@ -155,6 +157,12 @@ export async function parseParticipantsImages(
     for (const buf of buffers.slice(0, MAX_IMAGES)) {
       const result = await parseParticipantsScreenshot(buf, { seasonId, flightHint })
       if (result.seasonId) detectedSeasons.push(result.seasonId)
+      if (result.uiParticipantCount != null) {
+        uiParticipantCount =
+          uiParticipantCount == null
+            ? result.uiParticipantCount
+            : Math.max(uiParticipantCount, result.uiParticipantCount)
+      }
       if (result.headerBosses.length >= headerBosses.length) {
         headerBosses = result.headerBosses
       }
@@ -171,12 +179,6 @@ export async function parseParticipantsImages(
   const effectiveSeason = ocrSeason && ocrSeason !== seasonId ? ocrSeason : seasonId
   const merged = filterAndDedupeOcrRows(allRows)
 
-  if (merged.length < 20) {
-    warnings.push(
-      `Only ${merged.length} players parsed (guild has up to 30). Attach **6 screenshots** (~5 members each, full Participants panel) for best coverage.`
-    )
-  }
-
   if (usedOpenAi) {
     const model = process.env.OPENAI_VISION_MODEL?.trim() || 'gpt-4o'
     warnings.push(`Parsed with OpenAI Vision (${model})`)
@@ -184,6 +186,7 @@ export async function parseParticipantsImages(
 
   return {
     seasonId: effectiveSeason,
+    uiParticipantCount,
     headerBosses,
     rows: merged,
     warnings: dedupeWarnings(warnings)

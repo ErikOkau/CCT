@@ -12,6 +12,8 @@ export interface OcrPlayerRow {
 
 export interface ParsedScreenshot {
   seasonId: string | null
+  /** Participants badge count from in-game UI (max across screenshots), when vision returns it */
+  uiParticipantCount: number | null
   headerBosses: BossField[]
   rows: OcrPlayerRow[]
   warnings: string[]

@@ -11,19 +11,42 @@ function getAuth() {
   return new google.auth.GoogleAuth({ credentials, scopes: SCOPES })
 }
 
-export async function sheetTabExists(seasonId: string): Promise<boolean> {
+async function fetchSpreadsheetSheets() {
   const auth = getAuth()
   const sheets = google.sheets({ version: 'v4', auth })
   const res = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID })
-  return (res.data.sheets ?? []).some(s => s.properties?.title === seasonId)
+  return { sheets, list: res.data.sheets ?? [] }
 }
 
-async function resolveTemplateSheetId(): Promise<number> {
-  const auth = getAuth()
-  const sheets = google.sheets({ version: 'v4', auth })
-  const res = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID })
-  const list = res.data.sheets ?? []
+/** Move tab to the rightmost position (after all existing tabs). */
+async function moveSheetTabToEnd(
+  sheets: ReturnType<typeof google.sheets>,
+  sheetId: number,
+  sheetCount: number
+) {
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId: SPREADSHEET_ID,
+    requestBody: {
+      requests: [
+        {
+          updateSheetProperties: {
+            properties: { sheetId, index: Math.max(0, sheetCount - 1) },
+            fields: 'index'
+          }
+        }
+      ]
+    }
+  })
+}
 
+export async function sheetTabExists(seasonId: string): Promise<boolean> {
+  const { list } = await fetchSpreadsheetSheets()
+  return list.some(s => s.properties?.title === seasonId)
+}
+
+function resolveTemplateSheetId(
+  list: Awaited<ReturnType<typeof fetchSpreadsheetSheets>>['list']
+): number {
   const template = list.find(s => s.properties?.title === SHEET_TEMPLATE_TAB)
   if (template?.properties?.sheetId != null) return template.properties.sheetId
 
@@ -39,7 +62,9 @@ export async function createSeasonTabFromOcr(
   players: OcrPlayerRow[],
   opts?: { overwrite?: boolean }
 ): Promise<{ created: boolean; warning?: string; playerCount: number }> {
-  const exists = await sheetTabExists(seasonId)
+  const { sheets, list } = await fetchSpreadsheetSheets()
+  const exists = list.some(s => s.properties?.title === seasonId)
+
   if (exists && !opts?.overwrite) {
     return {
       created: false,
@@ -48,11 +73,14 @@ export async function createSeasonTabFromOcr(
     }
   }
 
-  const auth = getAuth()
-  const sheets = google.sheets({ version: 'v4', auth })
   const grid = buildSeasonSheetGrid(seasonId, players)
 
   if (exists && opts?.overwrite) {
+    const existing = list.find(s => s.properties?.title === seasonId)
+    const existingId = existing?.properties?.sheetId
+    if (existingId != null && list.length > 1) {
+      await moveSheetTabToEnd(sheets, existingId, list.length)
+    }
     await sheets.spreadsheets.values.clear({
       spreadsheetId: SPREADSHEET_ID,
       range: `'${seasonId}'!A1:AA100`
@@ -66,7 +94,9 @@ export async function createSeasonTabFromOcr(
     return { created: true, playerCount: players.length }
   }
 
-  const templateSheetId = await resolveTemplateSheetId()
+  const templateSheetId = resolveTemplateSheetId(list)
+  const insertSheetIndex = list.length
+
   const duplicate = await sheets.spreadsheets.batchUpdate({
     spreadsheetId: SPREADSHEET_ID,
     requestBody: {
@@ -74,6 +104,7 @@ export async function createSeasonTabFromOcr(
         {
           duplicateSheet: {
             sourceSheetId: templateSheetId,
+            insertSheetIndex,
             newSheetName: seasonId
           }
         }
@@ -85,6 +116,9 @@ export async function createSeasonTabFromOcr(
   if (newSheetId == null) {
     throw new Error('Failed to duplicate template sheet')
   }
+
+  // Ensure rightmost tab even if API ignores insertSheetIndex on duplicate
+  await moveSheetTabToEnd(sheets, newSheetId, list.length + 1)
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: SPREADSHEET_ID,

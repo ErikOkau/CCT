@@ -34,7 +34,7 @@ if (paths.length === 0) {
 
 console.log(`Running OCR on ${paths.length} image(s) as season ${seasonId}…`)
 
-const buffers = paths.slice(0, 5).map(p => readFileSync(p))
+const buffers = paths.slice(0, 6).map(p => readFileSync(p))
 
 ;(async () => {
   const parsed = await parseParticipantsImages(buffers, seasonId)

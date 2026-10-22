@@ -12,6 +12,8 @@ const BOSS_FIELDS: BossField[] = [
 
 export interface VisionExtractPayload {
   seasonId?: string | null
+  /** Red badge count on Participants screen (e.g. 29), if visible */
+  uiParticipantCount?: number | null
   bossColumns?: string[]
   players?: {
     playerName?: string
@@ -70,6 +72,7 @@ export function visionPayloadToParsed(
   options?: { seasonIdHint?: string; flightHint?: number }
 ): {
   seasonId: string | null
+  uiParticipantCount: number | null
   headerBosses: BossField[]
   rows: OcrPlayerRow[]
   warnings: string[]
@@ -121,6 +124,10 @@ export function visionPayloadToParsed(
 
   return {
     seasonId,
+    uiParticipantCount:
+      typeof payload.uiParticipantCount === 'number' && payload.uiParticipantCount > 0
+        ? Math.round(payload.uiParticipantCount)
+        : null,
     headerBosses: headerBosses.slice(0, 2),
     rows: filterAndDedupeOcrRows(rows),
     warnings
@@ -139,6 +146,7 @@ export function parseVisionModelJson(
     warnings.push('Vision model returned invalid JSON')
     return {
       seasonId: options?.seasonIdHint ?? null,
+      uiParticipantCount: null,
       headerBosses: [],
       rows: [],
       warnings
@@ -161,6 +169,7 @@ ${hint}
 Return ONLY valid JSON (no markdown) with this shape:
 {
   "seasonId": "33-2",
+  "uiParticipantCount": 29,
   "bossColumns": ["redVelvetDragon", "livingAbyss"],
   "players": [
     {
@@ -175,7 +184,8 @@ Return ONLY valid JSON (no markdown) with this shape:
 
 Rules:
 - \`bossColumns\`: left-to-right boss damage columns only (not Season Total). Use these exact keys when possible: redVelvetDragon, livingAbyss, avatarOfDestiny, machineGod — match the header text.
-- \`playerName\`: the bold username under the title — NOT the colorful title line above it.
+- \`uiParticipantCount\`: number on the red **Participants** badge (top-right of screen), if visible.
+- \`playerName\`: the bold username under the title — NOT the colorful title line above it. Include **every** visible row (even 2-letter names like \`hi\`, \`XP\`, and \`N/A\` damage rows).
 - \`damage\`: full integer as shown (commas in UI are thousands separators). Do NOT convert to billions. Use 0 for N/A or missing.
 - \`battles\`: number after "x" above damage (usually 9). Use 0 if no damage.
 - Include every player row visible in the table (typically ~5).

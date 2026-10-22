@@ -115,17 +115,22 @@ const SKIP_NAME = new Set([
 
 export function isPlausiblePlayerName(name: string): boolean {
   const n = name.trim()
-  if (n.length < 4 || n.length > 22) return false
+  if (n.length < 2 || n.length > 22) return false
   if (/^\d+$/.test(n)) return false
-  if (/^[A-Z]{2,6}$/.test(n)) return false
+  if (SKIP_NAME.has(n.toLowerCase())) return false
+
+  // CRK allows very short usernames (e.g. hi, XP, salt)
+  if (n.length <= 3) {
+    return /[\p{L}\p{N}]/u.test(n)
+  }
+
+  if (n.length >= 5 && /^[A-Z]{5,6}$/.test(n)) return false
   if (/^[A-Za-z]\d{6,}/.test(n)) return false
   if (/^[Xx][A-Za-z0-9]{4,}[Xx]$/.test(n) && (n.match(/[\u3040-\u30ff]/g)?.length ?? 0) === 0) {
-    // OCR junk like XUpAX — real CJK names are allowed below
     if (!/[\u3040-\u30ff\u4e00-\u9fff]/.test(n)) return false
   }
-  if ((n.match(/[a-zA-Z]/g)?.length ?? 0) < 4 && !/[\u3040-\u30ff\u4e00-\u9fff]/.test(n)) return false
-  if (n.length <= 5 && n === n.toUpperCase()) return false
-  if (SKIP_NAME.has(n.toLowerCase())) return false
+  if ((n.match(/[a-zA-Z]/g)?.length ?? 0) < 2 && !/[\u3040-\u30ff\u4e00-\u9fff]/.test(n)) return false
+  if (n.length >= 6 && n === n.toUpperCase() && !/[\u3040-\u30ff\u4e00-\u9fff]/.test(n)) return false
   return true
 }
 

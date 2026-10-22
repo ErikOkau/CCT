@@ -3,10 +3,13 @@ import {
   parseBossHeadersFromText,
   parseNumericTail,
   parseParticipantsFullText,
+  isPlausiblePlayerName,
   parsePlayerNameFromCell,
   parseSeasonIdFromText
 } from '../../../utils/guildBattleOcrParse.ts'
 import { buildSeasonSheetGrid, damageToBillionCell, mergeOcrPlayers } from '../../../utils/guildBattleSheet.ts'
+import { normalizeRoleName } from '../src/roleGate.ts'
+import { buildCoverageReport, runSanityChecks } from '../../../utils/guildBattleImportChecks.ts'
 import { mergeOcrPlayersUnique } from '../../../utils/guildBattlePlayerMerge.ts'
 import { parseVisionModelJson } from '../../../utils/guildBattleVisionParse.ts'
 
@@ -102,5 +105,35 @@ const kanaDup = mergeOcrPlayersUnique([
 ])
 assert.equal(kanaDup.length, 1)
 assert.equal(kanaDup[0]?.stats.redVelvetDragon?.damage, 201_961_625_886)
+
+const cov = buildCoverageReport(23, 5)
+assert.ok(cov.headline.includes('23/30'))
+const sanity = runSanityChecks(
+  [
+    {
+      playerName: 'Test',
+      stats: {
+        redVelvetDragon: { damage: 100e9, battles: 7 },
+        livingAbyss: { damage: 100e9, battles: 9 }
+      }
+    }
+  ],
+  ['redVelvetDragon', 'livingAbyss']
+)
+assert.ok(sanity.some(w => w.includes('battles')))
+
+assert.ok(normalizeRoleName('CCT Guild Officer ⭐️').includes('cct guild officer'))
+assert.ok(normalizeRoleName('Website Manager 💻').includes('website manager'))
+
+assert.equal(isPlausiblePlayerName('hi'), true)
+assert.equal(isPlausiblePlayerName('XP'), true)
+assert.equal(isPlausiblePlayerName('salt'), true)
+
+const covUi = buildCoverageReport(28, 6, 30, 29)
+assert.ok(covUi.warnings.some(w => w.includes('29')))
+
+const covExtra = buildCoverageReport(30, 6, 30, 29, 1)
+assert.ok(covExtra.headline.includes('30') && covExtra.headline.includes('29'))
+assert.ok(covExtra.detail.includes('no damage'))
 
 console.log('✅ All unit checks passed')

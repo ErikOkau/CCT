@@ -6,11 +6,23 @@ import {
   Partials,
   type Message
 } from 'discord.js'
-import { sortPlayersByBossDamage } from '../../../utils/guildBattlePlayerMerge.ts'
+import { dedupeWarnings, sortPlayersByBossDamage } from '../../../utils/guildBattlePlayerMerge.ts'
+import { buildPreviewBundle, chunkDiscordText, replyWithPreview } from './discordReply.ts'
 import { mergeOcrPlayers } from '../../../utils/guildBattleSheet.ts'
-import type { BossField } from '../../../utils/guildBattleBosses.ts'
-import { MAX_IMAGES, parseParticipantsImages } from './parseScreenshot.ts'
-import { buildSonicInfoText, getMessageCommand, INFO_COMMANDS } from './helpText.ts'
+import { collectParticipantImages, maxImagesLabel } from './collectAttachments.ts'
+import { parseParticipantsImages } from './parseScreenshot.ts'
+import {
+  buildCoverageReport,
+  runSanityChecks
+} from '../../../utils/guildBattleImportChecks.ts'
+import {
+  hasDryRunApproval,
+  isRequireDryRunFirstEnabled,
+  markDryRunApproved
+} from './dryRunConfirmStore.ts'
+import { buildSonicInfoText, getMessageCommand, INFO_COMMANDS, STATUS_COMMANDS } from './helpText.ts'
+import { memberCanRunImport } from './roleGate.ts'
+import { buildSonicStatusText } from './sonicStatus.ts'
 import { createSeasonTabFromOcr, sheetTabExists } from './sheetsClient.ts'
 
 const PREFIX = process.env.DISCORD_COMMAND_PREFIX ?? '?'
@@ -47,36 +59,24 @@ function parseSubmitCommand(content: string): { seasonId: string | null; dryRun:
   }
 }
 
-async function downloadAttachments(message: Message): Promise<Buffer[]> {
-  const images = message.attachments.filter(a =>
-    a.contentType?.startsWith('image/') ?? /\.(png|jpe?g|webp)$/i.test(a.name ?? '')
-  )
+async function downloadAttachments(message: Message): Promise<{
+  buffers: Buffer[]
+  mergedFromReply: boolean
+  totalSelected: number
+  skippedNonImages: number
+}> {
+  const { attachments, mergedFromReply, skippedNonImages } = await collectParticipantImages(message)
   const buffers: Buffer[] = []
-  for (const att of [...images.values()].slice(0, MAX_IMAGES)) {
+  for (const att of attachments) {
     const res = await fetch(att.url)
     buffers.push(Buffer.from(await res.arrayBuffer()))
   }
-  return buffers
-}
-
-function formatPreview(
-  seasonId: string,
-  merged: ReturnType<typeof mergeOcrPlayers>,
-  warnings: string[],
-  headerBosses: BossField[]
-) {
-  const sorted = sortPlayersByBossDamage(merged, headerBosses.length ? headerBosses : [])
-  const bossNote = headerBosses.length
-    ? `\nBoss columns: **${headerBosses.join(' + ')}**`
-    : ''
-  const lines = sorted.slice(0, 30).map(p => {
-    const parts = Object.entries(p.stats)
-      .filter(([, s]) => s && s.damage > 0)
-      .map(([field, s]) => `${field}: ${(s!.damage / 1e9).toFixed(1)}B x${s!.battles}`)
-    return `• **${p.playerName}** — ${parts.join(' | ') || 'no damage'}`
-  })
-  const warnBlock = warnings.length ? `\n⚠️ ${warnings.slice(0, 5).join('\n⚠️ ')}` : ''
-  return `**Season \`${seasonId}\`** — ${sorted.length} players${bossNote}\n${lines.join('\n')}${warnBlock}`
+  return {
+    buffers,
+    mergedFromReply,
+    totalSelected: attachments.length,
+    skippedNonImages
+  }
 }
 
 client.on('messageCreate', async message => {
@@ -84,25 +84,59 @@ client.on('messageCreate', async message => {
 
   const cmd = getMessageCommand(message.content, PREFIX)
   if (cmd && (INFO_COMMANDS as readonly string[]).includes(cmd)) {
-    await message.reply(buildSonicInfoText(PREFIX))
+    const info = buildSonicInfoText(PREFIX)
+    const chunks = chunkDiscordText(info)
+    await message.reply(chunks[0]!)
+    for (let i = 1; i < chunks.length; i++) await message.channel.send(chunks[i]!)
+    return
+  }
+  if (cmd && (STATUS_COMMANDS as readonly string[]).includes(cmd)) {
+    await message.reply(buildSonicStatusText(message.guild?.id))
     return
   }
 
   const { seasonId, dryRun, overwrite } = parseSubmitCommand(message.content)
   if (!seasonId) return
 
-  if (message.attachments.size === 0) {
+  const access = await memberCanRunImport(message)
+  if (!access.ok) {
+    await message.reply(access.reason ?? 'Not allowed.')
+    return
+  }
+
+  if (message.attachments.size === 0 && !message.reference?.messageId) {
     await message.reply(
-      `Attach up to **${MAX_IMAGES}** Participants screenshots (~5 members each, full table) for \`${seasonId}\`.`
+      `Attach up to **${maxImagesLabel()}** Participants screenshots (~5 members each, full table) for \`${seasonId}\`.\n` +
+        `Tip: Discord sometimes limits one upload batch — send **6 in one message**, or **reply** to your earlier message with more images (same author, up to **${maxImagesLabel()}** total).`
     )
     return
   }
 
-  await message.channel.send(`Processing \`${seasonId}\` (${Math.min(message.attachments.size, MAX_IMAGES)} image(s))…`)
-
   try {
-    const buffers = await downloadAttachments(message)
+    const { buffers, mergedFromReply, totalSelected, skippedNonImages } =
+      await downloadAttachments(message)
+
+    if (buffers.length === 0) {
+      await message.reply(
+        'No image attachments detected. Use PNG/JPEG screenshots (not PDF). If you attached files, try re-uploading as images.'
+      )
+      return
+    }
+
+    await message.channel.send(
+      `Processing \`${seasonId}\` (${totalSelected} image(s)${mergedFromReply ? ', including reply' : ''})…`
+    )
+
     const parsed = await parseParticipantsImages(buffers, seasonId)
+    if (mergedFromReply) {
+      parsed.warnings.push('Merged screenshots from your replied message (same author).')
+    }
+    if (skippedNonImages > 0) {
+      parsed.warnings.push(`Ignored ${skippedNonImages} non-image attachment(s).`)
+    }
+    if (message.attachments.size > maxImagesLabel()) {
+      parsed.warnings.push(`Only the first **${maxImagesLabel()}** images are processed.`)
+    }
     const merged = sortPlayersByBossDamage(
       mergeOcrPlayers(parsed.rows),
       parsed.headerBosses
@@ -113,25 +147,73 @@ client.on('messageCreate', async message => {
       return
     }
 
-    const writeSeasonId = parsed.seasonId
-    const preview = formatPreview(writeSeasonId, merged, parsed.warnings, parsed.headerBosses)
+    const writeSeasonId = parsed.seasonId ?? seasonId
+    const noDamageCount = merged.filter(
+      p => !Object.values(p.stats).some(s => s && s.damage > 0)
+    ).length
+    const coverage = buildCoverageReport(
+      merged.length,
+      totalSelected,
+      undefined,
+      parsed.uiParticipantCount,
+      noDamageCount
+    )
+    parsed.warnings.push(...coverage.warnings)
+    parsed.warnings.push(...runSanityChecks(merged, parsed.headerBosses))
+    parsed.warnings = dedupeWarnings(parsed.warnings)
+
+    const bundle = buildPreviewBundle(
+      writeSeasonId,
+      merged,
+      parsed.warnings,
+      parsed.headerBosses,
+      coverage,
+      totalSelected
+    )
+
+    const guildId = message.guild?.id ?? 'dm'
 
     if (dryRun) {
-      await message.reply(`${preview}\n\n(dry run — sheet not modified)`)
+      markDryRunApproved(guildId, writeSeasonId, {
+        playerCount: merged.length,
+        imageCount: totalSelected,
+        userId: message.author.id
+      })
+      const approveNote = isRequireDryRunFirstEnabled()
+        ? '\n\n✅ **Dry-run recorded** — you can write this season without `--dry-run` (same server).'
+        : '\n\n(dry run — sheet not modified)'
+      await replyWithPreview(message, bundle, approveNote, writeSeasonId)
+      return
+    }
+
+    if (isRequireDryRunFirstEnabled() && !hasDryRunApproval(guildId, writeSeasonId)) {
+      await replyWithPreview(
+        message,
+        bundle,
+        `\n\n⛔ **Sheet not modified.** Run \`${PREFIX}submit_result ${writeSeasonId} --dry-run\` with the same screenshots first, then submit again without \`--dry-run\`.\n` +
+          `(\`${PREFIX}sonic_status\` · disable with \`REQUIRE_DRY_RUN_FIRST=0\` in env.)`,
+        writeSeasonId
+      )
       return
     }
 
     const exists = await sheetTabExists(writeSeasonId)
     if (exists && !overwrite) {
-      await message.reply(
-        `${preview}\n\n⚠️ **Sheet \`${writeSeasonId}\` already exists.** Not writing. Add \`--overwrite\` to replace values.`
+      await replyWithPreview(
+        message,
+        bundle,
+        `\n\n⚠️ **Sheet \`${writeSeasonId}\` already exists.** Not writing. Add \`--overwrite\` to replace values.`,
+        writeSeasonId
       )
       return
     }
 
     const result = await createSeasonTabFromOcr(writeSeasonId, merged, { overwrite })
-    await message.reply(
-      `${preview}\n\n✅ ${result.created ? (exists ? 'Updated' : 'Created') : 'Skipped'} tab \`${writeSeasonId}\` (${result.playerCount} OCR rows).`
+    await replyWithPreview(
+      message,
+      bundle,
+      `\n\n✅ ${result.created ? (exists ? 'Updated' : 'Created') : 'Skipped'} tab \`${writeSeasonId}\` (${result.playerCount} OCR rows).`,
+      writeSeasonId
     )
   } catch (err: any) {
     console.error(err)

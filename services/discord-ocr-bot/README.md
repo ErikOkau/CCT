@@ -15,7 +15,7 @@ Attach up to **6** images (~5 members visible each ≈ **30** players). Optional
 - `--dry-run` — OCR preview only, no sheet write
 - `--overwrite` — replace data if tab `35-1` already exists (default is warn + skip)
 
-In Discord: `?sonic_info` (or `?sonic_help`) prints usage, flags, and tips.
+In Discord: `?sonic_info` (help), `?sonic_status` (health & policy).
 
 ## Env vars
 
@@ -31,6 +31,9 @@ In Discord: `?sonic_info` (or `?sonic_help`) prints usage, flags, and tips.
 | `CHATGPT_API` | OpenAI key — when set, screenshots use **GPT-4o vision** instead of Tesseract |
 | `OCR_PROVIDER` | `openai` (default if `CHATGPT_API` set) or `tesseract` |
 | `OPENAI_VISION_MODEL` | Default `gpt-4o` |
+| `REQUIRE_DRY_RUN_FIRST` | Default **on** — must `--dry-run` once per season per server before writing (`0` to disable) |
+| `DISCORD_ALLOWED_ROLE_NAMES` | Optional override; default allows **CCT Guild Officer**, **CCT Guild Leader**, **Website Manager** (+ server owner & Administrator) |
+| `DISCORD_ALLOWED_ROLE_IDS` | Extra allowed role IDs (comma-separated) |
 
 ### Discord Developer Portal
 

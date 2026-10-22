@@ -120,6 +120,7 @@ export async function parseParticipantsScreenshotVision(
 
   return {
     seasonId: parsed.seasonId ?? seasonId,
+    uiParticipantCount: parsed.uiParticipantCount,
     headerBosses,
     rows: parsed.rows,
     warnings
