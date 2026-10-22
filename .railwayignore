@@ -1,0 +1,10 @@
+.nuxt
+.output
+.vercel
+node_modules
+**/node_modules
+.git
+.cursor
+canvases
+public/img
+*.log

@@ -27,3 +27,4 @@ logs
 *.json
 .vercel
 chaos-control-team-2d67cc3c1469.json
+.env*

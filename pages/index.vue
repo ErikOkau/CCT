@@ -17,6 +17,9 @@ import {
   getPlayerTotalDamageBySeasonId,
   getSeasonDisplayName as formatSeasonDisplayName,
   getSeasonSpreadsheetConfig,
+  getFirstBossDisplayName,
+  getFirstBossField,
+  getFirstBossImage,
   getSecondBossDisplayName,
   getSecondBossField,
   getSecondBossImage,
@@ -493,6 +496,14 @@ const getSeasonStatusClass = () => {
   return 'default'
 }
 
+const firstBossColumnName = computed(() =>
+  getFirstBossDisplayName(currentDestinysFlight.value)
+)
+
+const firstBossColumnImage = computed(() =>
+  getFirstBossImage(currentDestinysFlight.value)
+)
+
 const secondBossColumnName = computed(() =>
   getSecondBossDisplayName(currentDestinysFlight.value)
 )
@@ -511,6 +522,12 @@ const thirdBossColumnImage = computed(() =>
 
 const getPlayerSeasonTotalDamage = (player: any, season: number = activeSeason.value) =>
   getPlayerTotalDamage(player, currentDestinysFlight.value, season)
+
+const getPlayerFirstBossDamage = (player: any) =>
+  getPlayerBossStat(player, getFirstBossField(currentDestinysFlight.value), 'damage')
+
+const getPlayerFirstBossBattles = (player: any) =>
+  getPlayerBossStat(player, getFirstBossField(currentDestinysFlight.value), 'battles')
 
 const getPlayerSecondBossDamage = (player: any) =>
   getPlayerBossStat(player, getSecondBossField(currentDestinysFlight.value), 'damage')
@@ -672,13 +689,14 @@ const formatAllianceTime = (time: string | number) => {
     <!-- Navigation Header -->
     <header class="nav-header">
       <div class="nav-container">
-        <div class="nav-brand">
+        <NuxtLink to="/" class="nav-brand">
           <img src="/img/cctLogo.png" alt="CCT Logo" class="nav-logo">
           <span class="nav-title">Chaos Control Team</span>
-        </div>
+        </NuxtLink>
 
         <nav class="nav-menu">
           <NuxtLink to="/" class="nav-link">Home</NuxtLink>
+          <NuxtLink to="/guides" class="nav-link">Guides</NuxtLink>
         </nav>
       </div>
     </header>
@@ -1435,7 +1453,7 @@ const formatAllianceTime = (time: string | number) => {
                 <tr>
                   <th>Rank</th>
                   <th>Player</th>
-                  <th>Red Velvet Dragon</th>
+                  <th>{{ firstBossColumnName }}</th>
                   <th>{{ secondBossColumnName }}</th>
                   <th>{{ thirdBossColumnName }}</th>
                   <th>Season Total</th>
@@ -1461,8 +1479,8 @@ const formatAllianceTime = (time: string | number) => {
                   </td>
                   <td class="damage-cell">
                     <div class="damage-info">
-                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage) }}</div>
-                      <div class="battles-count">x{{ player.redVelvetDragon.battles }}</div>
+                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(getPlayerFirstBossDamage(player)) }}</div>
+                      <div class="battles-count">x{{ getPlayerFirstBossBattles(player) }}</div>
                     </div>
                   </td>
                   <td class="damage-cell">
@@ -1523,12 +1541,12 @@ const formatAllianceTime = (time: string | number) => {
               <div class="mobile-boss-damage">
                 <div class="mobile-boss-damage-item">
                   <div class="mobile-boss-icon">
-                    <img src="/img/Red_Velvet_Dragon.webp" alt="Red Velvet Dragon" class="boss-icon-image">
+                    <img :src="firstBossColumnImage" :alt="firstBossColumnName" class="boss-icon-image">
                   </div>
                   <div class="mobile-boss-damage-info">
-                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(player.redVelvetDragon.damage) }}
+                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(getPlayerFirstBossDamage(player)) }}
                     </div>
-                    <div class="mobile-battles-count">x{{ player.redVelvetDragon.battles }}</div>
+                    <div class="mobile-battles-count">x{{ getPlayerFirstBossBattles(player) }}</div>
                   </div>
                 </div>
 

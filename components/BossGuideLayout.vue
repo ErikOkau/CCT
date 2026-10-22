@@ -33,6 +33,7 @@ useHead({
         <img class="boss-art" :src="guide.image" :alt="guide.name">
         <div>
           <p class="code-pill">{{ guide.code }}</p>
+          <p v-if="guide.parked" class="soon">Out of rotation</p>
           <h1>{{ guide.name }}</h1>
           <p v-if="!slots.heroNote" class="lede">{{ guide.blurb }}</p>
           <slot name="heroNote" />
@@ -54,6 +55,13 @@ useHead({
             </article>
           </div>
         </slot>
+      </section>
+
+      <section v-if="slots.treasures">
+        <div class="section-head">
+          <h2>Treasures</h2>
+        </div>
+        <slot name="treasures" />
       </section>
 
       <section>
@@ -181,7 +189,7 @@ h1 {
   line-height: 1.1;
 }
 
-.lede { margin: 0 0 0.6rem; max-width: 640px; }
+.lede, :slotted(.lede) { margin: 0 0 0.6rem; max-width: 640px; }
 .muted { margin: 0; color: rgba(255, 255, 255, 0.62); }
 
 .guide-body {
@@ -190,7 +198,7 @@ h1 {
   padding: 2.2rem 20px 4.5rem;
 }
 
-.section-head {
+.section-head, :slotted(.section-head) {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -198,7 +206,7 @@ h1 {
   margin-bottom: 1rem;
 }
 
-h2 { margin: 0; color: #ffd700; font-size: 1.25rem; }
+h2, :slotted(h2) { margin: 0; color: #ffd700; font-size: 1.25rem; }
 h3, :slotted(h3) { margin: 0 0 0.8rem; color: var(--accent); }
 
 .soon {
@@ -225,7 +233,9 @@ h3, :slotted(h3) { margin: 0 0 0.8rem; color: var(--accent); }
 }
 
 .cookie-slot, .gear-card, .notes-card,
-:slotted(.cookie-slot), :slotted(.gear-card) {
+:slotted(.cookie-slot), :slotted(.gear-card),
+:slotted(.team-row) .cookie-slot,
+:slotted(.gear-grid) .gear-card {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 18px;
@@ -233,18 +243,18 @@ h3, :slotted(h3) { margin: 0 0 0.8rem; color: var(--accent); }
   backdrop-filter: blur(10px);
 }
 
-.cookie-slot, :slotted(.cookie-slot) {
+.cookie-slot, :slotted(.cookie-slot), :slotted(.team-row) .cookie-slot {
   text-align: center;
   border-top: 4px solid var(--accent);
 }
 
-.cookie-slot span, .notes-card p, :slotted(.cookie-slot span) {
+.cookie-slot span, .notes-card p, :slotted(.cookie-slot span), :slotted(.team-row) .cookie-slot span {
   display: block;
   color: rgba(255, 255, 255, 0.68);
   font-size: 0.88rem;
 }
 
-.portrait, :slotted(.portrait) {
+.portrait, :slotted(.portrait), :slotted(.team-row) .portrait {
   width: 72px;
   height: 72px;
   margin: 0 auto 10px;
@@ -271,6 +281,117 @@ h3, :slotted(h3) { margin: 0 0 0.8rem; color: var(--accent); }
 
 .gear-row:last-child, :slotted(.gear-row:last-child) { border-bottom: 0; }
 .gear-row strong, :slotted(.gear-row strong) { color: #ffd700; }
+
+:slotted(.gear-grid) .gear-card.with-portrait {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px 16px;
+  align-items: start;
+}
+
+:slotted(.gear-grid) .gear-card.with-portrait h3 {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+:slotted(.gear-grid) .card-portrait {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 2px solid color-mix(in srgb, var(--accent) 50%, white);
+  grid-column: 1;
+  grid-row: 1 / span 20;
+}
+
+:slotted(.gear-grid) .gear-card.with-portrait .gear-row,
+:slotted(.gear-grid) .gear-card.with-portrait .hint,
+:slotted(.gear-grid) .gear-card.with-portrait .check {
+  grid-column: 2;
+}
+
+:slotted(.gear-grid) select,
+:slotted(.extra-stack) input[type='number'],
+:slotted(.calc-card) input[type='number'] {
+  max-width: 100%;
+  background: var(--deep);
+  color: #ffd700;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 8px;
+  padding: 4px 6px;
+  font: inherit;
+}
+
+:slotted(.hint),
+:slotted(.gear-grid) + .hint,
+:slotted(.gear-grid) .hint,
+:slotted(.extra-stack) .hint {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.88rem;
+}
+
+:slotted(.treasure-row) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+:slotted(.treasure-row) span {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  font-weight: 700;
+  color: #ffd700;
+}
+
+:slotted(.extra-stack) {
+  display: grid;
+  gap: 2.2rem;
+}
+
+:slotted(.extra-stack) .timing-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+:slotted(.extra-stack) .timing-list strong { color: #ffd700; }
+
+:slotted(.extra-stack) .calc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+:slotted(.extra-stack) .calc-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+:slotted(.extra-stack) .calc-card h3 { margin-bottom: 0.6rem; }
+
+:slotted(.extra-stack) .calc-card label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9rem;
+}
+
+:slotted(.extra-stack) .pass { color: #86efac; font-weight: 700; }
+:slotted(.extra-stack) .fail { color: #fca5a5; font-weight: 700; }
+
+@media (max-width: 860px) {
+  :slotted(.extra-stack) .calc-grid { grid-template-columns: 1fr; }
+}
 
 .other-gates {
   display: flex;

@@ -1,0 +1,11 @@
+# Discord OCR bot — deploy as a separate Railway service from the full repo.
+# In Railway: New Service → GitHub repo → Settings → Config file path: railway.discord-bot.toml
+
+[build]
+builder = "nixpacks"
+buildCommand = "cd services/discord-ocr-bot && npm ci && npm rebuild sharp"
+
+[deploy]
+startCommand = "cd services/discord-ocr-bot && npm start"
+restartPolicyType = "always"
+restartPolicyMaxRetries = 10

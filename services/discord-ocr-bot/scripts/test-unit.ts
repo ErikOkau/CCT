@@ -1,0 +1,66 @@
+import assert from 'node:assert/strict'
+import {
+  parseBossHeadersFromText,
+  parseNumericTail,
+  parseParticipantsFullText,
+  parsePlayerNameFromCell,
+  parseSeasonIdFromText
+} from '../../../utils/guildBattleOcrParse.ts'
+import { buildSeasonSheetGrid, damageToBillionCell, mergeOcrPlayers } from '../../../utils/guildBattleSheet.ts'
+
+assert.equal(parseSeasonIdFromText("Destiny's Flight 33-2"), '33-2')
+assert.equal(parseSeasonIdFromText('35-1'), '35-1')
+
+const numeric = parseNumericTail(
+  'x9 245,001,284,351 x9 304,766,990,577 x18 549,768,274,928',
+  2
+)
+assert.equal(numeric.bosses[0].battles, 9)
+assert.equal(numeric.bosses[0].damage, 245_001_284_351)
+assert.equal(numeric.bosses[1].battles, 9)
+assert.equal(numeric.bosses[1].damage, 304_766_990_577)
+
+assert.equal(damageToBillionCell(245_001_284_351), '245 Billion')
+
+const name = parsePlayerNameFromCell('Lv. 73\nThe Cream Path\nThickCreamyMess')
+assert.equal(name, 'ThickCreamyMess')
+
+const headers33 = parseBossHeadersFromText('Red Velvet Dragon Living Abyss Season Total', 33)
+assert.deepEqual(headers33.slice(0, 2), ['redVelvetDragon', 'livingAbyss'])
+
+const headers35 = parseBossHeadersFromText('Machine-God Avatar of Destiny Season Total', 35)
+assert.deepEqual(headers35.slice(0, 2), ['machineGod', 'avatarOfDestiny'])
+
+const merged = mergeOcrPlayers([
+  {
+    playerName: 'Alpha',
+    stats: { machineGod: { damage: 100, battles: 9 } }
+  },
+  {
+    playerName: 'alpha',
+    stats: { avatarOfDestiny: { damage: 200, battles: 9 } }
+  }
+])
+assert.equal(merged.length, 1)
+
+const grid = buildSeasonSheetGrid('35-1', [
+  {
+    playerName: 'TestPlayer',
+    stats: {
+      machineGod: { damage: 317_600_000_000, battles: 9 },
+      avatarOfDestiny: { damage: 266_200_000_000, battles: 9 }
+    }
+  }
+])
+assert.ok(grid[0][22]?.includes('Machine'))
+assert.ok(grid.length >= 32)
+
+const fromText = parseParticipantsFullText(
+  `x9 x9 x18 Member
+ThickCreamyMess 245,001,284,351 304,766,990,577 549,768,274,928`,
+  ['redVelvetDragon', 'livingAbyss']
+)
+assert.equal(fromText.rows[0]?.playerName, 'ThickCreamyMess')
+assert.equal(fromText.rows[0]?.stats.redVelvetDragon?.damage, 245_001_284_351)
+
+console.log('✅ All unit checks passed')

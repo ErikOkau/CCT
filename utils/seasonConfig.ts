@@ -1,4 +1,4 @@
-import type { BattlePlayer } from '~/types/battle'
+import type { BattlePlayer } from '../types/battle'
 
 export const SPREADSHEET_ID = '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs'
 
@@ -42,6 +42,19 @@ const RVD_MG = activeBosses({ rvd: true, mg: true })
 const LA_MG = activeBosses({ la: true, mg: true })
 const RVD_LA = activeBosses({ rvd: true, la: true })
 
+// Flight 34+: RVD benched; schedule slots 1=AoD, 2=Machine God, 3=Living Abyss (sheet columns unchanged).
+function activeBossesAodEra(opts: { aod?: boolean; mg?: boolean; la?: boolean }): SeasonBossGrid {
+  return {
+    1: opts.aod ? BOSSES.aod : null,
+    2: opts.mg ? BOSSES.mg : null,
+    3: opts.la ? BOSSES.la : null
+  }
+}
+
+const AOD_MG = activeBossesAodEra({ aod: true, mg: true })
+const AOD_LA = activeBossesAodEra({ aod: true, la: true })
+const LA_MG_AOD = activeBossesAodEra({ la: true, mg: true })
+
 export const FLIGHT_SEASONS: Record<number, number[]> = {
   20: [1, 2, 3],
   21: [1, 2, 3, 4],
@@ -53,7 +66,10 @@ export const FLIGHT_SEASONS: Record<number, number[]> = {
   28: [1, 2, 3, 4],
   29: [1],
   30: [1, 2, 3, 4],
-  31: [1, 2, 3]
+  31: [1, 2, 3],
+  33: [2],
+  34: [1, 2],
+  35: [1, 2, 3, 4]
 }
 
 const AOD_THREE_SEASON_FLIGHTS = new Set([24])
@@ -99,6 +115,19 @@ export const bossSchedules: Record<number, FlightBossSchedule> = {
     1: LA_MG,  // 31-1: Living Abyss + Machine God
     2: RVD_MG, // 31-2: RVD + Machine God
     3: LA_MG   // 31-3: Living Abyss + Machine God
+  },
+  33: {
+    2: RVD_LA // 33-2: Red Velvet Dragon + Living Abyss (OCR samples)
+  },
+  34: {
+    1: LA_MG_AOD, // 34-1: Living Abyss + Machine God
+    2: AOD_MG     // 34-2: Avatar of Destiny + Machine God
+  },
+  35: {
+    1: AOD_MG,    // 35-1: Avatar of Destiny + Machine God
+    2: AOD_LA,    // 35-2: Avatar of Destiny + Living Abyss
+    3: LA_MG_AOD, // 35-3: Living Abyss + Machine God
+    4: AOD_MG     // 35-4: Avatar of Destiny + Machine God
   }
 }
 
@@ -114,7 +143,9 @@ export const ALL_SEASON_IDS = [
   '28-1', '28-2', '28-3', '28-4',
   '29-1',
   '30-1', '30-2', '30-3', '30-4',
-  '31-1', '31-2', '31-3'
+  '31-1', '31-2', '31-3',
+  '34-1', '34-2',
+  '35-1', '35-2', '35-3', '35-4'
 ]
 
 export const allSeasons = ALL_SEASON_IDS.map(id => ({
@@ -133,9 +164,14 @@ function bossNameToField(bossName: string): BossField | null {
   return null
 }
 
-/** From Destiny's Flight 26 onward the active pool is RVD / Machine God / Living Abyss (no Avatar of Destiny). */
+/** Flights 26–33: active pool RVD / Machine God / Living Abyss (Avatar of Destiny benched). */
 export function usesLivingAbyssRotation(flight: number): boolean {
-  return flight >= 26
+  return flight >= 26 && flight < 34
+}
+
+/** From Destiny's Flight 34 onward: Avatar of Destiny returns; RVD is benched. */
+export function usesAodMgLaRotation(flight: number): boolean {
+  return flight >= 34
 }
 
 export function getAvailableFlights(): number[] {
@@ -242,6 +278,10 @@ export function getActiveBossFields(flight: number, season: number): BossField[]
     return getActiveBossFieldsFromGrid(SCHEDULE_4_AOD[season])
   }
 
+  if (usesAodMgLaRotation(flight)) {
+    return ['avatarOfDestiny', 'machineGod', 'livingAbyss']
+  }
+
   return usesLivingAbyssRotation(flight)
     ? ['redVelvetDragon', 'machineGod', 'livingAbyss']
     : ['avatarOfDestiny', 'livingAbyss']
@@ -270,25 +310,42 @@ function getBossValue(player: BattlePlayer, field: BossField, key: 'battles' | '
 }
 
 /**
- * Results table middle column.
- * Spreadsheet column order is always RVD → AoD → Abyss → MG; for Flight 26+ the UI
- * middle column shows Machine God (AoD is out of the active pool).
+ * Results table columns follow the active pool (sheet columns stay RVD → AoD → LA → MG).
+ * Flights 26–33: RVD | Machine God | Living Abyss. Flight 34+: Avatar of Destiny | Machine God | Living Abyss.
  */
+export function getFirstBossField(flight: number): BossField {
+  if (usesAodMgLaRotation(flight)) return 'avatarOfDestiny'
+  return 'redVelvetDragon'
+}
+
+export function getFirstBossDisplayName(flight: number): string {
+  if (usesAodMgLaRotation(flight)) return BOSSES.aod.name
+  return BOSSES.rvd.name
+}
+
+export function getFirstBossImage(flight: number): string {
+  if (usesAodMgLaRotation(flight)) return BOSSES.aod.image
+  return BOSSES.rvd.image
+}
+
 export function getSecondBossField(flight: number): BossField {
-  return usesLivingAbyssRotation(flight) ? 'machineGod' : 'avatarOfDestiny'
+  if (flight >= 26) return 'machineGod'
+  return 'avatarOfDestiny'
 }
 
 export function getSecondBossDisplayName(flight: number): string {
-  return usesLivingAbyssRotation(flight) ? BOSSES.mg.name : BOSSES.aod.name
+  if (flight >= 26) return BOSSES.mg.name
+  return BOSSES.aod.name
 }
 
 export function getSecondBossImage(flight: number): string {
-  return usesLivingAbyssRotation(flight) ? BOSSES.mg.image : BOSSES.aod.image
+  if (flight >= 26) return BOSSES.mg.image
+  return BOSSES.aod.image
 }
 
 /** Results table right column: Living Abyss for Flight 26+; Machine God in the AoD era; LA for Flight 20. */
 export function getThirdBossField(flight: number, season: number): BossField {
-  if (usesLivingAbyssRotation(flight)) return 'livingAbyss'
+  if (flight >= 26) return 'livingAbyss'
 
   const slot3Boss = getBossForSeason(flight, season, 3)
   if (slot3Boss?.name === BOSSES.mg.name) return 'machineGod'
@@ -297,7 +354,7 @@ export function getThirdBossField(flight: number, season: number): BossField {
 }
 
 export function getThirdBossDisplayName(flight: number, season: number): string {
-  if (usesLivingAbyssRotation(flight)) return BOSSES.la.name
+  if (flight >= 26) return BOSSES.la.name
 
   const slot3Boss = getBossForSeason(flight, season, 3)
   if (slot3Boss) return slot3Boss.name
@@ -305,7 +362,7 @@ export function getThirdBossDisplayName(flight: number, season: number): string 
 }
 
 export function getThirdBossImage(flight: number, season: number): string {
-  if (usesLivingAbyssRotation(flight)) return BOSSES.la.image
+  if (flight >= 26) return BOSSES.la.image
 
   const slot3Boss = getBossForSeason(flight, season, 3)
   if (slot3Boss) return slot3Boss.image

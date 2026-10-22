@@ -31,7 +31,7 @@ useHead({
             <div class="guild-name">Chaos Control Team</div>
           </div>
           <h1 class="hero-title">Guild Battle Guides</h1>
-          <p class="hero-description">Pick a boss. Each guide will show the same layout: five-cookie team, toppings + tart + beascuit, target stats, then notes. Numbers come later.</p>
+          <p class="hero-description">Avatar of Destiny, Machine-God, and Living Abyss are in rotation. Red Velvet Dragon is parked until it returns. Each guide has the team, toppings, tart, beascuit, timings, and target stats.</p>
         </div>
       </div>
     </section>
@@ -47,6 +47,7 @@ useHead({
         <img :src="guide.image" :alt="guide.name">
         <div class="gate-copy">
           <span class="code">{{ guide.code }}</span>
+          <span v-if="guide.parked" class="parked">Out of rotation</span>
           <h2>{{ guide.name }}</h2>
           <p>{{ guide.blurb }}</p>
           <strong>Open guide →</strong>
@@ -130,6 +131,23 @@ useHead({
   font-weight: 800;
   letter-spacing: 0.08em;
   color: var(--gate);
+}
+
+.parked {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gate);
+  border: 1px solid color-mix(in srgb, var(--gate) 40%, transparent);
+}
+
+.gate.rvd {
+  opacity: 0.78;
 }
 
 .gate strong { color: var(--gate); }

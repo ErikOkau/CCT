@@ -8,6 +8,7 @@ export type GuildGuide = {
   image: string
   theme: GuideSlug
   blurb: string
+  parked?: boolean
 }
 
 export const guildGuides: GuildGuide[] = [
@@ -18,7 +19,7 @@ export const guildGuides: GuildGuide[] = [
     short: 'Machine-God',
     image: '/img/Machine-God_of_the_Eternal_Void_guild_ready.webp',
     theme: 'mgev',
-    blurb: 'Void-machine guild boss. Team, toppings, tart, beascuit, and breakpoints will live here.'
+    blurb: 'Water / Stinging Fizz. Seltzer then Menthol. Crit bonds cap the team — nobody needs CRIT.'
   },
   {
     slug: 'tla',
@@ -27,7 +28,7 @@ export const guildGuides: GuildGuide[] = [
     short: 'Living Abyss',
     image: '/img/Living_Licorice_Abyss.webp',
     theme: 'tla',
-    blurb: 'Abyss guild boss. Team, toppings, tart, beascuit, and breakpoints will live here.'
+    blurb: 'WALA. Cream Puff HP vs Wind Archer, 48.4%+ WA ATK SPD, damage through the oozes.'
   },
   {
     slug: 'aod',
@@ -45,7 +46,8 @@ export const guildGuides: GuildGuide[] = [
     short: 'Red Velvet Dragon',
     image: '/img/Red_Velvet_Dragon.webp',
     theme: 'rvd',
-    blurb: 'Pompom Dough, Eternal Sugar, Prune Juice, Black Sapphire, and Linzer.'
+    parked: true,
+    blurb: 'Out of rotation. Pompom Dough, Eternal Sugar, Prune Juice, Black Sapphire, and Linzer.'
   }
 ]
 
