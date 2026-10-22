@@ -1,4 +1,5 @@
 import type { BattlePlayer } from '../types/battle'
+import type { BossField } from './guildBattleBosses'
 
 export const SPREADSHEET_ID = '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs'
 
@@ -154,8 +155,6 @@ export const allSeasons = ALL_SEASON_IDS.map(id => ({
   name: `Season ${id}`,
   hasData: true
 }))
-
-export type BossField = 'redVelvetDragon' | 'avatarOfDestiny' | 'livingAbyss' | 'machineGod'
 
 function bossNameToField(bossName: string): BossField | null {
   if (bossName === BOSSES.rvd.name) return 'redVelvetDragon'

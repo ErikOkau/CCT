@@ -195,4 +195,37 @@ assert.ok(jam353)
 assert.equal(jam353?.livingAbyss.damage, 442e9)
 assert.equal(jam353?.machineGod.damage, 317.1e9)
 
+// Typos in MG column vs LA (live 35-3 sheet): Jammyifyvx, sandwick
+const rowLaJam = Array(27).fill('')
+rowLaJam[14] = '1. ( - )'
+rowLaJam[15] = 'Jammifyvx'
+rowLaJam[16] = '442.2'
+rowLaJam[17] = 'Billion'
+rowLaJam[18] = '9'
+const rowMgTypo = Array(27).fill('')
+rowMgTypo[21] = '2. ( - )'
+rowMgTypo[22] = 'Jammyifyvx'
+rowMgTypo[23] = '317.1'
+rowMgTypo[24] = 'Billion'
+rowMgTypo[25] = '9'
+const rowLaSand = Array(27).fill('')
+rowLaSand[15] = 'sandwich'
+rowLaSand[16] = '406.8'
+rowLaSand[17] = 'Billion'
+rowLaSand[18] = '9'
+const rowMgSandTypo = Array(27).fill('')
+rowMgSandTypo[22] = 'sandwick'
+rowMgSandTypo[23] = '292'
+rowMgSandTypo[24] = 'Billion'
+rowMgSandTypo[25] = '9'
+const mergedTypos = parseSpreadsheetRowsToPlayers([header1, header2, rowLaJam, rowMgTypo, rowLaSand, rowMgSandTypo])
+const jamTypo = mergedTypos.find(p => p.playerName.toLowerCase().includes('jamm'))
+assert.ok(jamTypo)
+assert.equal(jamTypo?.livingAbyss.damage, 442.2e9)
+assert.equal(jamTypo?.machineGod.damage, 317.1e9)
+const sandMerged = mergedTypos.find(p => p.playerName.toLowerCase().includes('sandwich'))
+assert.ok(sandMerged)
+assert.equal(sandMerged?.livingAbyss.damage, 406.8e9)
+assert.equal(sandMerged?.machineGod.damage, 292e9)
+
 console.log('✅ All unit checks passed')
