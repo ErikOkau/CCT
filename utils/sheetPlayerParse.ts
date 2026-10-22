@@ -1,8 +1,9 @@
 import type { BossField } from './guildBattleBosses'
 import { matchBossFieldFromHeader } from './guildBattleBosses'
-import { getActiveBossFields, hasSeasonBossSchedule } from './seasonConfig'
 
 export const SHEET_MAX_GUILD_SIZE = 30
+/** Width of guild sheet grid (A through AA). Rows from the API may be shorter. */
+export const SHEET_PARSE_WIDTH = 27
 
 const NON_PLAYER_NAME_PATTERN =
   /^(damage\s*(req|goal)?|min\s*tickets?|total|average|avg|leader|guild\s*leader|member|officer|#|rank)$/i
@@ -119,11 +120,18 @@ export function detectActiveBossFieldsFromSheetHeader(rows: unknown[][]): BossFi
   return found
 }
 
+function normalizeSheetRow(row: unknown[]): unknown[] {
+  if (!row?.length) return Array(SHEET_PARSE_WIDTH).fill('')
+  if (row.length >= SHEET_PARSE_WIDTH) return row
+  return [...row, ...Array(SHEET_PARSE_WIDTH - row.length).fill('')]
+}
+
 function rankInSliceValid(row: unknown[], slice: SheetBossSlice): boolean {
   const rankRaw = row[slice.rankCol]?.toString().trim() ?? ''
   if (!rankRaw) return true
   const rank = parseInt(rankRaw, 10)
-  return Number.isInteger(rank) && rank >= 1 && rank <= SHEET_MAX_GUILD_SIZE
+  if (!Number.isInteger(rank)) return true
+  return rank >= 1 && rank <= SHEET_MAX_GUILD_SIZE
 }
 
 function ingestSliceCell(
@@ -131,7 +139,7 @@ function ingestSliceCell(
   slice: SheetBossSlice,
   row: unknown[]
 ) {
-  if ((row.length ?? 0) < slice.avgCol + 1) return
+  row = normalizeSheetRow(row)
   if (!rankInSliceValid(row, slice)) return
 
   const name = normalizeSheetPlayerName(row[slice.nameCol])
@@ -175,32 +183,10 @@ export interface ParsedSheetPlayer {
 
 export function parseSpreadsheetRowsToPlayers(
   rows: unknown[][],
-  options?: { flight?: number; season?: number }
+  _options?: { flight?: number; season?: number }
 ): ParsedSheetPlayer[] {
-  const fromHeader = detectActiveBossFieldsFromSheetHeader(rows)
-  const fromSeason =
-    options?.flight != null && options?.season != null
-      ? getActiveBossFields(options.flight, options.season)
-      : []
-
-  const useSeasonSchedule =
-    options?.flight != null &&
-    options?.season != null &&
-    hasSeasonBossSchedule(options.flight, options.season)
-
-  const activeList = useSeasonSchedule
-    ? fromSeason
-    : fromHeader.length >= 2
-      ? fromHeader
-      : fromSeason.length > 0
-        ? fromSeason
-        : fromHeader
-
-  const activeFields = new Set(activeList)
-  const slices =
-    activeFields.size > 0
-      ? SHEET_BOSS_SLICES.filter(s => activeFields.has(s.field))
-      : SHEET_BOSS_SLICES
+  // Always read every boss block; inactive bosses are cleared after fetch via zeroInactiveBossStats.
+  const slices = SHEET_BOSS_SLICES
 
   const dataRows = rows.slice(2).filter(r => r && !isSheetFooterRow(r))
   const playerMap = new Map<string, ParsedSheetPlayer>()

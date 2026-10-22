@@ -314,9 +314,59 @@ function getBossValue(player: BattlePlayer, field: BossField, key: 'battles' | '
   return typeof value === 'number' ? value : 0
 }
 
+/** Spreadsheet block order (fixed columns A→AA). Table shows only bosses active this season. */
+export const SHEET_PHYSICAL_BOSS_ORDER: BossField[] = [
+  'redVelvetDragon',
+  'avatarOfDestiny',
+  'livingAbyss',
+  'machineGod'
+]
+
+export function getBossFieldDisplayName(field: BossField): string {
+  switch (field) {
+    case 'redVelvetDragon':
+      return BOSSES.rvd.name
+    case 'avatarOfDestiny':
+      return BOSSES.aod.name
+    case 'livingAbyss':
+      return BOSSES.la.name
+    case 'machineGod':
+      return BOSSES.mg.name
+  }
+}
+
+export function getBossFieldImage(field: BossField): string {
+  switch (field) {
+    case 'redVelvetDragon':
+      return BOSSES.rvd.image
+    case 'avatarOfDestiny':
+      return BOSSES.aod.image
+    case 'livingAbyss':
+      return BOSSES.la.image
+    case 'machineGod':
+      return BOSSES.mg.image
+  }
+}
+
+export interface SeasonTableBossColumn {
+  field: BossField
+  name: string
+  image: string
+}
+
+export function getSeasonTableBossColumns(flight: number, season: number): SeasonTableBossColumn[] {
+  const active = new Set(getActiveBossFields(flight, season))
+  return SHEET_PHYSICAL_BOSS_ORDER.filter(f => active.has(f)).map(field => ({
+    field,
+    name: getBossFieldDisplayName(field),
+    image: getBossFieldImage(field)
+  }))
+}
+
 /**
  * Results table columns follow the active pool (sheet columns stay RVD → AoD → LA → MG).
  * Flights 26–33: RVD | Machine God | Living Abyss. Flight 34+: Avatar of Destiny | Machine God | Living Abyss.
+ * @deprecated Prefer getSeasonTableBossColumns for season-aware tables.
  */
 export function getFirstBossField(flight: number): BossField {
   if (usesAodMgLaRotation(flight)) return 'avatarOfDestiny'

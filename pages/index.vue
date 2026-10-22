@@ -9,22 +9,14 @@ import {
   getBossForSeason,
   getFlightSeasons,
   getLatestFlightAndSeason,
-  getPlayerBossStat,
-  getPlayerThirdBossStat,
   getPlayerTickets,
   getPlayerTotalBattlesBySeasonId,
   getPlayerTotalDamage,
   getPlayerTotalDamageBySeasonId,
   getSeasonDisplayName as formatSeasonDisplayName,
   getSeasonSpreadsheetConfig,
-  getFirstBossDisplayName,
-  getFirstBossField,
-  getFirstBossImage,
-  getSecondBossDisplayName,
-  getSecondBossField,
-  getSecondBossImage,
-  getThirdBossDisplayName,
-  getThirdBossImage,
+  getSeasonTableBossColumns,
+  getPlayerBossStat,
   hasSeasonData as seasonHasData,
   isBossActiveInSeason,
   isLatestSeason,
@@ -496,50 +488,12 @@ const getSeasonStatusClass = () => {
   return 'default'
 }
 
-const firstBossColumnName = computed(() =>
-  getFirstBossDisplayName(currentDestinysFlight.value)
-)
-
-const firstBossColumnImage = computed(() =>
-  getFirstBossImage(currentDestinysFlight.value)
-)
-
-const secondBossColumnName = computed(() =>
-  getSecondBossDisplayName(currentDestinysFlight.value)
-)
-
-const secondBossColumnImage = computed(() =>
-  getSecondBossImage(currentDestinysFlight.value)
-)
-
-const thirdBossColumnName = computed(() =>
-  getThirdBossDisplayName(currentDestinysFlight.value, activeSeason.value)
-)
-
-const thirdBossColumnImage = computed(() =>
-  getThirdBossImage(currentDestinysFlight.value, activeSeason.value)
+const seasonBossColumns = computed(() =>
+  getSeasonTableBossColumns(currentDestinysFlight.value, activeSeason.value)
 )
 
 const getPlayerSeasonTotalDamage = (player: any, season: number = activeSeason.value) =>
   getPlayerTotalDamage(player, currentDestinysFlight.value, season)
-
-const getPlayerFirstBossDamage = (player: any) =>
-  getPlayerBossStat(player, getFirstBossField(currentDestinysFlight.value), 'damage')
-
-const getPlayerFirstBossBattles = (player: any) =>
-  getPlayerBossStat(player, getFirstBossField(currentDestinysFlight.value), 'battles')
-
-const getPlayerSecondBossDamage = (player: any) =>
-  getPlayerBossStat(player, getSecondBossField(currentDestinysFlight.value), 'damage')
-
-const getPlayerSecondBossBattles = (player: any) =>
-  getPlayerBossStat(player, getSecondBossField(currentDestinysFlight.value), 'battles')
-
-const getPlayerThirdBossDamage = (player: any, season: number = activeSeason.value) =>
-  getPlayerThirdBossStat(player, currentDestinysFlight.value, season, 'damage')
-
-const getPlayerThirdBossBattles = (player: any, season: number = activeSeason.value) =>
-  getPlayerThirdBossStat(player, currentDestinysFlight.value, season, 'battles')
 
 // Helper function to get tickets used for display
 const getTicketsUsed = (player: any, season: number = activeSeason.value) => {
@@ -1453,9 +1407,7 @@ const formatAllianceTime = (time: string | number) => {
                 <tr>
                   <th>Rank</th>
                   <th>Player</th>
-                  <th>{{ firstBossColumnName }}</th>
-                  <th>{{ secondBossColumnName }}</th>
-                  <th>{{ thirdBossColumnName }}</th>
+                  <th v-for="col in seasonBossColumns" :key="col.field">{{ col.name }}</th>
                   <th>Season Total</th>
                   <th>Tickets Used</th>
                   <th>Guild Rank</th>
@@ -1477,22 +1429,16 @@ const formatAllianceTime = (time: string | number) => {
                       </div>
                     </div>
                   </td>
-                  <td class="damage-cell">
+                  <td
+                    v-for="col in seasonBossColumns"
+                    :key="col.field"
+                    class="damage-cell"
+                  >
                     <div class="damage-info">
-                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(getPlayerFirstBossDamage(player)) }}</div>
-                      <div class="battles-count">x{{ getPlayerFirstBossBattles(player) }}</div>
-                    </div>
-                  </td>
-                  <td class="damage-cell">
-                    <div class="damage-info">
-                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(getPlayerSecondBossDamage(player)) }}</div>
-                      <div class="battles-count">x{{ getPlayerSecondBossBattles(player) }}</div>
-                    </div>
-                  </td>
-                  <td class="damage-cell">
-                    <div class="damage-info">
-                      <div class="damage-value">{{ BattleAnalyzer.formatDamage(getPlayerThirdBossDamage(player)) }}</div>
-                      <div class="battles-count">x{{ getPlayerThirdBossBattles(player) }}</div>
+                      <div class="damage-value">
+                        {{ BattleAnalyzer.formatDamage(getPlayerBossStat(player, col.field, 'damage')) }}
+                      </div>
+                      <div class="battles-count">x{{ getPlayerBossStat(player, col.field, 'battles') }}</div>
                     </div>
                   </td>
                   <td class="damage-cell">
@@ -1539,36 +1485,19 @@ const formatAllianceTime = (time: string | number) => {
               </div>
 
               <div class="mobile-boss-damage">
-                <div class="mobile-boss-damage-item">
+                <div
+                  v-for="col in seasonBossColumns"
+                  :key="col.field"
+                  class="mobile-boss-damage-item"
+                >
                   <div class="mobile-boss-icon">
-                    <img :src="firstBossColumnImage" :alt="firstBossColumnName" class="boss-icon-image">
+                    <img :src="col.image" :alt="col.name" class="boss-icon-image">
                   </div>
                   <div class="mobile-boss-damage-info">
-                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(getPlayerFirstBossDamage(player)) }}
+                    <div class="mobile-damage-value">
+                      {{ BattleAnalyzer.formatDamage(getPlayerBossStat(player, col.field, 'damage')) }}
                     </div>
-                    <div class="mobile-battles-count">x{{ getPlayerFirstBossBattles(player) }}</div>
-                  </div>
-                </div>
-
-                <div class="mobile-boss-damage-item">
-                  <div class="mobile-boss-icon">
-                    <img :src="secondBossColumnImage" :alt="secondBossColumnName" class="boss-icon-image">
-                  </div>
-                  <div class="mobile-boss-damage-info">
-                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(getPlayerSecondBossDamage(player)) }}
-                    </div>
-                    <div class="mobile-battles-count">x{{ getPlayerSecondBossBattles(player) }}</div>
-                  </div>
-                </div>
-
-                <div class="mobile-boss-damage-item">
-                  <div class="mobile-boss-icon">
-                    <img :src="thirdBossColumnImage" :alt="thirdBossColumnName" class="boss-icon-image">
-                  </div>
-                  <div class="mobile-boss-damage-info">
-                    <div class="mobile-damage-value">{{ BattleAnalyzer.formatDamage(getPlayerThirdBossDamage(player)) }}
-                    </div>
-                    <div class="mobile-battles-count">x{{ getPlayerThirdBossBattles(player) }}</div>
+                    <div class="mobile-battles-count">x{{ getPlayerBossStat(player, col.field, 'battles') }}</div>
                   </div>
                 </div>
               </div>

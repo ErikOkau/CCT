@@ -157,4 +157,42 @@ assert.equal(merged35.filter(p => p.playerName === 'Jammifyvx').length, 1)
 assert.equal(merged35[0]?.livingAbyss.damage, 442e9)
 assert.equal(merged35[0]?.machineGod.damage, 317e9)
 
+// AoD block on a short API row (no trailing LA/MG cells) — must not skip.
+const rowAodShort = Array(13).fill('')
+rowAodShort[7] = '1'
+rowAodShort[8] = 'Jammifyvx'
+rowAodShort[9] = '262.3 Billion'
+rowAodShort[11] = '9'
+const merged352 = parseSpreadsheetRowsToPlayers(
+  [header1, header2, rowAodShort, rowLa],
+  { flight: 35, season: 2 }
+)
+const jam352 = merged352.find(p => p.playerName === 'Jammifyvx')
+assert.ok(jam352)
+assert.equal(jam352?.avatarOfDestiny.damage, 262.3e9)
+assert.equal(jam352?.livingAbyss.damage, 442e9)
+
+// Same physical row index holds different players per boss column (sheet layout).
+const rowCombined = Array(27).fill('')
+rowCombined[7] = '1'
+rowCombined[8] = 'Lisa'
+rowCombined[9] = '317.2 Billion'
+rowCombined[11] = '9'
+rowCombined[14] = '1'
+rowCombined[15] = 'Jammifyvx'
+rowCombined[16] = '442 Billion'
+rowCombined[18] = '9'
+rowCombined[21] = '2'
+rowCombined[22] = 'Jammifyvx'
+rowCombined[23] = '317.1 Billion'
+rowCombined[25] = '9'
+const merged353 = parseSpreadsheetRowsToPlayers(
+  [header1, header2, rowCombined],
+  { flight: 35, season: 3 }
+)
+const jam353 = merged353.find(p => p.playerName === 'Jammifyvx')
+assert.ok(jam353)
+assert.equal(jam353?.livingAbyss.damage, 442e9)
+assert.equal(jam353?.machineGod.damage, 317.1e9)
+
 console.log('✅ All unit checks passed')
