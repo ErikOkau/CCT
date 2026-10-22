@@ -9,6 +9,7 @@ import {
 } from '../../../utils/guildBattleOcrParse.ts'
 import { buildSeasonSheetGrid, damageToBillionCell, mergeOcrPlayers } from '../../../utils/guildBattleSheet.ts'
 import { normalizeRoleName } from '../src/roleGate.ts'
+import { parseSpreadsheetRowsToPlayers } from '../../../utils/sheetPlayerParse.ts'
 import { buildCoverageReport, runSanityChecks } from '../../../utils/guildBattleImportChecks.ts'
 import { mergeOcrPlayersUnique } from '../../../utils/guildBattlePlayerMerge.ts'
 import { parseVisionModelJson } from '../../../utils/guildBattleVisionParse.ts'
@@ -135,5 +136,25 @@ assert.ok(covUi.warnings.some(w => w.includes('29')))
 const covExtra = buildCoverageReport(30, 6, 30, 29, 1)
 assert.ok(covExtra.headline.includes('30') && covExtra.headline.includes('29'))
 assert.ok(covExtra.detail.includes('no damage'))
+
+const header1 = Array(27).fill('')
+const header2 = Array(27).fill('')
+const rowLa = Array(27).fill('')
+rowLa[14] = '29'
+rowLa[15] = 'Jammifyvx'
+rowLa[16] = '442 Billion'
+rowLa[18] = '9'
+const rowMg = Array(27).fill('')
+rowMg[21] = '30'
+rowMg[22] = 'Jammifyvx'
+rowMg[23] = '317 Billion'
+rowMg[25] = '9'
+const merged35 = parseSpreadsheetRowsToPlayers(
+  [header1, header2, rowLa, rowMg],
+  { flight: 35, season: 3 }
+)
+assert.equal(merged35.filter(p => p.playerName === 'Jammifyvx').length, 1)
+assert.equal(merged35[0]?.livingAbyss.damage, 442e9)
+assert.equal(merged35[0]?.machineGod.damage, 317e9)
 
 console.log('✅ All unit checks passed')

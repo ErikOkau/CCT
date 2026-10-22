@@ -1,7 +1,7 @@
 import { defineEventHandler, readBody, createError, setHeader } from 'h3'
 import { google } from 'googleapis'
-import { readFileSync } from 'fs'
-import { join } from 'path'
+import { parseSeasonId } from '../../utils/seasonConfig'
+import { parseSpreadsheetRowsToPlayers } from '../../utils/sheetPlayerParse'
 
 export default defineEventHandler(async (event) => {
   // Set cache control headers to prevent caching
@@ -103,7 +103,12 @@ export default defineEventHandler(async (event) => {
     }
 
     // Parse the spreadsheet data
-    const players = parseSpreadsheetData(rows)
+    const sheetName = (range ?? '20-1!A1:Z100').split('!')[0]?.replace(/^'|'$/g, '') ?? ''
+    const seasonParsed = parseSeasonId(sheetName)
+    const players = parseSpreadsheetRowsToPlayers(rows, seasonParsed ?? undefined).map((p, index) => ({
+      ...p,
+      rank: index + 1
+    }))
     
     console.log(`✅ Successfully parsed ${players.length} players from Google Sheets`)
     if (players.length > 0) {
@@ -159,164 +164,4 @@ export default defineEventHandler(async (event) => {
     })
   }
 })
-
-const MAX_GUILD_SIZE = 30
-const NON_PLAYER_NAME_PATTERN = /^(damage\s*(req|goal)?|min\s*tickets?|total|average|avg|leader|guild\s*leader|member|officer|#|rank)$/i
-
-function parseDamageCell(value: unknown): number {
-  const text = (value ?? '').toString().replace(/,/g, '').replace(' Billion', '').trim()
-  if (!text) return 0
-  const parsed = parseFloat(text)
-  return Number.isFinite(parsed) ? parsed * 1000000000 : 0
-}
-
-function normalizePlayerName(value: unknown): string | null {
-  if (value == null) return null
-  const name = value.toString().replace(/\s+/g, ' ').trim()
-  if (!name) return null
-  // Skip ranks/numbers that landed in a name column, and summary/role labels
-  if (/^\d+(\.\d+)?$/.test(name)) return null
-  if (NON_PLAYER_NAME_PATTERN.test(name)) return null
-  return name
-}
-
-function playerKey(name: string): string {
-  return name.toLowerCase()
-}
-
-/** Rank columns for RVD / AoD / Living Abyss / Machine God sections. */
-const BOSS_RANK_COLUMNS = [0, 7, 14, 21]
-
-function isRankedMemberRow(row: any[]): boolean {
-  if (!row || row.length === 0) return false
-
-  // Ignore known summary rows even if they have stray numbers
-  const firstCell = row[0]?.toString() ?? ''
-  if (
-    firstCell.includes('DAMAGE REQ') ||
-    firstCell.includes('DAMAGE GOAL') ||
-    firstCell.includes('Min Tickets')
-  ) {
-    return false
-  }
-
-  return BOSS_RANK_COLUMNS.some((col) => {
-    const rank = parseInt(row[col]?.toString().trim(), 10)
-    return Number.isInteger(rank) && rank >= 1 && rank <= MAX_GUILD_SIZE
-  })
-}
-
-function parseSpreadsheetData(rows: any[][]): any[] {
-  const players: any[] = []
-
-  // Skip header rows (first 2 rows contain boss names and column headers)
-  const dataRows = rows.slice(2)
-
-  // Only keep true member ranking rows (rank 1..30 in any boss section).
-  // This avoids counting summary/leader-note rows as an extra "player".
-  const playerRows = dataRows.filter(isRankedMemberRow)
-
-  console.log(`🔍 Processing ${playerRows.length} ranked player rows (max guild size ${MAX_GUILD_SIZE})`)
-  console.log('🔍 Sample row structure:', playerRows[0])
-  console.log('🔍 First few rows:', playerRows.slice(0, 3))
-
-  // Merge boss-section leaderboards by normalized name (trim + case-insensitive)
-  const playerMap: { [key: string]: any } = {}
-
-  playerRows.forEach((row, index) => {
-    if (row.length < 20) {
-      console.log(`Skipping row ${index + 1}: insufficient columns (${row.length})`)
-      return
-    }
-
-    // Parse Red Velvet Dragon data (columns A-F: 0-5)
-    const redVelvetDamage = parseDamageCell(row[2])
-    const redVelvetBattlesRaw = parseInt(row[4]) || 0
-    const redVelvetBattles = redVelvetDamage > 0 ? redVelvetBattlesRaw : 0
-    const redVelvetAvg = parseInt(row[5]) || 0
-
-    // Parse Avatar of Destiny data (columns H-M: 7-12)
-    const avatarDamage = parseDamageCell(row[9])
-    const avatarBattlesRaw = parseInt(row[11]) || 0
-    const avatarBattles = avatarDamage > 0 ? avatarBattlesRaw : 0
-    const avatarAvg = parseInt(row[12]) || 0
-
-    // Parse Living Abyss data (columns O-T: 14-19)
-    const livingAbyssDamage = parseDamageCell(row[16])
-    const livingAbyssBattlesRaw = parseInt(row[18]) || 0
-    const livingAbyssBattles = livingAbyssDamage > 0 ? livingAbyssBattlesRaw : 0
-    const livingAbyssAvg = parseInt(row[19]) || 0
-
-    // Parse Machine God data (columns V-AA: 21-26)
-    const machineGodDamage = parseDamageCell(row[23])
-    const machineGodBattlesRaw = parseInt(row[25]) || 0
-    const machineGodBattles = machineGodDamage > 0 ? machineGodBattlesRaw : 0
-    const machineGodAvg = parseInt(row[26]) || 0
-
-    const bossSections = [
-      { name: normalizePlayerName(row[1]), damage: redVelvetDamage, battles: redVelvetBattles, avg: redVelvetAvg, type: 'redVelvetDragon' },
-      { name: normalizePlayerName(row[8]), damage: avatarDamage, battles: avatarBattles, avg: avatarAvg, type: 'avatarOfDestiny' },
-      { name: normalizePlayerName(row[15]), damage: livingAbyssDamage, battles: livingAbyssBattles, avg: livingAbyssAvg, type: 'livingAbyss' },
-      { name: normalizePlayerName(row[22]), damage: machineGodDamage, battles: machineGodBattles, avg: machineGodAvg, type: 'machineGod' }
-    ]
-
-    if (index < 3) {
-      console.log(`🔍 Row ${index + 1} boss sections:`, bossSections.map(boss => ({
-        type: boss.type,
-        name: boss.name,
-        damage: boss.damage,
-        battles: boss.battles
-      })))
-    }
-
-    bossSections.forEach(boss => {
-      if (!boss.name || boss.damage <= 0) return
-
-      const key = playerKey(boss.name)
-      if (!playerMap[key]) {
-        playerMap[key] = {
-          playerName: boss.name,
-          redVelvetDragon: { damage: 0, battles: 0, avgDamagePerTicket: 0 },
-          avatarOfDestiny: { damage: 0, battles: 0, avgDamagePerTicket: 0 },
-          livingAbyss: { damage: 0, battles: 0, avgDamagePerTicket: 0 },
-          machineGod: { damage: 0, battles: 0, avgDamagePerTicket: 0 }
-        }
-      }
-
-      const player = playerMap[key]
-      // Keep a stable display name; prefer the first non-empty casing we saw
-      if (!player.playerName) player.playerName = boss.name
-
-      player[boss.type] = {
-        damage: boss.damage,
-        battles: boss.battles,
-        avgDamagePerTicket: boss.avg
-      }
-
-      console.log(`Added ${boss.name} to ${boss.type}: ${boss.damage} damage, ${boss.battles} battles`)
-    })
-  })
-
-  // Convert object to array and assign ranks by total damage
-  for (const key in playerMap) {
-    players.push(playerMap[key])
-  }
-
-  players.sort((a, b) => {
-    const totalA = a.redVelvetDragon.damage + a.avatarOfDestiny.damage + a.livingAbyss.damage + (a.machineGod?.damage || 0)
-    const totalB = b.redVelvetDragon.damage + b.avatarOfDestiny.damage + b.livingAbyss.damage + (b.machineGod?.damage || 0)
-    return totalB - totalA
-  })
-  players.forEach((player, index) => {
-    player.rank = index + 1
-  })
-
-  console.log(`🔍 Parsed ${players.length} unique players from spreadsheet`)
-  if (players.length > MAX_GUILD_SIZE) {
-    console.warn(`⚠️ Player count ${players.length} exceeds guild cap ${MAX_GUILD_SIZE}. Names:`, players.map(p => p.playerName))
-  }
-
-  return players
-}
-
 

@@ -1462,7 +1462,7 @@ const formatAllianceTime = (time: string | number) => {
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="player in displayedPlayers" :key="player.rank">
+                <tr v-for="player in displayedPlayers" :key="`${player.playerName}-${player.rank}`">
                   <td class="rank-cell">
                     <span class="rank-badge" :class="BattleAnalyzer.getRankBadgeClass(player.rank)">
                       {{ player.rank }}
@@ -1526,7 +1526,7 @@ const formatAllianceTime = (time: string | number) => {
 
           <!-- Mobile Cards -->
           <div class="mobile-players">
-            <div v-for="player in displayedPlayers" :key="player.rank" class="mobile-player-card">
+            <div v-for="player in displayedPlayers" :key="`${player.playerName}-${player.rank}`" class="mobile-player-card">
               <div class="mobile-player-header">
                 <div class="mobile-rank-badge" :class="BattleAnalyzer.getRankBadgeClass(player.rank)">
                   #{{ player.rank }}
