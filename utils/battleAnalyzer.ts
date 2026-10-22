@@ -6,6 +6,7 @@ import {
   parseSeasonId,
   zeroInactiveBossStatsForPlayers
 } from '~/utils/seasonConfig'
+import { getPlayerGuildRank } from '~/utils/guildRanks'
 
 export class BattleAnalyzer {
   // OCR Configuration
@@ -167,18 +168,8 @@ export class BattleAnalyzer {
         damage: sheetPlayer.machineGod.damage,
         avgDamagePerTicket: sheetPlayer.machineGod.avgDamagePerTicket
       } : undefined,
-      guildRank: this.getPlayerGuildRank(sheetPlayer.playerName)
+      guildRank: getPlayerGuildRank(sheetPlayer.playerName)
     }))
-  }
-
-  /**
-   * Get correct guild rank for specific players
-   */
-  private static getPlayerGuildRank(playerName: string): 'Leader' | 'Member' | 'Officer' {
-    const normalizedName = playerName.toLowerCase()
-    if (normalizedName === 'jammifyvx') return 'Leader'
-    if (normalizedName === 'poppyyys') return 'Officer'
-    return 'Member'
   }
 
 

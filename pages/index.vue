@@ -22,6 +22,11 @@ import {
   isLatestSeason,
   SPREADSHEET_ID
 } from '~/utils/seasonConfig'
+import {
+  getPlayerGuildRank,
+  GUILD_LEADER_NAME,
+  GUILD_OFFICER_NAME
+} from '~/utils/guildRanks'
 
 
 
@@ -300,13 +305,6 @@ const getTicketStatusText = (player: any, season: number = activeSeason.value) =
   return 'At risk of disposal'
 }
 
-// Get correct guild rank for specific players
-const getPlayerGuildRank = (playerName: string) => {
-  const normalizedName = playerName.toLowerCase()
-  if (normalizedName === 'jammifyvx') return 'Leader'
-  if (normalizedName === 'poppyyys') return 'Officer'
-  return 'Member'
-}
 
 // Hall of Glory data
 const hallOfGloryData = ref({
@@ -675,11 +673,11 @@ const formatAllianceTime = (time: string | number) => {
           <div class="guild-info">
             <div class="info-item">
               <span class="info-label">Leader:</span>
-              <span class="info-value">Jammifyvx</span>
+              <span class="info-value">{{ GUILD_LEADER_NAME }}</span>
             </div>
             <div class="info-item">
               <span class="info-label">Officer:</span>
-              <span class="info-value">Poppyyys</span>
+              <span class="info-value">{{ GUILD_OFFICER_NAME }}</span>
             </div>
             <div class="info-item">
               <span class="info-label">Guild Level:</span>
