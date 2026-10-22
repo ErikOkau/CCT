@@ -15,6 +15,8 @@ Attach up to **6** images (~5 members visible each ≈ **30** players). Optional
 - `--dry-run` — OCR preview only, no sheet write
 - `--overwrite` — replace data if tab `35-1` already exists (default is warn + skip)
 
+In Discord: `?sonic_info` (or `?sonic_help`) prints usage, flags, and tips.
+
 ## Env vars
 
 | Variable | Description |
@@ -26,6 +28,9 @@ Attach up to **6** images (~5 members visible each ≈ **30** players). Optional
 **Do not** put pretty-printed JSON in double quotes like `"{\n  "type": ..."` — inner `"` breaks `.env`. Locally, use a `.json` file path; on Railway, use **one-line minified JSON** (see below).
 
 | `DISCORD_COMMAND_PREFIX` | Default `?` |
+| `CHATGPT_API` | OpenAI key — when set, screenshots use **GPT-4o vision** instead of Tesseract |
+| `OCR_PROVIDER` | `openai` (default if `CHATGPT_API` set) or `tesseract` |
+| `OPENAI_VISION_MODEL` | Default `gpt-4o` |
 
 ### Discord Developer Portal
 
@@ -98,7 +103,7 @@ The bot needs the **whole GitHub repo** (it imports `utils/` and `types/` from t
 
 ## Accuracy
 
-OCR on game fonts is **best-effort**. Always review the Discord preview (or use `--dry-run`) before writing. Comma-formatted damage and clear screenshots improve results.
+With **`CHATGPT_API`** in repo root `.env`, the bot uses **OpenAI vision** (much more accurate on CRK fonts). Set `OCR_PROVIDER=tesseract` to force local OCR. Always review the Discord preview (or use `--dry-run`) before writing.
 
 ## In-game column order (DF 34+)
 

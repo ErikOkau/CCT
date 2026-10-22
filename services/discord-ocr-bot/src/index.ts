@@ -6,8 +6,11 @@ import {
   Partials,
   type Message
 } from 'discord.js'
+import { sortPlayersByBossDamage } from '../../../utils/guildBattlePlayerMerge.ts'
 import { mergeOcrPlayers } from '../../../utils/guildBattleSheet.ts'
+import type { BossField } from '../../../utils/guildBattleBosses.ts'
 import { MAX_IMAGES, parseParticipantsImages } from './parseScreenshot.ts'
+import { buildSonicInfoText, getMessageCommand, INFO_COMMANDS } from './helpText.ts'
 import { createSeasonTabFromOcr, sheetTabExists } from './sheetsClient.ts'
 
 const PREFIX = process.env.DISCORD_COMMAND_PREFIX ?? '?'
@@ -60,23 +63,31 @@ function formatPreview(
   seasonId: string,
   merged: ReturnType<typeof mergeOcrPlayers>,
   warnings: string[],
-  headerBosses: string[]
+  headerBosses: BossField[]
 ) {
+  const sorted = sortPlayersByBossDamage(merged, headerBosses.length ? headerBosses : [])
   const bossNote = headerBosses.length
     ? `\nBoss columns: **${headerBosses.join(' + ')}**`
     : ''
-  const lines = merged.slice(0, 30).map(p => {
+  const lines = sorted.slice(0, 30).map(p => {
     const parts = Object.entries(p.stats)
       .filter(([, s]) => s && s.damage > 0)
       .map(([field, s]) => `${field}: ${(s!.damage / 1e9).toFixed(1)}B x${s!.battles}`)
     return `• **${p.playerName}** — ${parts.join(' | ') || 'no damage'}`
   })
   const warnBlock = warnings.length ? `\n⚠️ ${warnings.slice(0, 5).join('\n⚠️ ')}` : ''
-  return `**Season \`${seasonId}\`** — ${merged.length} players${bossNote}\n${lines.join('\n')}${warnBlock}`
+  return `**Season \`${seasonId}\`** — ${sorted.length} players${bossNote}\n${lines.join('\n')}${warnBlock}`
 }
 
 client.on('messageCreate', async message => {
   if (message.author.bot) return
+
+  const cmd = getMessageCommand(message.content, PREFIX)
+  if (cmd && (INFO_COMMANDS as readonly string[]).includes(cmd)) {
+    await message.reply(buildSonicInfoText(PREFIX))
+    return
+  }
+
   const { seasonId, dryRun, overwrite } = parseSubmitCommand(message.content)
   if (!seasonId) return
 
@@ -92,7 +103,10 @@ client.on('messageCreate', async message => {
   try {
     const buffers = await downloadAttachments(message)
     const parsed = await parseParticipantsImages(buffers, seasonId)
-    const merged = mergeOcrPlayers(parsed.rows)
+    const merged = sortPlayersByBossDamage(
+      mergeOcrPlayers(parsed.rows),
+      parsed.headerBosses
+    )
 
     if (merged.length === 0) {
       await message.reply('No player rows detected. Try clearer screenshots or `--dry-run` to debug.')

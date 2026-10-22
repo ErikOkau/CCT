@@ -10,6 +10,8 @@ import {
   parseSeasonIdFromText
 } from '../../../utils/guildBattleOcrParse.ts'
 import { getActiveBossFields, parseSeasonId } from '../../../utils/seasonConfig.ts'
+import { dedupeWarnings } from '../../../utils/guildBattlePlayerMerge.ts'
+import { getOcrProvider, parseParticipantsScreenshotVision } from './openaiVision.ts'
 import { ocrBuffer, terminateOcrWorker } from './ocrSession.ts'
 
 export { MAX_IMAGES }
@@ -78,6 +80,10 @@ export async function parseParticipantsScreenshot(
   imageBuffer: Buffer,
   options?: { seasonId?: string; flightHint?: number }
 ): Promise<ParsedScreenshot> {
+  if (getOcrProvider() === 'openai') {
+    return parseParticipantsScreenshotVision(imageBuffer, options)
+  }
+
   const warnings: string[] = []
 
   const [seasonBuf, headerBuf, tableBuf] = await Promise.all([
@@ -143,6 +149,7 @@ export async function parseParticipantsImages(
   const warnings: string[] = []
   let headerBosses: BossField[] = []
   const detectedSeasons: string[] = []
+  const usedOpenAi = getOcrProvider() === 'openai'
 
   try {
     for (const buf of buffers.slice(0, MAX_IMAGES)) {
@@ -155,7 +162,9 @@ export async function parseParticipantsImages(
       allRows.push(...result.rows)
     }
   } finally {
-    await terminateOcrWorker()
+    if (getOcrProvider() === 'tesseract') {
+      await terminateOcrWorker()
+    }
   }
 
   const ocrSeason = detectedSeasons[0]
@@ -168,10 +177,15 @@ export async function parseParticipantsImages(
     )
   }
 
+  if (usedOpenAi) {
+    const model = process.env.OPENAI_VISION_MODEL?.trim() || 'gpt-4o'
+    warnings.push(`Parsed with OpenAI Vision (${model})`)
+  }
+
   return {
     seasonId: effectiveSeason,
     headerBosses,
     rows: merged,
-    warnings
+    warnings: dedupeWarnings(warnings)
   }
 }

@@ -1,5 +1,6 @@
 import type { BossField } from './guildBattleBosses'
 import { BOSS_LABELS } from './guildBattleBosses'
+import { mergeOcrPlayersUnique } from './guildBattlePlayerMerge'
 import { getActiveBossFields, parseSeasonId } from './seasonConfig'
 
 export const SHEET_TEMPLATE_TAB = '_ocr_template'
@@ -38,30 +39,7 @@ export function avgDamagePerTicketMillion(damage: number, battles: number): numb
 }
 
 export function mergeOcrPlayers(rows: OcrPlayerRow[]): OcrPlayerRow[] {
-  const map = new Map<string, OcrPlayerRow>()
-
-  for (const row of rows) {
-    const key = row.playerName.trim().toLowerCase()
-    if (!key) continue
-
-    const existing = map.get(key)
-    if (!existing) {
-      map.set(key, {
-        playerName: row.playerName.trim(),
-        stats: { ...row.stats }
-      })
-      continue
-    }
-
-    for (const [field, stat] of Object.entries(row.stats) as [BossField, { damage: number; battles: number }][]) {
-      const prev = existing.stats[field]
-      if (!prev || stat.damage > prev.damage) {
-        existing.stats[field] = { ...stat }
-      }
-    }
-  }
-
-  return [...map.values()]
+  return mergeOcrPlayersUnique(rows)
 }
 
 function rankPlayersForBoss(players: OcrPlayerRow[], field: BossField) {
@@ -71,8 +49,10 @@ function rankPlayersForBoss(players: OcrPlayerRow[], field: BossField) {
       damage: p.stats[field]?.damage ?? 0,
       battles: p.stats[field]?.battles ?? 0
     }))
-    .filter(p => p.damage > 0)
-    .sort((a, b) => b.damage - a.damage)
+    .sort((a, b) => {
+      if (b.damage !== a.damage) return b.damage - a.damage
+      return a.name.localeCompare(b.name)
+    })
     .slice(0, MAX_GUILD_SIZE)
 }
 

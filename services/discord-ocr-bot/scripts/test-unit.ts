@@ -7,6 +7,8 @@ import {
   parseSeasonIdFromText
 } from '../../../utils/guildBattleOcrParse.ts'
 import { buildSeasonSheetGrid, damageToBillionCell, mergeOcrPlayers } from '../../../utils/guildBattleSheet.ts'
+import { mergeOcrPlayersUnique } from '../../../utils/guildBattlePlayerMerge.ts'
+import { parseVisionModelJson } from '../../../utils/guildBattleVisionParse.ts'
 
 assert.equal(parseSeasonIdFromText("Destiny's Flight 33-2"), '33-2')
 assert.equal(parseSeasonIdFromText('35-1'), '35-1')
@@ -62,5 +64,43 @@ ThickCreamyMess 245,001,284,351 304,766,990,577 549,768,274,928`,
 )
 assert.equal(fromText.rows[0]?.playerName, 'ThickCreamyMess')
 assert.equal(fromText.rows[0]?.stats.redVelvetDragon?.damage, 245_001_284_351)
+
+const vision = parseVisionModelJson(
+  JSON.stringify({
+    seasonId: '33-2',
+    bossColumns: ['redVelvetDragon', 'livingAbyss'],
+    players: [
+      {
+        playerName: 'ThickCreamyMess',
+        stats: [
+          { boss: 'redVelvetDragon', damage: '245,001,284,351', battles: 9 },
+          { boss: 'livingAbyss', damage: 304766990577, battles: 9 }
+        ]
+      }
+    ]
+  }),
+  { seasonIdHint: '33-2' }
+)
+assert.equal(vision.rows[0]?.playerName, 'ThickCreamyMess')
+assert.equal(vision.rows[0]?.stats.redVelvetDragon?.damage, 245_001_284_351)
+
+const kanaDup = mergeOcrPlayersUnique([
+  {
+    playerName: 'Xいやんx',
+    stats: {
+      redVelvetDragon: { damage: 201_961_625_886, battles: 9 },
+      livingAbyss: { damage: 224_069_311_664, battles: 9 }
+    }
+  },
+  {
+    playerName: 'Xいゃんx',
+    stats: {
+      redVelvetDragon: { damage: 201_961_625_886, battles: 9 },
+      livingAbyss: { damage: 224_069_311_664, battles: 9 }
+    }
+  }
+])
+assert.equal(kanaDup.length, 1)
+assert.equal(kanaDup[0]?.stats.redVelvetDragon?.damage, 201_961_625_886)
 
 console.log('✅ All unit checks passed')

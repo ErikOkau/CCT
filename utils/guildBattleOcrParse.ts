@@ -1,5 +1,6 @@
 import type { BossField } from './guildBattleBosses'
 import { matchBossFieldFromHeader, uiColumnOrderForFlight } from './guildBattleBosses'
+import { mergeOcrPlayersUnique } from './guildBattlePlayerMerge'
 import type { OcrPlayerRow } from './guildBattleSheet'
 
 /** Discord allows many attachments; 6 × ~5 visible rows ≈ 30 members. */
@@ -302,22 +303,8 @@ export function parseParticipantsFullText(
 }
 
 export function filterAndDedupeOcrRows(rows: OcrPlayerRow[]): OcrPlayerRow[] {
-  const map = new Map<string, OcrPlayerRow>()
-
-  for (const row of rows) {
-    if (!isPlausiblePlayerName(row.playerName)) continue
-    const key = row.playerName.toLowerCase()
-    const existing = map.get(key)
-    if (!existing) {
-      map.set(key, row)
-      continue
-    }
-    const existingTotal = Object.values(existing.stats).reduce((s, b) => s + (b?.damage ?? 0), 0)
-    const rowTotal = Object.values(row.stats).reduce((s, b) => s + (b?.damage ?? 0), 0)
-    if (rowTotal > existingTotal) map.set(key, row)
-  }
-
-  return [...map.values()]
+  const plausible = rows.filter(r => isPlausiblePlayerName(r.playerName))
+  return mergeOcrPlayersUnique(plausible)
 }
 
 export function parsePlayerNameFromCell(text: string): string | null {

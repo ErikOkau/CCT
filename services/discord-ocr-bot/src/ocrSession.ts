@@ -4,7 +4,8 @@ let worker: Worker | null = null
 
 export async function getOcrWorker(): Promise<Worker> {
   if (!worker) {
-    worker = await createWorker('eng+jpn')
+    const lang = process.env.OCR_LANGUAGES?.trim() || 'eng'
+    worker = await createWorker(lang)
   }
   return worker
 }
