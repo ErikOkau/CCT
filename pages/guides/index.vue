@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { guildGuides } from '~/utils/guildGuides'
+import { modeGuides } from '~/utils/modeGuides'
 
 useHead({
   title: 'Guild Battle Guides — Chaos Control Team'
@@ -32,7 +33,7 @@ useHead({
             <div class="guild-name">Chaos Control Team</div>
           </div>
           <h1 class="hero-title">Guild Battle Guides</h1>
-          <p class="hero-description">Avatar of Destiny, Machine-God, and Living Abyss are in rotation. Red Velvet Dragon is parked until it returns. Each guide has the team, toppings, tart, beascuit, timings, and target stats. <NuxtLink to="/tools/gear-check">Check your Gear screen against those targets →</NuxtLink></p>
+          <p class="hero-description">Avatar of Destiny, Machine-God, and Living Abyss are in rotation. Red Velvet Dragon is parked until it returns. Each guide has the team, toppings, tart, beascuit, timings, and target stats. Also see <NuxtLink to="/guides/cookie-alliance">Cookie Alliance</NuxtLink> and <NuxtLink to="/guides/kingdom-arena">Kingdom Arena</NuxtLink> for autoplay modes. <NuxtLink to="/tools/gear-check">Gear Check →</NuxtLink></p>
         </div>
       </div>
     </section>
@@ -54,6 +55,27 @@ useHead({
           <strong>Open guide →</strong>
         </div>
       </NuxtLink>
+    </section>
+
+    <section class="container mode-section">
+      <h2 class="mode-heading">Autoplay modes</h2>
+      <div class="gates-wrap mode-gates">
+        <NuxtLink
+          v-for="guide in modeGuides"
+          :key="guide.slug"
+          :to="`/guides/${guide.slug}`"
+          class="gate"
+          :class="guide.theme"
+        >
+          <img :src="guide.image" :alt="guide.name">
+          <div class="gate-copy">
+            <span class="code">{{ guide.code }}</span>
+            <h2>{{ guide.name }}</h2>
+            <p>{{ guide.blurb }}</p>
+            <strong>Open guide →</strong>
+          </div>
+        </NuxtLink>
+      </div>
     </section>
   </div>
 </template>
@@ -157,6 +179,21 @@ useHead({
 .gate.tla { --gate: #34d399; }
 .gate.aod { --gate: #7eb6ff; }
 .gate.rvd { --gate: #fb7185; }
+.gate.cookie-alliance { --gate: #fbbf24; }
+.gate.kingdom-arena { --gate: #60a5fa; }
+
+.mode-section {
+  padding-bottom: 4rem;
+}
+
+.mode-heading {
+  color: #ffd700;
+  margin-bottom: 1rem;
+}
+
+.mode-gates {
+  padding-top: 0;
+}
 
 @media (max-width: 860px) {
   .gates-wrap, .gate { grid-template-columns: 1fr; }

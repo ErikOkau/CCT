@@ -27,6 +27,9 @@ import {
   GUILD_OFFICER_NAME
 } from '~/utils/guildRanks'
 import { seasonHasSheetTab } from '~/utils/seasonSheetTabs'
+import type { GuildBossProgress } from '~/utils/guildBossProgressSheet'
+import { buildOfficerDigestMarkdown } from '~/utils/officerDigest'
+import { mergeGuildBossProgress } from '~/utils/mergeGuildBossProgress'
 
 // Use composables
 const {
@@ -42,6 +45,7 @@ const {
 onMounted(() => {
   fetchSeasonData(activeSeason.value)
   fetchAllianceRankings()
+  fetchGuildBossProgress()
 })
 
 // Guild Battle Schedule Data
@@ -512,6 +516,61 @@ const allianceLoading = ref(false)
 const allianceError = ref<string | null>(null)
 const allianceHidden = ref(false)
 
+const guildBossProgress = ref<GuildBossProgress | null>(null)
+
+const fetchGuildBossProgress = async () => {
+  try {
+    const res = await $fetch<{ progress: GuildBossProgress | null }>('/api/fetch-guild-boss-progress', {
+      method: 'POST',
+      body: { spreadsheetId: SPREADSHEET_ID }
+    })
+    guildBossProgress.value = res.progress
+  } catch {
+    guildBossProgress.value = null
+  }
+}
+
+const archivedSeasonIds = computed(() => allSeasons.filter(s => !s.hasData).map(s => s.id))
+
+const officerDigestCopied = ref(false)
+
+const copyOfficerDigest = async () => {
+  const text = buildOfficerDigestMarkdown(
+    analysisState.battleData,
+    analysisState.battleStats,
+    currentDestinysFlight.value,
+    activeSeason.value
+  )
+  try {
+    await navigator.clipboard.writeText(text)
+    officerDigestCopied.value = true
+    setTimeout(() => {
+      officerDigestCopied.value = false
+    }, 2500)
+  } catch (e) {
+    console.error('Clipboard failed', e)
+  }
+}
+
+const guildRoundLabel = computed(() => {
+  const r = displayBossProgress.value?.round
+  if (r != null) return `Round ${r}`
+  return null
+})
+
+/** Level/HP from Guild Progress tab; boss damage summed from the loaded season sheet. */
+const displayBossProgress = computed((): GuildBossProgress | null => {
+  const tab = guildBossProgress.value
+  const players = analysisState.battleData
+  const flight = currentDestinysFlight.value
+  const season = activeSeason.value
+
+  if (players.length && analysisState.analysisComplete) {
+    return mergeGuildBossProgress(tab, players, flight, season)
+  }
+  return tab
+})
+
 // Function to fetch alliance rankings
 const fetchAllianceRankings = async () => {
   allianceLoading.value = true
@@ -662,8 +721,9 @@ const formatAllianceTime = (time: string | number) => {
     </header>
 
     <!-- Hero Section -->
-    <section class="hero">
-      <div class="hero-content">
+    <section class="hero hero-with-progress">
+      <GuildBossProgressHero :progress="displayBossProgress" />
+      <div class="hero-content" :class="{ 'progress-active': !!displayBossProgress }">
         <div class="hero-text">
           <div class="guild-badge">
             <div class="guild-logo">
@@ -693,7 +753,7 @@ const formatAllianceTime = (time: string | number) => {
             </div>
           </div>
         </div>
-        <div class="hero-visual">
+        <div v-if="!displayBossProgress" class="hero-visual">
           <div class="sonic-illustration">
             <div class="sonic-character">🦔</div>
             <div class="rings">
@@ -991,8 +1051,11 @@ const formatAllianceTime = (time: string | number) => {
       <div class="schedule-container">
         <div class="schedule-header">
           <h2 class="schedule-title">Boss Schedule</h2>
-          <p class="schedule-subtitle">Destiny's Flight {{ currentDestinysFlight }}</p>
-          <p class="schedule-note">Season times are to GMT+9</p>
+          <p class="schedule-subtitle">
+            Destiny's Flight {{ currentDestinysFlight }}
+            <span v-if="guildRoundLabel" class="round-pill">{{ guildRoundLabel }}</span>
+          </p>
+          <p class="schedule-note">Season times are to GMT+9 · Boss <strong>damage</strong> on the homepage is summed from this season’s sheet; paste <strong>level / HP %</strong> from the in-game hub into tab <strong>Guild Progress</strong> (no public per-level HP table for accurate level math).</p>
         </div>
 
         <div class="schedule-grid">
@@ -1099,6 +1162,14 @@ const formatAllianceTime = (time: string | number) => {
                 <div class="no-bosses-text">No bosses scheduled for this season</div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div v-if="archivedSeasonIds.length" class="archive-seasons">
+          <h3 class="archive-title">Seasons without a sheet tab yet</h3>
+          <p class="archive-note">These IDs are tracked in code but have no Google Sheet tab (e.g. gap seasons). Hall of Glory skips them automatically.</p>
+          <div class="archive-chips">
+            <span v-for="id in archivedSeasonIds" :key="id" class="archive-chip">{{ id }}</span>
           </div>
         </div>
       </div>
@@ -1389,7 +1460,12 @@ const formatAllianceTime = (time: string | number) => {
 
         <!-- Insights Section -->
         <div class="insights-section" v-if="analysisState.insights.length > 0">
-          <h3>Performance Insights</h3>
+          <div class="insights-head">
+            <h3>Performance Insights</h3>
+            <button type="button" class="export-button" @click="copyOfficerDigest">
+              {{ officerDigestCopied ? 'Copied!' : 'Copy officer digest' }}
+            </button>
+          </div>
           <div class="insights-grid">
             <div class="insight-card" v-for="(insight, index) in analysisState.insights" :key="index">
               <div class="insight-icon">💡</div>
@@ -2551,5 +2627,79 @@ const formatAllianceTime = (time: string | number) => {
   .alliance-table-container {
     padding: 1rem;
   }
+}
+
+.hero-with-progress {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-with-progress .hero-content.progress-active {
+  grid-template-columns: 1fr;
+  max-width: 560px;
+}
+
+.hero-with-progress .hero-content.progress-active .hero-text {
+  position: relative;
+  z-index: 2;
+}
+
+.insights-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.insights-head h3 {
+  margin: 0;
+}
+
+.round-pill {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(220, 38, 38, 0.85);
+  color: #fff;
+  vertical-align: middle;
+}
+
+.archive-seasons {
+  margin-top: 2rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+.archive-title {
+  margin: 0 0 0.5rem;
+  color: #ffd700;
+  font-size: 1rem;
+}
+
+.archive-note {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.archive-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.archive-chip {
+  padding: 0.25rem 0.6rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 </style>

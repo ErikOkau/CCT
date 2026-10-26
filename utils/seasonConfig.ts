@@ -71,7 +71,8 @@ export const FLIGHT_SEASONS: Record<number, number[]> = {
   31: [1, 2, 3],
   33: [2],
   34: [1, 2, 3],
-  35: [1, 2, 3, 4]
+  35: [1, 2, 3, 4],
+  36: [1]
 }
 
 const AOD_THREE_SEASON_FLIGHTS = new Set([24])
@@ -131,6 +132,9 @@ export const bossSchedules: Record<number, FlightBossSchedule> = {
     2: AOD_LA,    // 35-2: Avatar of Destiny + Living Abyss
     3: LA_MG_AOD, // 35-3: Living Abyss + Machine God
     4: AOD_MG     // 35-4: Avatar of Destiny + Machine God
+  },
+  36: {
+    1: AOD_LA // 36-1: Avatar of Destiny + Living Abyss (in-game hub)
   }
 }
 
@@ -148,7 +152,8 @@ export const ALL_SEASON_IDS = [
   '30-1', '30-2', '30-3', '30-4',
   '31-1', '31-2', '31-3',
   '34-1', '34-2', '34-3',
-  '35-1', '35-2', '35-3', '35-4'
+  '35-1', '35-2', '35-3', '35-4',
+  '36-1'
 ]
 
 export const allSeasons = ALL_SEASON_IDS.map(id => ({

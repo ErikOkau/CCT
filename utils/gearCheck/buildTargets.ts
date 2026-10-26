@@ -1,6 +1,8 @@
 import type { GuideSlug } from '~/utils/guildGuides'
 import type { CookieBuildTarget } from './types'
 
+export type GearCheckMode = GuideSlug | 'arena' | 'alliance'
+
 /** Guild-battle targets from CCT boss guides (Total / Beascuit stats page). */
 const MGEV: CookieBuildTarget[] = [
   {
@@ -185,17 +187,151 @@ const RVD: CookieBuildTarget[] = [
   }
 ]
 
-const BY_BOSS: Record<GuideSlug, CookieBuildTarget[]> = {
+const ALLIANCE: CookieBuildTarget[] = [
+  {
+    id: 'windArcher',
+    short: 'Wind Archer',
+    names: ['Wind Archer'],
+    portrait: '/img/guides/tla/wind-archer.png',
+    requirements: [
+      { statKey: 'atk', label: 'ATK', min: 70, unit: 'percent' },
+      { statKey: 'dmgResist', label: 'DMG Resist', min: 22, unit: 'percent' },
+      { statKey: 'cooldown', label: 'Cooldown', min: 20, unit: 'percent' }
+    ],
+    gearRows: [
+      { label: 'Toppings', value: 'Searing Raspberry (+ Swift if needed)' },
+      { label: 'Tart', value: 'Increased Team DMG' },
+      { label: 'Beascuit', value: 'Grass DMG ~45–55% when Beacon is Grass' }
+    ]
+  },
+  {
+    id: 'adc',
+    short: 'ADC',
+    names: ['Awakened Dark Cacao', 'Dark Cacao'],
+    requirements: [
+      { statKey: 'atk', label: 'ATK', min: 100, unit: 'percent' },
+      { statKey: 'fireDmg', label: 'Fire DMG', min: 52, unit: 'percent', hint: 'Beascuit Options' }
+    ],
+    gearRows: [
+      { label: 'Toppings', value: 'Searing Raspberry' },
+      { label: 'Tart', value: 'Increased DMG to Enemies' },
+      { label: 'Beascuit', value: 'Fire DMG ~55–60%' }
+    ]
+  },
+  {
+    id: 'linzer',
+    short: 'Linzer',
+    names: ['Linzer'],
+    portrait: '/img/guides/rvd/linzer.png',
+    requirements: [
+      { statKey: 'atk', label: 'ATK', min: 90, unit: 'percent' },
+      { statKey: 'crit', label: 'CRIT', min: 12, unit: 'percent' },
+      { statKey: 'cooldown', label: 'Cooldown', min: 12, unit: 'percent' }
+    ],
+    gearRows: [
+      { label: 'Toppings', value: 'Raspberry + Apple Jelly' },
+      { label: 'Tart', value: 'Increased DMG to Enemies' },
+      { label: 'Beascuit', value: 'Fire DMG ~55–60%' }
+    ]
+  },
+  {
+    id: 'blackPearl',
+    short: 'Black Pearl',
+    names: ['Black Pearl'],
+    requirements: [
+      { statKey: 'atk', label: 'ATK', min: 85, unit: 'percent' },
+      { statKey: 'cooldown', label: 'Cooldown', min: 10, unit: 'percent' }
+    ],
+    notes: ['Elemental beascuit matches Beacon when possible']
+  },
+  {
+    id: 'burningSpice',
+    short: 'Burning Spice',
+    names: ['Burning Spice'],
+    requirements: [
+      { statKey: 'atk', label: 'ATK', min: 85, unit: 'percent' },
+      { statKey: 'fireDmg', label: 'Fire DMG', min: 50, unit: 'percent' }
+    ]
+  }
+]
+
+const ARENA: CookieBuildTarget[] = [
+  {
+    id: 'windArcher',
+    short: 'Wind Archer',
+    names: ['Wind Archer'],
+    portrait: '/img/guides/tla/wind-archer.png',
+    requirements: [
+      { statKey: 'crit', label: 'CRIT', min: 65, unit: 'percent' },
+      { statKey: 'dmgResist', label: 'DMG Resist', min: 24, unit: 'percent' },
+      { statKey: 'dmgResistBypass', label: 'DMG Resist Bypass', min: 48, unit: 'percent' }
+    ],
+    gearRows: [
+      { label: 'Toppings', value: 'Raspberry + Apple Jelly' },
+      { label: 'Beascuit', value: 'CRIT / bypass substats' }
+    ]
+  },
+  {
+    id: 'adc',
+    short: 'ADC',
+    names: ['Awakened Dark Cacao', 'Dark Cacao'],
+    requirements: [
+      { statKey: 'cooldown', label: 'Cooldown', min: 28, unit: 'percent' },
+      { statKey: 'dmgResist', label: 'DMG Resist', min: 24, unit: 'percent' },
+      { statKey: 'atk', label: 'ATK', min: 100, unit: 'percent' }
+    ],
+    gearRows: [
+      { label: 'Toppings', value: '5 Swift or 4 Swift + 1 Almond' },
+      { label: 'Tart', value: 'Healing or DMG Resist' }
+    ]
+  },
+  {
+    id: 'blackPearl',
+    short: 'Black Pearl',
+    names: ['Black Pearl'],
+    requirements: [
+      { statKey: 'atk', label: 'ATK', min: 80, unit: 'percent' },
+      { statKey: 'crit', label: 'CRIT', min: 20, unit: 'percent' }
+    ]
+  },
+  {
+    id: 'mysticFlour',
+    short: 'Mystic Flour',
+    names: ['Mystic Flour'],
+    requirements: [
+      { statKey: 'cooldown', label: 'Cooldown', min: 25, unit: 'percent' },
+      { statKey: 'dmgResist', label: 'DMG Resist', min: 22, unit: 'percent' }
+    ]
+  },
+  {
+    id: 'linzer',
+    short: 'Linzer',
+    names: ['Linzer'],
+    portrait: '/img/guides/rvd/linzer.png',
+    requirements: [
+      { statKey: 'atk', label: 'ATK', min: 88, unit: 'percent' },
+      { statKey: 'crit', label: 'CRIT', min: 12, unit: 'percent' }
+    ]
+  }
+]
+
+const BY_MODE: Record<GearCheckMode, CookieBuildTarget[]> = {
   mgev: MGEV,
   tla: TLA,
   aod: AOD,
-  rvd: RVD
+  rvd: RVD,
+  alliance: ALLIANCE,
+  arena: ARENA
 }
 
-export function getCookieBuildTargets(bossSlug: GuideSlug): CookieBuildTarget[] {
-  return BY_BOSS[bossSlug] ?? []
+export function getCookieBuildTargets(mode: GearCheckMode): CookieBuildTarget[] {
+  return BY_MODE[mode] ?? []
 }
 
-export function getCookieBuildTarget(bossSlug: GuideSlug, buildId: string): CookieBuildTarget | null {
-  return getCookieBuildTargets(bossSlug).find(c => c.id === buildId) ?? null
+export function getCookieBuildTarget(mode: GearCheckMode, buildId: string): CookieBuildTarget | null {
+  return getCookieBuildTargets(mode).find(c => c.id === buildId) ?? null
+}
+
+export function isGearCheckMode(value: string): value is GearCheckMode {
+  return value in BY_MODE
 }

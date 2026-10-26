@@ -1,6 +1,9 @@
-import type { GuideSlug } from '~/utils/guildGuides'
+import type { GearCheckMode } from './buildTargets'
 
 export type GearStatKey =
+  | 'fireDmg'
+  | 'dmgResist'
+  | 'dmgResistBypass'
   | 'cooldown'
   | 'atkSpd'
   | 'crit'
@@ -81,7 +84,7 @@ export type ComparisonRow = {
 }
 
 export type GearCheckResult = {
-  bossSlug: GuideSlug
+  bossSlug: GearCheckMode
   matchedBuildId: string | null
   matchedShort: string | null
   cookieName: string

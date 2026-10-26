@@ -7,6 +7,8 @@ Guild battle analytics for **Chaos Control Team** (Cookie Run: Kingdom): live da
 - **Season analyzer** — reads guild tabs from Google Sheets (per-season boss columns, ticket totals)
 - **Hall of Glory** — all-time boss champions across **all four bosses** (RVD, AoD, LA, MG)
 - **Boss guides** — MGEV / TLA / AoD teams, gear targets, timings
+- **Cookie Alliance & Kingdom Arena** — autoplay gear docs at `/guides/cookie-alliance` and `/guides/kingdom-arena`
+- **Homepage boss bars** — optional sheet tab **Guild Progress** (boss level, HP %, guild DMG) drives the hero background
 - **Gear Check** (`/tools/gear-check`) — OpenAI vision on the in-game Gear → Total screen vs guide targets (annotated PNG)
 - **Discord bot** (`services/discord-ocr-bot`) — `?submit_result` with Participants screenshots → sheet
 - **Excel export** — download reports from the analyzer
@@ -44,6 +46,7 @@ npm run dev
 2. The **website** loads the active season tab and shows rankings, boss columns, and insights.
 3. **Gear Check** compares cookie stats from a Gear screenshot to CCT guide targets.
 4. Guild Leader / Officer badges are set in `utils/guildRanks.ts` (hardcoded names).
+5. **Guild Progress tab** (optional): paste **level / HP % / round / trophies** from the in-game hub. **Total boss damage** on the homepage is summed automatically from the active season sheet tab. There is no reliable public per-level HP table for modern bosses, so level cannot be computed from damage alone — see `utils/guildBossLevelEstimate.ts`.
 
 Copy `.env` from `env.example` — `GOOGLE_SHEETS_CREDENTIALS`, `CHATGPT_API` (vision), optional `OPENAI_VISION_MODEL`.
 

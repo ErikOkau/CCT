@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { guildGuides, type GuideSlug } from '~/utils/guildGuides'
-import { getCookieBuildTargets } from '~/utils/gearCheck/buildTargets'
+import { getCookieBuildTargets, isGearCheckMode, type GearCheckMode } from '~/utils/gearCheck/buildTargets'
 import { drawGearOverlay, downloadCanvas } from '~/utils/gearCheck/drawOverlay'
 import { buildGearFixList } from '~/utils/gearCheck/fixList'
 import type { GearCheckResult } from '~/utils/gearCheck/types'
@@ -8,7 +8,8 @@ import type { GearCheckResult } from '~/utils/gearCheck/types'
 useHead({ title: 'Gear Check — Chaos Control Team' })
 
 const route = useRoute()
-const bossSlug = ref<GuideSlug>((route.query.boss as GuideSlug) || 'mgev')
+const initialBoss = (route.query.boss as string) || 'mgev'
+const bossSlug = ref<GearCheckMode>(isGearCheckMode(initialBoss) ? initialBoss : 'mgev')
 const overrideBuildId = ref((route.query.cookie as string) || '')
 const batchMode = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -23,7 +24,11 @@ const windArcherHp = ref<number | undefined>()
 const grimoireHp = ref(12)
 const copyDone = ref(false)
 
-const activeGuides = computed(() => guildGuides.filter(g => !g.parked))
+const activeGuides = computed(() => [
+  ...guildGuides.filter(g => !g.parked).map(g => ({ slug: g.slug as GearCheckMode, name: g.short })),
+  { slug: 'alliance' as const, name: 'Cookie Alliance' },
+  { slug: 'arena' as const, name: 'Kingdom Arena' }
+])
 const cookieOptions = computed(() => getCookieBuildTargets(bossSlug.value))
 const fixListText = computed(() => (result.value ? buildGearFixList(result.value) : ''))
 
@@ -151,7 +156,7 @@ function statusClass(status: string) {
     <section class="container tool-panel">
       <div class="controls">
         <label>
-          Boss guide
+          Guide / mode
           <select v-model="bossSlug">
             <option v-for="g in activeGuides" :key="g.slug" :value="g.slug">{{ g.name }}</option>
             <option value="rvd">Red Velvet Dragon (parked)</option>

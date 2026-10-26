@@ -1,6 +1,5 @@
 import { defineEventHandler, readBody, createError } from 'h3'
-import type { GuideSlug } from '~/utils/guildGuides'
-import { getCookieBuildTargets } from '~/utils/gearCheck/buildTargets'
+import { getCookieBuildTargets, isGearCheckMode, type GearCheckMode } from '~/utils/gearCheck/buildTargets'
 import { matchCookieBuild } from '~/utils/gearCheck/matchCookie'
 import { compareGearToBuild } from '~/utils/gearCheck/compare'
 import { buildGearValidatePrompt, buildGearVisionPrompt } from '~/utils/gearCheck/visionPrompt'
@@ -10,12 +9,10 @@ import { callOpenAiVisionJson } from '../utils/openaiJsonVision'
 import { extractJsonObjectFromModelText } from '~/utils/guildBattleVisionParse'
 import { creamPuffHpRequired, WA_ATK_SPD_REQ } from '~/utils/tlaGuide'
 
-const VALID_SLUGS = new Set<GuideSlug>(['mgev', 'tla', 'aod', 'rvd'])
-
 async function analyzeOneImage(
   apiKey: string,
   model: string,
-  bossSlug: GuideSlug,
+  bossSlug: GearCheckMode,
   imageData: string,
   overrideBuildId: string | null,
   tlaContext?: { windArcherHp?: number; grimoireHpPercent?: number }
@@ -99,7 +96,7 @@ export default defineEventHandler(async event => {
   const body = await readBody(event)
   const imageData = body?.imageData as string | undefined
   const images = body?.images as string[] | undefined
-  const bossSlug = body?.bossSlug as GuideSlug | undefined
+  const bossSlug = body?.bossSlug as string | undefined
   const overrideBuildId = (body?.overrideBuildId as string | undefined) ?? null
   const tlaContext = body?.tlaContext as { windArcherHp?: number; grimoireHpPercent?: number } | undefined
 
@@ -107,8 +104,11 @@ export default defineEventHandler(async event => {
   if (!list.every(u => u.startsWith('data:image'))) {
     throw createError({ statusCode: 400, statusMessage: 'imageData or images[] (data URLs) required' })
   }
-  if (!bossSlug || !VALID_SLUGS.has(bossSlug)) {
-    throw createError({ statusCode: 400, statusMessage: 'bossSlug must be mgev, tla, aod, or rvd' })
+  if (!bossSlug || !isGearCheckMode(bossSlug)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'bossSlug must be mgev, tla, aod, rvd, arena, or alliance'
+    })
   }
 
   const apiKey = process.env.CHATGPT_API?.trim()

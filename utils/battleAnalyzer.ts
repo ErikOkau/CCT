@@ -7,6 +7,7 @@ import {
   zeroInactiveBossStatsForPlayers
 } from '~/utils/seasonConfig'
 import { getPlayerGuildRank } from '~/utils/guildRanks'
+import { buildTicketCoachingInsights } from '~/utils/ticketCoaching'
 
 export class BattleAnalyzer {
   // OCR Configuration
@@ -307,6 +308,8 @@ export class BattleAnalyzer {
     if (highPerformers > 0) {
       insights.push(`🌟 ${highPerformers} players achieved 10B+ total damage`)
     }
+
+    insights.push(...buildTicketCoachingInsights(players, destinysFlight, season))
 
     return insights
   }

@@ -1,5 +1,4 @@
-import type { GuideSlug } from '~/utils/guildGuides'
-import { getCookieBuildTargets } from './buildTargets'
+import { getCookieBuildTargets, type GearCheckMode } from './buildTargets'
 
 export function buildGearValidatePrompt(): string {
   return `Look at this Cookie Run: Kingdom screenshot. Return JSON only:
@@ -12,10 +11,17 @@ export function buildGearValidatePrompt(): string {
 Rules: Gear screen has Toppings & Beascuits, left cookie list with gold frame + checkmark. Prefer Total tab.`
 }
 
-export function buildGearVisionPrompt(bossSlug: GuideSlug): string {
-  const roster = getCookieBuildTargets(bossSlug)
+export function buildGearVisionPrompt(mode: GearCheckMode): string {
+  const roster = getCookieBuildTargets(mode)
     .map(c => `- ${c.names[0]} (${c.short})`)
     .join('\n')
+
+  const contextLabel =
+    mode === 'arena'
+      ? 'Kingdom Arena (auto PvP)'
+      : mode === 'alliance'
+        ? 'Cookie Alliance (auto Master)'
+        : `${mode.toUpperCase()} guild battle`
 
   return `You are reading a Cookie Run: Kingdom screenshot of the **Gear** window (Toppings & Beascuits).
 
@@ -24,7 +30,7 @@ Layout rules:
 - RIGHT panel: stat rows (Total tab preferred). Labels like Cooldown, ATK SPD, CRIT, ATK, HP, etc.
 - Tart effect line and Beascuit elemental bonuses may appear above or within the stats.
 
-Boss context: **${bossSlug.toUpperCase()}** guild battle team. Known cookies:
+Mode context: **${contextLabel}**. Known cookies:
 ${roster}
 
 Return **only** JSON:
