@@ -30,8 +30,7 @@ export default defineNuxtConfig({
   
   // Disable experimental features that cause issues
   experimental: {
-    payloadExtraction: false,
-    inlineSSRStyles: false
+    payloadExtraction: false
   },
   
   runtimeConfig: {

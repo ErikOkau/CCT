@@ -52,7 +52,7 @@ Copy `.env` from `env.example` — `GOOGLE_SHEETS_CREDENTIALS`, `CHATGPT_API` (v
 
 ## 🛠️ Technology Stack
 
-- **Frontend**: Nuxt 3, Vue 3, TypeScript
+- **Frontend**: Nuxt 3, Vue 3, **TypeScript 7** (native `tsc`; `npm run typecheck` — full `.vue` checking waits on `vue-tsc` + TS 7)
 - **Styling**: SCSS with modern CSS features
 - **Excel Generation**: XLSX library
 - **File Handling**: File-saver for downloads
