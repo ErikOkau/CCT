@@ -17,6 +17,7 @@ useHead({
         <nav class="nav-menu">
           <NuxtLink to="/" class="nav-link">Home</NuxtLink>
           <NuxtLink to="/guides" class="nav-link">Guides</NuxtLink>
+          <NuxtLink to="/tools/gear-check" class="nav-link">Gear Check</NuxtLink>
         </nav>
       </div>
     </header>
@@ -31,7 +32,7 @@ useHead({
             <div class="guild-name">Chaos Control Team</div>
           </div>
           <h1 class="hero-title">Guild Battle Guides</h1>
-          <p class="hero-description">Avatar of Destiny, Machine-God, and Living Abyss are in rotation. Red Velvet Dragon is parked until it returns. Each guide has the team, toppings, tart, beascuit, timings, and target stats.</p>
+          <p class="hero-description">Avatar of Destiny, Machine-God, and Living Abyss are in rotation. Red Velvet Dragon is parked until it returns. Each guide has the team, toppings, tart, beascuit, timings, and target stats. <NuxtLink to="/tools/gear-check">Check your Gear screen against those targets →</NuxtLink></p>
         </div>
       </div>
     </section>

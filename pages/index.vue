@@ -649,6 +649,7 @@ const formatAllianceTime = (time: string | number) => {
         <nav class="nav-menu">
           <NuxtLink to="/" class="nav-link">Home</NuxtLink>
           <NuxtLink to="/guides" class="nav-link">Guides</NuxtLink>
+          <NuxtLink to="/tools/gear-check" class="nav-link">Gear Check</NuxtLink>
         </nav>
       </div>
     </header>
