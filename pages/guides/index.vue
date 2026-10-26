@@ -33,7 +33,7 @@ useHead({
             <div class="guild-name">Chaos Control Team</div>
           </div>
           <h1 class="hero-title">Guild Battle Guides</h1>
-          <p class="hero-description">Avatar of Destiny, Machine-God, and Living Abyss are in rotation. Red Velvet Dragon is parked until it returns. Each guide has the team, toppings, tart, beascuit, timings, and target stats. Also see <NuxtLink to="/guides/cookie-alliance">Cookie Alliance</NuxtLink> and <NuxtLink to="/guides/kingdom-arena">Kingdom Arena</NuxtLink> for autoplay modes. <NuxtLink to="/tools/gear-check">Gear Check →</NuxtLink></p>
+          <p class="hero-description">Avatar of Destiny, Machine-God, and Living Abyss are in rotation. Red Velvet Dragon is parked until it returns. Each guide has the team, toppings, tart, beascuit, timings, and target stats. Also see <NuxtLink to="/guides/cookie-alliance">Cookie Alliance</NuxtLink> and <NuxtLink to="/guides/kingdom-arena">Kingdom Arena</NuxtLink> (doc-only autoplay guides). Guild bosses: <NuxtLink to="/tools/gear-check">Gear Check →</NuxtLink></p>
         </div>
       </div>
     </section>

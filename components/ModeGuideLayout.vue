@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import type { ModeGuide } from '~/utils/modeGuides'
-import { gearCheckModeUrl, modeGuides } from '~/utils/modeGuides'
+import { modeGuides } from '~/utils/modeGuides'
 const props = defineProps<{
   guide: ModeGuide
 }>()
-
-const gearMode = computed(() => (props.guide.slug === 'kingdom-arena' ? 'arena' : 'alliance'))
 
 useHead({
   title: `${props.guide.code} · ${props.guide.short} — Chaos Control Team`
@@ -23,7 +21,6 @@ useHead({
         <nav class="nav-menu">
           <NuxtLink to="/" class="nav-link">Home</NuxtLink>
           <NuxtLink to="/guides" class="nav-link">Guides</NuxtLink>
-          <NuxtLink :to="gearCheckModeUrl(gearMode)" class="nav-link">Gear Check</NuxtLink>
         </nav>
       </div>
     </header>

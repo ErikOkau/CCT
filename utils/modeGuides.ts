@@ -18,7 +18,7 @@ export const modeGuides: ModeGuide[] = [
     short: 'Cookie Alliance',
     theme: 'cookie-alliance',
     image: '/img/cctLogo.png',
-    blurb: 'Three auto teams for Master. Toppings, tart, elemental beascuits, and rough Total-gear bands — no OCR required.'
+    blurb: 'Doc-only Master autoplay: teams, toppings, tart, elemental beascuits, and rough gear bands.'
   },
   {
     slug: 'kingdom-arena',
@@ -27,7 +27,7 @@ export const modeGuides: ModeGuide[] = [
     short: 'Kingdom Arena',
     theme: 'kingdom-arena',
     image: '/img/challenger_2.png',
-    blurb: 'Auto-only PvP season gear: cooldown, DMG resist, CRIT, and bypass targets for the current CCT defense team.'
+    blurb: 'Doc-only: Arcade Arena rank-up team, normal Kingdom Arena defense, and Le counter sheet — no Gear Check.'
   }
 ]
 
@@ -35,10 +35,4 @@ export function getModeGuide(slug: ModeGuideSlug): ModeGuide {
   const guide = modeGuides.find(g => g.slug === slug)
   if (!guide) throw new Error(`Unknown mode guide: ${slug}`)
   return guide
-}
-
-export function gearCheckModeUrl(mode: 'arena' | 'alliance', cookieId?: string) {
-  const q = new URLSearchParams({ boss: mode })
-  if (cookieId) q.set('cookie', cookieId)
-  return `/tools/gear-check?${q.toString()}`
 }

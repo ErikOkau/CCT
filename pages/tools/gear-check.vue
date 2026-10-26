@@ -24,11 +24,9 @@ const windArcherHp = ref<number | undefined>()
 const grimoireHp = ref(12)
 const copyDone = ref(false)
 
-const activeGuides = computed(() => [
-  ...guildGuides.filter(g => !g.parked).map(g => ({ slug: g.slug as GearCheckMode, name: g.short })),
-  { slug: 'alliance' as const, name: 'Cookie Alliance' },
-  { slug: 'arena' as const, name: 'Kingdom Arena' }
-])
+const activeGuides = computed(() =>
+  guildGuides.filter(g => !g.parked).map(g => ({ slug: g.slug as GearCheckMode, name: g.short }))
+)
 const cookieOptions = computed(() => getCookieBuildTargets(bossSlug.value))
 const fixListText = computed(() => (result.value ? buildGearFixList(result.value) : ''))
 

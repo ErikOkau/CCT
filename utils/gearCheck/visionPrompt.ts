@@ -16,12 +16,7 @@ export function buildGearVisionPrompt(mode: GearCheckMode): string {
     .map(c => `- ${c.names[0]} (${c.short})`)
     .join('\n')
 
-  const contextLabel =
-    mode === 'arena'
-      ? 'Kingdom Arena (auto PvP)'
-      : mode === 'alliance'
-        ? 'Cookie Alliance (auto Master)'
-        : `${mode.toUpperCase()} guild battle`
+  const contextLabel = `${mode.toUpperCase()} guild battle`
 
   return `You are reading a Cookie Run: Kingdom screenshot of the **Gear** window (Toppings & Beascuits).
 

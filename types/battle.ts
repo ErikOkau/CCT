@@ -92,27 +92,3 @@ export interface GoogleSheetsData {
   }
 }
 
-export interface FileValidationResult {
-  isValid: boolean
-  error?: string
-}
-
-export interface DatabaseFormData {
-  seasonName: string
-  guildName: string
-  isSavingToDatabase: boolean
-  saveSuccess: boolean
-  saveError: string
-}
-
-export interface UploadState {
-  isDragging: boolean
-  uploadedFiles: File[]
-  isAnalyzing: boolean
-  analysisComplete: boolean
-  filesSelected: boolean
-  battleData: BattlePlayer[]
-  battleStats: BattleStats | null
-  insights: string[]
-  previewData: BattlePlayer[]
-}

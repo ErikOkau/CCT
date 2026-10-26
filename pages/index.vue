@@ -35,10 +35,8 @@ import { mergeGuildBossProgress } from '~/utils/mergeGuildBossProgress'
 const {
   analysisState,
   sheetsState,
-  databaseForm,
   fetchFromGoogleSheets,
-  resetAnalysis,
-  saveToDatabase
+  resetAnalysis
 } = useBattleAnalysis()
 
 // GSAP animations and initialization

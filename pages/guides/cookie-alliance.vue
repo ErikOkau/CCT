@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getModeGuide, gearCheckModeUrl } from '~/utils/modeGuides'
+import { getModeGuide } from '~/utils/modeGuides'
 import {
   allianceBeaconNote,
   alliancePrimaryTeam,
@@ -46,7 +46,6 @@ const guide = getModeGuide('cookie-alliance')
           <ul v-if="c.notes?.length" class="notes">
             <li v-for="(n, i) in c.notes" :key="i">{{ n }}</li>
           </ul>
-          <NuxtLink :to="gearCheckModeUrl('alliance', c.id)" class="check-link">Gear Check →</NuxtLink>
         </article>
       </div>
     </section>
@@ -177,11 +176,4 @@ const guide = getModeGuide('cookie-alliance')
   color: rgba(255, 255, 255, 0.75);
 }
 
-.check-link {
-  display: inline-block;
-  margin-top: 0.75rem;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #fbbf24;
-}
 </style>

@@ -7,9 +7,9 @@ Guild battle analytics for **Chaos Control Team** (Cookie Run: Kingdom): live da
 - **Season analyzer** — reads guild tabs from Google Sheets (per-season boss columns, ticket totals)
 - **Hall of Glory** — all-time boss champions across **all four bosses** (RVD, AoD, LA, MG)
 - **Boss guides** — MGEV / TLA / AoD teams, gear targets, timings
-- **Cookie Alliance & Kingdom Arena** — autoplay gear docs at `/guides/cookie-alliance` and `/guides/kingdom-arena`
+- **Cookie Alliance & Kingdom Arena** — doc-only autoplay guides (no Gear Check)
 - **Homepage boss bars** — optional sheet tab **Guild Progress** (boss level, HP %, guild DMG) drives the hero background
-- **Gear Check** (`/tools/gear-check`) — OpenAI vision on the in-game Gear → Total screen vs guide targets (annotated PNG)
+- **Gear Check** (`/tools/gear-check`) — OpenAI vision vs **guild boss** guide targets only
 - **Discord bot** (`services/discord-ocr-bot`) — `?submit_result` with Participants screenshots → sheet
 - **Excel export** — download reports from the analyzer
 

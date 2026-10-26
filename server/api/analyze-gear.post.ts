@@ -107,7 +107,7 @@ export default defineEventHandler(async event => {
   if (!bossSlug || !isGearCheckMode(bossSlug)) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'bossSlug must be mgev, tla, aod, rvd, arena, or alliance'
+      statusMessage: 'bossSlug must be mgev, tla, aod, or rvd'
     })
   }
 

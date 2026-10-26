@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getModeGuide, gearCheckModeUrl } from '~/utils/modeGuides'
+import { getModeGuide } from '~/utils/modeGuides'
 import {
   arcadeArenaCounters,
   arcadeArenaEasyTeam,
@@ -66,7 +66,6 @@ const guide = getModeGuide('kingdom-arena')
           <ul v-if="c.notes?.length" class="notes">
             <li v-for="(n, i) in c.notes" :key="i">{{ n }}</li>
           </ul>
-          <NuxtLink :to="gearCheckModeUrl('arena', c.id)" class="check-link">Gear Check →</NuxtLink>
         </article>
       </div>
     </section>
@@ -222,13 +221,6 @@ const guide = getModeGuide('kingdom-arena')
 .notes {
   font-size: 0.82rem;
   padding-left: 1.1rem;
-}
-
-.check-link {
-  display: inline-block;
-  margin-top: 0.75rem;
-  font-weight: 700;
-  color: #60a5fa;
 }
 
 .le-counter-block {
