@@ -34,6 +34,8 @@ In Discord: `?sonic_info` (help), `?sonic_status` (health & policy).
 | `REQUIRE_DRY_RUN_FIRST` | Default **on** — must `--dry-run` once per season per server before writing (`0` to disable) |
 | `DISCORD_ALLOWED_ROLE_NAMES` | Optional override; default allows **CCT Guild Officer**, **CCT Guild Leader**, **Website Manager** (+ server owner & Administrator) |
 | `DISCORD_ALLOWED_ROLE_IDS` | Extra allowed role IDs (comma-separated) |
+| `DISCORD_REMINDER_CHANNEL_ID` | Optional — weekly nudge to dry-run the current season |
+| `OPENAI_VISION_MODEL` | Default `gpt-4o`; try `gpt-4o-mini` for cost savings if quality holds |
 
 ### Discord Developer Portal
 

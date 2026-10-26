@@ -17,7 +17,6 @@ import {
   getSeasonSpreadsheetConfig,
   getSeasonTableBossColumns,
   getPlayerBossStat,
-  hasSeasonData as seasonHasData,
   isBossActiveInSeason,
   isLatestSeason,
   SPREADSHEET_ID
@@ -27,8 +26,7 @@ import {
   GUILD_LEADER_NAME,
   GUILD_OFFICER_NAME
 } from '~/utils/guildRanks'
-
-
+import { seasonHasSheetTab } from '~/utils/seasonSheetTabs'
 
 // Use composables
 const {
@@ -96,7 +94,7 @@ const getCurrentSeason = () => {
 
 // Function to check if current season has data
 const hasSeasonData = (season: number) => {
-  return seasonHasData(currentDestinysFlight.value, season)
+  return seasonHasSheetTab(currentDestinysFlight.value, season)
 }
 
 // Function to get season display name
@@ -354,7 +352,9 @@ const loadHallOfGloryData = async () => {
   hallOfGloryData.value.isLoading = true
 
   try {
-    const seasonDataPromises = allSeasons.map(season => fetchSeasonDataForGlory(season.id))
+    const seasonDataPromises = allSeasons
+      .filter(season => season.hasData)
+      .map(season => fetchSeasonDataForGlory(season.id))
     const seasonResults = await Promise.all(seasonDataPromises)
     const validSeasonData = seasonResults.filter(data => data !== null)
 
@@ -510,6 +510,7 @@ interface AlliancePlayer {
 const allianceRankings = ref<AlliancePlayer[]>([])
 const allianceLoading = ref(false)
 const allianceError = ref<string | null>(null)
+const allianceHidden = ref(false)
 
 // Function to fetch alliance rankings
 const fetchAllianceRankings = async () => {
@@ -568,7 +569,13 @@ const fetchAllianceRankings = async () => {
     console.log(`✅ Successfully fetched ${allianceRankings.value.length} alliance players`)
   } catch (error: any) {
     console.error('Error fetching alliance rankings:', error)
-    allianceError.value = error.message || 'Failed to fetch alliance rankings'
+    const msg = error.message || 'Failed to fetch alliance rankings'
+    if (msg.includes('404') || msg.includes('not found') || msg.includes('Cookie Alliance')) {
+      allianceHidden.value = true
+      allianceError.value = null
+    } else {
+      allianceError.value = msg
+    }
   } finally {
     allianceLoading.value = false
   }
@@ -1523,7 +1530,7 @@ const formatAllianceTime = (time: string | number) => {
     </section>
 
     <!-- Alliance Ranking Section -->
-    <section class="alliance-ranking-section">
+    <section v-if="!allianceHidden" class="alliance-ranking-section">
       <div class="container">
         <div class="alliance-header">
           <h2 class="section-title">🏅 Cookie Alliance Ranking</h2>

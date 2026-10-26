@@ -57,6 +57,12 @@ export function getGuide(slug: GuideSlug) {
   return guide
 }
 
+export function gearCheckUrl(slug: GuideSlug, cookieId?: string) {
+  const q = new URLSearchParams({ boss: slug })
+  if (cookieId) q.set('cookie', cookieId)
+  return `/tools/gear-check?${q.toString()}`
+}
+
 export const COOKIE_SLOTS = [1, 2, 3, 4, 5] as const
 
 export const GEAR_ROWS = [

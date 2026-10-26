@@ -9,6 +9,10 @@ const MGEV: CookieBuildTarget[] = [
     names: ['Frilled Jellyfish', 'Frilled'],
     portrait: '/img/guides/mgev/frilled.png',
     requirements: [{ statKey: 'cooldown', label: 'Cooldown', min: 35, unit: 'percent', hint: 'CD tart · 5 CD or 4 ATK+1 CD' }],
+    gearRows: [
+      { label: 'Toppings', value: '5 CD or 4 ATK+1 CD · CD/ATK tart · DMG UP to monsters' },
+      { label: 'Beascuit', value: '4× Water DMG or 4× CD' }
+    ],
     notes: ['Tart: DMG UP to monsters', 'Beascuit: 4× Water or 4× CD']
   },
   {
@@ -40,6 +44,12 @@ const MGEV: CookieBuildTarget[] = [
     requirements: [
       { statKey: 'atkSpd', label: 'ATK SPD', min: 11.7, unit: 'percent' },
       { statKey: 'cooldown', label: 'Cooldown', min: 18.8, unit: 'percent', hint: '19.2%+ if manual cast' }
+    ],
+    gearRows: [
+      { label: 'Toppings', value: '4 ATK + 1 CD · CD tart · DMG UP to monsters' },
+      { label: 'Beascuit', value: '4× Water DMG' },
+      { label: 'ATK SPD', value: '11.7%+' },
+      { label: 'CD', value: '18.8%+ (19.2%+ manual)' }
     ],
     notes: ['Highest ATK on team', '4× Water beascuit']
   },

@@ -2,34 +2,45 @@
 import { guildGuides, type GuideSlug } from '~/utils/guildGuides'
 import { getCookieBuildTargets } from '~/utils/gearCheck/buildTargets'
 import { drawGearOverlay, downloadCanvas } from '~/utils/gearCheck/drawOverlay'
+import { buildGearFixList } from '~/utils/gearCheck/fixList'
 import type { GearCheckResult } from '~/utils/gearCheck/types'
 
 useHead({ title: 'Gear Check — Chaos Control Team' })
 
-const bossSlug = ref<GuideSlug>('mgev')
-const overrideBuildId = ref('')
+const route = useRoute()
+const bossSlug = ref<GuideSlug>((route.query.boss as GuideSlug) || 'mgev')
+const overrideBuildId = ref((route.query.cookie as string) || '')
+const batchMode = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
 const previewUrl = ref('')
 const pending = ref(false)
 const error = ref('')
 const result = ref<GearCheckResult | null>(null)
+const batchResults = ref<GearCheckResult[]>([])
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const imageRef = ref<HTMLImageElement | null>(null)
+const windArcherHp = ref<number | undefined>()
+const grimoireHp = ref(12)
+const copyDone = ref(false)
 
 const activeGuides = computed(() => guildGuides.filter(g => !g.parked))
 const cookieOptions = computed(() => getCookieBuildTargets(bossSlug.value))
+const fixListText = computed(() => (result.value ? buildGearFixList(result.value) : ''))
 
 watch(bossSlug, () => {
-  overrideBuildId.value = ''
+  if (!route.query.cookie) overrideBuildId.value = ''
   result.value = null
+  batchResults.value = []
 })
 
 function onPickFile(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
+  const input = e.target as HTMLInputElement
+  const file = batchMode.value ? input.files?.[0] : input.files?.[0]
   if (!file) return
   if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
   previewUrl.value = URL.createObjectURL(file)
   result.value = null
+  batchResults.value = []
 }
 
 async function readFileAsDataUrl(file: File): Promise<string> {
@@ -44,24 +55,34 @@ async function readFileAsDataUrl(file: File): Promise<string> {
 async function analyze() {
   error.value = ''
   result.value = null
-  const file = fileInput.value?.files?.[0]
-  if (!file) {
+  batchResults.value = []
+  const files = fileInput.value?.files
+  if (!files?.length) {
     error.value = 'Upload a Gear screenshot first (Total tab).'
     return
   }
 
   pending.value = true
   try {
-    const imageData = await readFileAsDataUrl(file)
-    const res = await $fetch<{ result: GearCheckResult }>('/api/analyze-gear', {
+    const images: string[] = []
+    const limit = batchMode.value ? Math.min(files.length, 6) : 1
+    for (let i = 0; i < limit; i++) {
+      images.push(await readFileAsDataUrl(files[i]!))
+    }
+    const res = await $fetch<{ result: GearCheckResult; results: GearCheckResult[] }>('/api/analyze-gear', {
       method: 'POST',
       body: {
-        imageData,
+        images,
         bossSlug: bossSlug.value,
-        overrideBuildId: overrideBuildId.value || null
+        overrideBuildId: overrideBuildId.value || null,
+        tlaContext:
+          bossSlug.value === 'tla'
+            ? { windArcherHp: windArcherHp.value, grimoireHpPercent: grimoireHp.value }
+            : undefined
       }
     })
     result.value = res.result
+    batchResults.value = res.results ?? [res.result]
     await nextTick()
     paintOverlay()
   } catch (err: any) {
@@ -69,6 +90,13 @@ async function analyze() {
   } finally {
     pending.value = false
   }
+}
+
+async function copyFixList() {
+  if (!fixListText.value) return
+  await navigator.clipboard.writeText(fixListText.value.replace(/\*\*/g, ''))
+  copyDone.value = true
+  setTimeout(() => { copyDone.value = false }, 2000)
 }
 
 function paintOverlay() {
@@ -136,10 +164,21 @@ function statusClass(status: string) {
             <option v-for="c in cookieOptions" :key="c.id" :value="c.id">{{ c.short }}</option>
           </select>
         </label>
-        <label class="file-label">
-          Screenshot
-          <input ref="fileInput" type="file" accept="image/*" @change="onPickFile">
+        <label>
+          <input v-model="batchMode" type="checkbox"> Batch team (up to 6 images)
         </label>
+        <label class="file-label">
+          Screenshot(s)
+          <input ref="fileInput" type="file" accept="image/*" :multiple="batchMode" @change="onPickFile">
+        </label>
+        <template v-if="bossSlug === 'tla'">
+          <label>Wind Archer HP (Cream Puff check)
+            <input v-model.number="windArcherHp" type="number" min="0" placeholder="From WA gear screen">
+          </label>
+          <label>Grimoire HP %
+            <input v-model.number="grimoireHp" type="number" min="0" step="0.1">
+          </label>
+        </template>
         <button type="button" class="primary-btn" :disabled="pending" @click="analyze">
           {{ pending ? 'Analyzing…' : 'Analyze gear' }}
         </button>
@@ -182,7 +221,20 @@ function statusClass(status: string) {
             </tbody>
           </table>
           <p v-if="result.vision.tartEffect" class="muted">Tart: {{ result.vision.tartEffect }}</p>
+          <button v-if="result" type="button" class="secondary-btn" @click="copyFixList">
+            {{ copyDone ? 'Copied!' : 'Copy fix list for Discord' }}
+          </button>
           <NuxtLink :to="`/guides/${bossSlug}`" class="guide-link">Open full {{ bossSlug.toUpperCase() }} guide →</NuxtLink>
+        </div>
+
+        <div v-if="batchResults.length > 1" class="batch-summary">
+          <h3>Team batch</h3>
+          <ul>
+            <li v-for="(r, i) in batchResults" :key="i">
+              {{ r.matchedShort || r.cookieName }} —
+              {{ r.comparisons.filter(c => c.status === 'met').length }}/{{ r.comparisons.length }} met
+            </li>
+          </ul>
         </div>
       </div>
     </section>

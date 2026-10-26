@@ -26,6 +26,8 @@ export type StatRequirement = {
   hint?: string
 }
 
+export type GearDisplayRow = { label: string; value: string }
+
 export type CookieBuildTarget = {
   id: string
   names: string[]
@@ -33,6 +35,8 @@ export type CookieBuildTarget = {
   portrait?: string
   requirements: StatRequirement[]
   notes?: string[]
+  /** Shared with boss guide cards (single source of truth). */
+  gearRows?: GearDisplayRow[]
 }
 
 export type NormalizedBox = {

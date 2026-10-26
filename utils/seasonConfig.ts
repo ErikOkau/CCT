@@ -1,5 +1,6 @@
 import type { BattlePlayer } from '../types/battle'
 import type { BossField } from './guildBattleBosses'
+import { seasonHasSheetTab, seasonIdHasSheetTab } from './seasonSheetTabs'
 
 export const SPREADSHEET_ID = '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs'
 
@@ -153,7 +154,7 @@ export const ALL_SEASON_IDS = [
 export const allSeasons = ALL_SEASON_IDS.map(id => ({
   id,
   name: `Season ${id}`,
-  hasData: true
+  hasData: seasonIdHasSheetTab(id)
 }))
 
 function bossNameToField(bossName: string): BossField | null {
@@ -219,6 +220,9 @@ export function parseSeasonId(seasonId: string): { flight: number; season: numbe
 
 export function getSeasonSpreadsheetConfig(flight: number, season: number) {
   if (!hasSeasonData(flight, season)) {
+    return null
+  }
+  if (!seasonHasSheetTab(flight, season)) {
     return null
   }
 

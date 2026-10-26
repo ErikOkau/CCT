@@ -15,6 +15,9 @@ import {
   buildCoverageReport,
   runSanityChecks
 } from '../../../utils/guildBattleImportChecks.ts'
+import { detectCrossBossNameTypos } from '../../../utils/guildBattleNameQa.ts'
+import { registerSlashCommands } from './registerSlash.ts'
+import { startSeasonReminderLoop } from './seasonReminder.ts'
 import {
   hasDryRunApproval,
   isRequireDryRunFirstEnabled,
@@ -78,6 +81,20 @@ async function downloadAttachments(message: Message): Promise<{
     skippedNonImages
   }
 }
+
+client.on('interactionCreate', async interaction => {
+  if (!interaction.isChatInputCommand()) return
+  if (interaction.commandName !== 'submit_result') return
+  const seasonId = interaction.options.getString('season', true)
+  const dryRun = interaction.options.getBoolean('dry_run') ?? false
+  await interaction.reply({
+    content:
+      `Slash **/${interaction.commandName}** registered for season \`${seasonId}\` (dry-run: ${dryRun}). ` +
+        `Discord limits slash attachments — post **up to 6 screenshots** in one message with:\n` +
+        `\`${PREFIX}submit_result ${seasonId}${dryRun ? ' --dry-run' : ''}\``,
+    ephemeral: true
+  })
+})
 
 client.on('messageCreate', async message => {
   if (message.author.bot) return
@@ -160,6 +177,7 @@ client.on('messageCreate', async message => {
     )
     parsed.warnings.push(...coverage.warnings)
     parsed.warnings.push(...runSanityChecks(merged, parsed.headerBosses))
+    parsed.warnings.push(...detectCrossBossNameTypos(merged, parsed.headerBosses))
     parsed.warnings = dedupeWarnings(parsed.warnings)
 
     const bundle = buildPreviewBundle(
@@ -223,6 +241,10 @@ client.on('messageCreate', async message => {
 
 client.once('clientReady', () => {
   console.log(`✅ Discord bot ready as ${client.user?.tag} (prefix "${PREFIX}")`)
+  registerSlashCommands(client.user!.id).catch(err =>
+    console.warn('Slash command registration:', err.message)
+  )
+  startSeasonReminderLoop(client)
 })
 
 const token = process.env.DISCORD_BOT_TOKEN

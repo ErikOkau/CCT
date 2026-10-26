@@ -27,10 +27,13 @@ export function buildSonicStatusText(guildId?: string | null): string {
     ? '**On** — run `--dry-run` once per season before writing'
     : '**Off** (`REQUIRE_DRY_RUN_FIRST=0`)'
 
+  const mem = process.memoryUsage()
+  const heapMb = Math.round(mem.heapUsed / 1024 / 1024)
+
   const lines = [
     '**Sonic-Analyzer status**',
     '',
-    `• Uptime: **${formatUptime(Date.now() - startedAt)}**`,
+    `• Uptime: **${formatUptime(Date.now() - startedAt)}** · Heap **${heapMb} MB**`,
     `• Google Sheets: ${sheetsStatus}`,
     `• OCR: ${ocr}`,
     `• Dry-run before write: ${dryRunPolicy}`,

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { GuildGuide } from '~/utils/guildGuides'
-import { COOKIE_SLOTS, GEAR_ROWS, guildGuides } from '~/utils/guildGuides'
+import { COOKIE_SLOTS, GEAR_ROWS, gearCheckUrl, guildGuides } from '~/utils/guildGuides'
 
 const props = defineProps<{
   guide: GuildGuide
@@ -24,6 +24,7 @@ useHead({
         <nav class="nav-menu">
           <NuxtLink to="/" class="nav-link">Home</NuxtLink>
           <NuxtLink to="/guides" class="nav-link">Guides</NuxtLink>
+          <NuxtLink :to="gearCheckUrl(guide.slug)" class="nav-link">Gear Check</NuxtLink>
         </nav>
       </div>
     </header>

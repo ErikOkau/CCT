@@ -1,5 +1,6 @@
 import type { ComparisonRow, CookieBuildTarget, GearVisionResult, ScannedStat, StatRequirement } from './types'
 import { formatStatValue } from './statNormalize'
+import { fallbackBoxForStat } from './templateBoxes'
 
 const CLOSE_PERCENT = 0.92
 
@@ -66,7 +67,7 @@ function compareOne(req: StatRequirement, scanned: ScannedStat | undefined): Com
     targetLabel: target,
     status,
     gap,
-    box: scanned?.box,
+    box: scanned?.box ?? fallbackBoxForStat(req.statKey),
     hint: req.hint
   }
 }

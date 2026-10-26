@@ -1,6 +1,17 @@
 import type { GuideSlug } from '~/utils/guildGuides'
 import { getCookieBuildTargets } from './buildTargets'
 
+export function buildGearValidatePrompt(): string {
+  return `Look at this Cookie Run: Kingdom screenshot. Return JSON only:
+{
+  "isGearScreen": true/false,
+  "statsTab": "Total|Details|Other",
+  "cookieName": "selected cookie or empty",
+  "warnings": []
+}
+Rules: Gear screen has Toppings & Beascuits, left cookie list with gold frame + checkmark. Prefer Total tab.`
+}
+
 export function buildGearVisionPrompt(bossSlug: GuideSlug): string {
   const roster = getCookieBuildTargets(bossSlug)
     .map(c => `- ${c.names[0]} (${c.short})`)

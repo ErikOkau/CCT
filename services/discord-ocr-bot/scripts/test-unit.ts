@@ -10,6 +10,7 @@ import {
 import { buildSeasonSheetGrid, damageToBillionCell, mergeOcrPlayers } from '../../../utils/guildBattleSheet.ts'
 import { normalizeRoleName } from '../src/roleGate.ts'
 import { parseSpreadsheetRowsToPlayers } from '../../../utils/sheetPlayerParse.ts'
+import { detectCrossBossNameTypos } from '../../../utils/guildBattleNameQa.ts'
 import { buildCoverageReport, runSanityChecks } from '../../../utils/guildBattleImportChecks.ts'
 import { mergeOcrPlayersUnique } from '../../../utils/guildBattlePlayerMerge.ts'
 import { parseVisionModelJson } from '../../../utils/guildBattleVisionParse.ts'
@@ -227,5 +228,20 @@ const sandMerged = mergedTypos.find(p => p.playerName.toLowerCase().includes('sa
 assert.ok(sandMerged)
 assert.equal(sandMerged?.livingAbyss.damage, 406.8e9)
 assert.equal(sandMerged?.machineGod.damage, 292e9)
+
+const nameQa = detectCrossBossNameTypos(
+  [
+    {
+      playerName: 'Jammifyvx',
+      stats: { livingAbyss: { damage: 1e9, battles: 9 }, machineGod: { damage: 0, battles: 0 } }
+    },
+    {
+      playerName: 'Jammyifyvx',
+      stats: { livingAbyss: { damage: 0, battles: 0 }, machineGod: { damage: 1e9, battles: 9 } }
+    }
+  ],
+  ['livingAbyss', 'machineGod']
+)
+assert.ok(nameQa.some(w => w.includes('Jammifyvx')))
 
 console.log('✅ All unit checks passed')

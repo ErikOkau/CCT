@@ -1,15 +1,15 @@
 # Chaos Control Team (CCT) Guild Battle Analyzer
 
-A modern web application that analyzes guild battle screenshots from Cookie Run Kingdom and converts the results into detailed Excel reports with performance insights. Built specifically for the Chaos Control Team guild with Sonic-inspired theming.
+Guild battle analytics for **Chaos Control Team** (Cookie Run: Kingdom): live data from the guild Google Sheet, boss guides, and optional Discord OCR import.
 
 ## ⚡ Features
 
-- **Smart Image Upload**: Drag and drop or click to upload guild battle screenshots
-- **Automatic Data Extraction**: Advanced OCR technology to extract player performance data
-- **Performance Analytics**: Comprehensive analysis of guild member performance
-- **Excel Export**: Download formatted Excel reports for record keeping
-- **Performance Insights**: AI-powered insights and recommendations
-- **Modern UI**: Beautiful, responsive design with smooth animations
+- **Season analyzer** — reads guild tabs from Google Sheets (per-season boss columns, ticket totals)
+- **Hall of Glory** — all-time boss champions across **all four bosses** (RVD, AoD, LA, MG)
+- **Boss guides** — MGEV / TLA / AoD teams, gear targets, timings
+- **Gear Check** (`/tools/gear-check`) — OpenAI vision on the in-game Gear → Total screen vs guide targets (annotated PNG)
+- **Discord bot** (`services/discord-ocr-bot`) — `?submit_result` with Participants screenshots → sheet
+- **Excel export** — download reports from the analyzer
 
 ## 🚀 Getting Started
 
@@ -40,14 +40,12 @@ npm run dev
 
 ## 📊 How It Works
 
-1. **Upload Screenshot**: Upload a screenshot of your guild battle results
-2. **Automatic Analysis**: The system uses OCR to extract player data including:
-   - Player names and rankings
-   - Damage dealt (in Billions)
-   - Battles completed
-   - Average damage per ticket
-3. **Performance Insights**: Get AI-generated insights about guild performance
-4. **Excel Export**: Download a comprehensive Excel report with all data
+1. **Officers** import battle results via the Discord bot (or maintain the sheet manually).
+2. The **website** loads the active season tab and shows rankings, boss columns, and insights.
+3. **Gear Check** compares cookie stats from a Gear screenshot to CCT guide targets.
+4. Guild Leader / Officer badges are set in `utils/guildRanks.ts` (hardcoded names).
+
+Copy `.env` from `env.example` — `GOOGLE_SHEETS_CREDENTIALS`, `CHATGPT_API` (vision), optional `OPENAI_VISION_MODEL`.
 
 ## 🛠️ Technology Stack
 
