@@ -27,9 +27,8 @@ import {
   GUILD_OFFICER_NAME
 } from '~/utils/guildRanks'
 import { seasonHasSheetTab } from '~/utils/seasonSheetTabs'
-import type { GuildBossProgress } from '~/utils/guildBossProgressSheet'
 import { buildOfficerDigestMarkdown } from '~/utils/officerDigest'
-import { mergeGuildBossProgress } from '~/utils/mergeGuildBossProgress'
+import { buildSeasonBossDamageVisual } from '~/utils/seasonBossDamageVisual'
 
 // Use composables
 const {
@@ -43,7 +42,6 @@ const {
 onMounted(() => {
   fetchSeasonData(activeSeason.value)
   fetchAllianceRankings()
-  fetchGuildBossProgress()
 })
 
 // Guild Battle Schedule Data
@@ -514,20 +512,6 @@ const allianceLoading = ref(false)
 const allianceError = ref<string | null>(null)
 const allianceHidden = ref(false)
 
-const guildBossProgress = ref<GuildBossProgress | null>(null)
-
-const fetchGuildBossProgress = async () => {
-  try {
-    const res = await $fetch<{ progress: GuildBossProgress | null }>('/api/fetch-guild-boss-progress', {
-      method: 'POST',
-      body: { spreadsheetId: SPREADSHEET_ID }
-    })
-    guildBossProgress.value = res.progress
-  } catch {
-    guildBossProgress.value = null
-  }
-}
-
 const archivedSeasonIds = computed(() => allSeasons.filter(s => !s.hasData).map(s => s.id))
 
 const officerDigestCopied = ref(false)
@@ -550,23 +534,14 @@ const copyOfficerDigest = async () => {
   }
 }
 
-const guildRoundLabel = computed(() => {
-  const r = displayBossProgress.value?.round
-  if (r != null) return `Round ${r}`
-  return null
-})
-
-/** Level/HP from Guild Progress tab; boss damage summed from the loaded season sheet. */
-const displayBossProgress = computed((): GuildBossProgress | null => {
-  const tab = guildBossProgress.value
-  const players = analysisState.battleData
-  const flight = currentDestinysFlight.value
-  const season = activeSeason.value
-
-  if (players.length && analysisState.analysisComplete) {
-    return mergeGuildBossProgress(tab, players, flight, season)
-  }
-  return tab
+/** Hero background: summed boss damage from the season tab currently loaded in the analyzer. */
+const seasonBossDamageVisual = computed(() => {
+  if (!analysisState.analysisComplete || !analysisState.battleData.length) return null
+  return buildSeasonBossDamageVisual(
+    analysisState.battleData,
+    currentDestinysFlight.value,
+    activeSeason.value
+  )
 })
 
 // Function to fetch alliance rankings
@@ -720,8 +695,8 @@ const formatAllianceTime = (time: string | number) => {
 
     <!-- Hero Section -->
     <section class="hero hero-with-progress">
-      <GuildBossProgressHero :progress="displayBossProgress" />
-      <div class="hero-content" :class="{ 'progress-active': !!displayBossProgress }">
+      <GuildBossProgressHero :visual="seasonBossDamageVisual" />
+      <div class="hero-content" :class="{ 'progress-active': !!seasonBossDamageVisual }">
         <div class="hero-text">
           <div class="guild-badge">
             <div class="guild-logo">
@@ -751,7 +726,7 @@ const formatAllianceTime = (time: string | number) => {
             </div>
           </div>
         </div>
-        <div v-if="!displayBossProgress" class="hero-visual">
+        <div v-if="!seasonBossDamageVisual" class="hero-visual">
           <div class="sonic-illustration">
             <div class="sonic-character">🦔</div>
             <div class="rings">
@@ -1049,11 +1024,8 @@ const formatAllianceTime = (time: string | number) => {
       <div class="schedule-container">
         <div class="schedule-header">
           <h2 class="schedule-title">Boss Schedule</h2>
-          <p class="schedule-subtitle">
-            Destiny's Flight {{ currentDestinysFlight }}
-            <span v-if="guildRoundLabel" class="round-pill">{{ guildRoundLabel }}</span>
-          </p>
-          <p class="schedule-note">Season times are to GMT+9 · Boss <strong>damage</strong> on the homepage is summed from this season’s sheet; paste <strong>level / HP %</strong> from the in-game hub into tab <strong>Guild Progress</strong> (no public per-level HP table for accurate level math).</p>
+          <p class="schedule-subtitle">Destiny's Flight {{ currentDestinysFlight }}</p>
+          <p class="schedule-note">Season times are to GMT+9 · Homepage boss bars reflect <strong>total damage</strong> summed from the loaded season sheet.</p>
         </div>
 
         <div class="schedule-grid">
