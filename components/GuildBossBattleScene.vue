@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted, ref, watch, computed } from 'vue'
 import type { SeasonBossDamageVisual } from '~/utils/seasonBossDamageVisual'
 import { formatGuildBossDamage } from '~/utils/seasonBossDamageVisual'
+import { getHubSlotDisplayBoss, getLatestFlightAndSeason } from '~/utils/seasonConfig'
 
 const props = defineProps<{
   visual: SeasonBossDamageVisual | null
@@ -25,20 +26,20 @@ const hudBosses = computed(() => {
   if (props.visual?.bosses?.length) {
     return props.visual.bosses
   }
-  return ([1, 2, 3] as const).map(slot => ({
-    slot,
-    status: 'unavailable' as const,
-    bossKey: null,
-    name: 'Not available',
-    image: null,
-    totalDamage: null,
-    barPercent: 0
-  }))
+  const flight = props.visual?.flight ?? getLatestFlightAndSeason().flight
+  return ([1, 2, 3] as const).map(slot => {
+    const display = getHubSlotDisplayBoss(flight, slot)
+    return {
+      slot,
+      status: 'unavailable' as const,
+      bossKey: null,
+      name: display.name,
+      image: display.image,
+      totalDamage: null,
+      barPercent: 0
+    }
+  })
 })
-
-const seasonLabel = computed(() =>
-  props.visual ? `Season ${props.visual.seasonLabel}` : 'Guild battle'
-)
 
 let sceneApi: SceneBundle | null = null
 
@@ -49,6 +50,7 @@ function syncBossTextures() {
     url: b.image,
     active: b.status === 'active'
   }))
+  // Always render hub art for benched slots (dimmed in applyBossMaterial).
   sceneApi.setBossTextures(entries)
 }
 
@@ -149,9 +151,9 @@ async function createBattleScene(canvas: HTMLCanvasElement): Promise<SceneBundle
   scene.add(mistGroup)
 
   const slotLayout: Record<1 | 2 | 3, { x: number; y: number; z: number; scale: number }> = {
-    1: { x: -7.2, y: 2.8, z: -3.5, scale: 1.05 },
-    2: { x: 0, y: 4.2, z: 0, scale: 1.45 },
-    3: { x: 7.4, y: 3.1, z: -2.8, scale: 1.12 }
+    1: { x: -8.5, y: 3.1, z: -2.2, scale: 1.18 },
+    2: { x: 0, y: 4.35, z: 0.5, scale: 1.52 },
+    3: { x: 8.5, y: 3.15, z: -2.2, scale: 1.18 }
   }
 
   const loader = new THREE.TextureLoader()
@@ -160,7 +162,7 @@ async function createBattleScene(canvas: HTMLCanvasElement): Promise<SceneBundle
 
   for (const slot of [1, 2, 3] as const) {
     const layout = slotLayout[slot]
-    const geo = new THREE.PlaneGeometry(4.2, 4.2)
+    const geo = new THREE.PlaneGeometry(5.2, 5.2)
     const mat = new THREE.MeshBasicMaterial({
       color: 0x888888,
       transparent: true,
@@ -228,7 +230,11 @@ async function createBattleScene(canvas: HTMLCanvasElement): Promise<SceneBundle
 
     for (const slot of [1, 2, 3] as const) {
       const mesh = bossMeshes[slot]
-      mesh.position.y = slotLayout[slot].y + Math.sin(t * 0.7 + slot) * 0.08
+      const base = slotLayout[slot]
+      mesh.position.y = base.y + Math.sin(t * 0.7 + slot) * 0.08
+      mesh.position.x = base.x
+      mesh.position.z = base.z
+      mesh.lookAt(camera.position)
     }
 
     mistGroup.children.forEach((child, i) => {
@@ -265,10 +271,10 @@ async function createBattleScene(canvas: HTMLCanvasElement): Promise<SceneBundle
         textureCache.set(url, tex)
       }
       mat.map = tex
-      mat.color.setHex(active ? 0xffffff : 0x64748b)
-      mat.opacity = active ? 1 : 0.42
-      mesh.scale.setScalar(layout.scale * (active ? 1 : 0.88))
-      bossLights[slot].intensity = active ? (slot === 2 ? 0.85 : 0.55) : 0.12
+      mat.color.setHex(active ? 0xffffff : 0x9ca3af)
+      mat.opacity = active ? 1 : 0.72
+      mesh.scale.setScalar(layout.scale * (active ? 1 : 0.94))
+      bossLights[slot].intensity = active ? (slot === 2 ? 0.85 : 0.55) : 0.28
       mat.needsUpdate = true
     }
     load()
@@ -334,8 +340,6 @@ function makeSkyTexture(THREE: typeof import('three')) {
     <canvas ref="canvasRef" class="battle-canvas" />
 
     <div class="battle-hud">
-      <p class="season-pill">{{ seasonLabel }} · total damage (guild sheet)</p>
-
       <div class="boss-hud-row">
         <article
           v-for="boss in hudBosses"
@@ -346,9 +350,7 @@ function makeSkyTexture(THREE: typeof import('three')) {
             boss.status === 'unavailable' ? 'unavailable' : 'active'
           ]"
         >
-          <h3 class="boss-name">
-            {{ boss.status === 'unavailable' ? 'Not available' : boss.name }}
-          </h3>
+          <h3 class="boss-name">{{ boss.name }}</h3>
           <div class="dmg-bar" :class="{ muted: boss.status === 'unavailable' }">
             <div v-if="boss.status === 'active'" class="dmg-fill" />
             <span class="dmg-text">
@@ -386,68 +388,63 @@ function makeSkyTexture(THREE: typeof import('three')) {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 0 1.25rem 2rem 1.25rem;
-  background: linear-gradient(
-    90deg,
-    rgba(8, 10, 22, 0.72) 0%,
-    rgba(8, 10, 22, 0.15) 42%,
-    rgba(8, 10, 22, 0.05) 100%
-  );
-}
-
-.season-pill {
-  position: absolute;
-  top: 1rem;
-  right: 1.25rem;
-  margin: 0;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.78);
+  padding: 0 1.5rem 2.25rem;
+  background:
+    linear-gradient(180deg, transparent 45%, rgba(6, 8, 18, 0.55) 78%, rgba(6, 8, 18, 0.82) 100%),
+    linear-gradient(90deg, rgba(6, 8, 18, 0.5) 0%, transparent 38%);
+  pointer-events: none;
 }
 
 .boss-hud-row {
   display: grid;
-  grid-template-columns: 1fr 1.15fr 1fr;
-  gap: 0.75rem;
+  grid-template-columns: 1fr 1.12fr 1fr;
+  gap: 0.85rem;
   align-items: end;
-  width: min(920px, 100%);
-  margin-left: auto;
-  margin-right: 0;
-  padding-right: 0.5rem;
+  width: min(820px, calc(100% - 1rem));
+  margin: 0 auto;
+  padding-left: clamp(0px, 34vw, 400px);
+  box-sizing: border-box;
 }
 
 .boss-hud {
   text-align: center;
-  padding: 0.55rem 0.65rem 0.7rem;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.42);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(6px);
-  transform: translateY(0);
-  transition: opacity 0.35s ease, filter 0.35s ease;
+  padding: 0.65rem 0.75rem 0.75rem;
+  border-radius: 14px;
+  background: rgba(12, 10, 24, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.35s ease, box-shadow 0.35s ease;
 }
 
 .boss-hud.slot-2 {
-  transform: translateY(-6px) scale(1.04);
-  border-color: rgba(168, 85, 247, 0.45);
-  box-shadow: 0 0 28px rgba(168, 85, 247, 0.22);
+  transform: translateY(-8px);
+  border-color: rgba(192, 132, 252, 0.5);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.4),
+    0 0 32px rgba(168, 85, 247, 0.18);
 }
 
 .boss-hud.unavailable {
-  opacity: 0.72;
-  filter: grayscale(0.85) brightness(0.75);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+.boss-hud.unavailable .boss-name {
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .boss-name {
-  margin: 0 0 0.4rem;
-  font-size: clamp(0.62rem, 1.6vw, 0.78rem);
-  line-height: 1.25;
+  margin: 0 0 0.45rem;
+  font-size: clamp(0.65rem, 1.45vw, 0.8rem);
+  line-height: 1.3;
   font-weight: 700;
   color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-  min-height: 2.4em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
+  min-height: 2.35em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .dmg-bar {
@@ -502,30 +499,17 @@ function makeSkyTexture(THREE: typeof import('three')) {
 @media (max-width: 768px) {
   .battle-hud {
     padding-bottom: 1.25rem;
-    background: linear-gradient(
-      180deg,
-      rgba(8, 10, 22, 0.55) 0%,
-      rgba(8, 10, 22, 0.2) 40%,
-      rgba(8, 10, 22, 0.65) 100%
-    );
   }
 
   .boss-hud-row {
     grid-template-columns: 1fr;
     gap: 0.5rem;
-    margin: 0 auto;
-    padding-right: 0;
+    padding-left: 0;
   }
 
   .boss-hud.slot-2 {
     transform: none;
     order: -1;
-  }
-
-  .season-pill {
-    left: 1rem;
-    right: 1rem;
-    text-align: center;
   }
 }
 </style>

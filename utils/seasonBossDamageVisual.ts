@@ -4,6 +4,7 @@ import { sumBossDamageFromPlayers } from './guildBossSheetTotals'
 import {
   bossNameToField,
   getBossForSeason,
+  getHubSlotDisplayBoss,
   getSeasonDisplayName,
   hasSeasonBossSchedule,
   SHEET_PHYSICAL_BOSS_ORDER
@@ -58,14 +59,15 @@ export function buildSeasonBossDamageVisual(
 
   for (const position of [1, 2, 3] as const) {
     const slotBoss = getBossForSeason(flight, season, position)
+    const displayBoss = slotBoss ?? getHubSlotDisplayBoss(flight, position)
 
     if (!slotBoss) {
       slots.push({
         slot: position,
         status: 'unavailable',
         bossKey: null,
-        name: 'Not available',
-        image: null,
+        name: displayBoss.name,
+        image: displayBoss.image,
         totalDamage: null,
         barPercent: 0
       })

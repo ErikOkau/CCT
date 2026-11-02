@@ -248,6 +248,20 @@ export function getBossForSeason(flight: number, season: number, position: numbe
   return seasonSchedule[position as 1 | 2 | 3] ?? null
 }
 
+/** Hub column art for each slot (shown even when that boss is benched this week). */
+export function getHubSlotDisplayBoss(flight: number, position: 1 | 2 | 3) {
+  if (usesAodMgLaRotation(flight)) {
+    return [BOSSES.aod, BOSSES.mg, BOSSES.la][position - 1]
+  }
+  if (flight >= 26) {
+    return [BOSSES.rvd, BOSSES.mg, BOSSES.la][position - 1]
+  }
+  if (flight >= 21) {
+    return [BOSSES.rvd, BOSSES.aod, BOSSES.mg][position - 1]
+  }
+  return [BOSSES.rvd, BOSSES.aod, BOSSES.la][position - 1]
+}
+
 export function isBossActiveInSeason(bossName: string, flight: number, season: number): boolean {
   for (let position = 1; position <= 3; position++) {
     const boss = getBossForSeason(flight, season, position)

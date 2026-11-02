@@ -2666,20 +2666,34 @@ const formatAllianceTime = (time: string | number) => {
 .hero-content-overlay {
   position: relative;
   z-index: 3;
-  grid-template-columns: minmax(280px, 440px) 1fr;
-  align-items: start;
+  display: block;
+  max-width: none;
+  padding: 0 1.5rem;
   min-height: min(72vh, 640px);
   pointer-events: none;
 }
 
 .hero-content-overlay .hero-text-panel {
   pointer-events: auto;
-  padding: 1.5rem 1.75rem;
-  border-radius: 16px;
-  background: rgba(8, 12, 28, 0.62);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  max-width: 380px;
+  margin-top: 0.5rem;
+  padding: 1.35rem 1.5rem;
+  border-radius: 18px;
+  background: rgba(10, 14, 32, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.hero-content-overlay .hero-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.hero-content-overlay .guild-info .info-item {
+  padding: 0.55rem 0.65rem;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 @media (max-width: 768px) {
