@@ -9,6 +9,7 @@ import {
   getBossForSeason,
   getFlightSeasons,
   getLatestFlightAndSeason,
+  parseSeasonId,
   getPlayerTickets,
   getPlayerTotalBattlesBySeasonId,
   getPlayerTotalDamage,
@@ -26,7 +27,11 @@ import {
   GUILD_LEADER_NAME,
   GUILD_OFFICER_NAME
 } from '~/utils/guildRanks'
-import { seasonHasSheetTab } from '~/utils/seasonSheetTabs'
+import {
+  getLatestSeasonWithSheetTab,
+  listSeasonIdsWithSheetTabsNewestFirst,
+  seasonHasSheetTab
+} from '~/utils/seasonSheetTabs'
 import { buildOfficerDigestMarkdown } from '~/utils/officerDigest'
 import { buildSeasonBossDamageVisual } from '~/utils/seasonBossDamageVisual'
 
@@ -38,16 +43,20 @@ const {
   resetAnalysis
 } = useBattleAnalysis()
 
-// GSAP animations and initialization
-onMounted(() => {
-  fetchSeasonData(activeSeason.value)
-  fetchAllianceRankings()
-})
-
 // Guild Battle Schedule Data
 const latestSeason = getLatestFlightAndSeason()
-const activeSeason = ref(latestSeason.season)
-const currentDestinysFlight = ref(latestSeason.flight)
+const latestWithTab = getLatestSeasonWithSheetTab()
+const activeSeason = ref(latestWithTab?.season ?? latestSeason.season)
+const currentDestinysFlight = ref(latestWithTab?.flight ?? latestSeason.flight)
+
+const initialSeasonLoadDone = ref(false)
+
+// GSAP animations and initialization
+onMounted(async () => {
+  await fetchLatestAvailableSeasonData()
+  initialSeasonLoadDone.value = true
+  fetchAllianceRankings()
+})
 
 // Season date ranges (in GMT+9 timezone) - used for legacy Flight 20 schedule display
 const seasonDates = {
@@ -152,6 +161,50 @@ const isSeasonLoading = ref(false)
 // Track last fetched season/flight to prevent unnecessary resets
 const lastFetchedSeason = ref<{ flight: number; season: number } | null>(null)
 
+/** Load newest season tab that actually returns sheet rows (falls back if latest tab is missing/empty). */
+const fetchLatestAvailableSeasonData = async () => {
+  isSeasonLoading.value = true
+  try {
+    const seasonIds = listSeasonIdsWithSheetTabsNewestFirst()
+
+    for (const seasonId of seasonIds) {
+      const parsed = parseSeasonId(seasonId)
+      if (!parsed) continue
+
+      const { flight, season } = parsed
+      const config = getSeasonSpreadsheetConfig(flight, season)
+      if (!config?.hasData) continue
+
+      resetAnalysis()
+      lastFetchedSeason.value = { flight, season }
+      sheetsState.spreadsheetId = config.spreadsheetId
+      sheetsState.range = config.range
+
+      try {
+        await fetchFromGoogleSheets(season, flight, config.range)
+        if (
+          sheetsState.fetchSuccess &&
+          analysisState.analysisComplete &&
+          analysisState.battleData.length > 0
+        ) {
+          currentDestinysFlight.value = flight
+          activeSeason.value = season
+          console.log(`✅ Loaded latest season with data: ${flight}-${season}`)
+          return
+        }
+      } catch (error) {
+        console.warn(`⚠️ Could not load ${seasonId}:`, error)
+      }
+    }
+
+    console.warn('⚠️ No season sheet returned battle data')
+    resetAnalysis()
+    lastFetchedSeason.value = null
+  } finally {
+    isSeasonLoading.value = false
+  }
+}
+
 // Function to automatically fetch data for selected season
 const fetchSeasonData = async (season: number) => {
   const flight = currentDestinysFlight.value
@@ -224,6 +277,9 @@ let isFetchingSeason = false
 
 // Watch for active season changes and fetch data automatically
 watch([activeSeason, currentDestinysFlight], ([newSeason, newFlight]) => {
+  if (!initialSeasonLoadDone.value) {
+    return
+  }
   if (isFetchingSeason) {
     console.log(`⏸️ Skipping fetch - already in progress`)
     return
@@ -534,7 +590,7 @@ const copyOfficerDigest = async () => {
   }
 }
 
-/** Hero background: summed boss damage from the season tab currently loaded in the analyzer. */
+/** Hero background: summed boss damage from the auto-loaded / selected season sheet. */
 const seasonBossDamageVisual = computed(() => {
   if (!analysisState.analysisComplete || !analysisState.battleData.length) return null
   return buildSeasonBossDamageVisual(
@@ -1025,7 +1081,7 @@ const formatAllianceTime = (time: string | number) => {
         <div class="schedule-header">
           <h2 class="schedule-title">Boss Schedule</h2>
           <p class="schedule-subtitle">Destiny's Flight {{ currentDestinysFlight }}</p>
-          <p class="schedule-note">Season times are to GMT+9 · Homepage boss bars reflect <strong>total damage</strong> summed from the loaded season sheet.</p>
+          <p class="schedule-note">Season times are to GMT+9 · Homepage boss bars auto-load the <strong>newest season sheet with data</strong> (change season below to view another).</p>
         </div>
 
         <div class="schedule-grid">

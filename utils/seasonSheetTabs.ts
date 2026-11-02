@@ -25,3 +25,16 @@ export function listSeasonIdsWithSheetTabs(): string[] {
     return p ? seasonHasSheetTab(p.flight, p.season) : false
   })
 }
+
+/** Newest configured season that should have a spreadsheet tab (may still be empty in Sheets). */
+export function getLatestSeasonWithSheetTab(): { flight: number; season: number } | null {
+  const ids = listSeasonIdsWithSheetTabs()
+  const lastId = ids[ids.length - 1]
+  if (!lastId) return null
+  return parseSeasonId(lastId)
+}
+
+/** Same as {@link listSeasonIdsWithSheetTabs} but newest first (for probing Sheets). */
+export function listSeasonIdsWithSheetTabsNewestFirst(): string[] {
+  return [...listSeasonIdsWithSheetTabs()].reverse()
+}

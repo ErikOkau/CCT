@@ -162,7 +162,7 @@ export const allSeasons = ALL_SEASON_IDS.map(id => ({
   hasData: seasonIdHasSheetTab(id)
 }))
 
-function bossNameToField(bossName: string): BossField | null {
+export function bossNameToField(bossName: string): BossField | null {
   if (bossName === BOSSES.rvd.name) return 'redVelvetDragon'
   if (bossName === BOSSES.aod.name) return 'avatarOfDestiny'
   if (bossName === BOSSES.la.name) return 'livingAbyss'
