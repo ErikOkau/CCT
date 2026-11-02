@@ -758,17 +758,11 @@ const formatAllianceTime = (time: string | number) => {
         </template>
       </ClientOnly>
       <div class="hero-content hero-content-overlay">
-        <div class="hero-text hero-text-panel">
-          <div class="guild-badge">
-            <div class="guild-logo">
-              <img src="/img/cctLogo.png" alt="CCT Logo" class="guild-logo-img">
-            </div>
-            <div class="guild-name">Chaos Control Team</div>
-          </div>
-          <h1 class="hero-title">
-            <span class="gradient-text">Guild site & Battle</span>
-            <br>Analyzer
-          </h1>
+        <h1 class="hero-title hero-title-on-scene">
+          <span class="gradient-text">Guild site & Battle</span>
+          <br>Analyzer
+        </h1>
+        <div class="hero-meta-panel">
           <p class="hero-subtitle">
             Welcome to CCT! 🦔🦊
           </p>
@@ -2666,18 +2660,38 @@ const formatAllianceTime = (time: string | number) => {
 .hero-content-overlay {
   position: relative;
   z-index: 3;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   max-width: none;
-  padding: 0 1.5rem;
+  padding: 0.25rem 1.5rem 0;
   min-height: min(72vh, 640px);
   pointer-events: none;
 }
 
-.hero-content-overlay .hero-text-panel {
+.hero-content-overlay .hero-title-on-scene {
   pointer-events: auto;
-  max-width: 380px;
-  margin-top: 0.5rem;
-  padding: 1.35rem 1.5rem;
+  max-width: 420px;
+  margin: 0;
+  padding: 0;
+  font-size: clamp(2.1rem, 4.2vw, 3.25rem);
+  line-height: 1.15;
+  text-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.75),
+    0 0 40px rgba(0, 0, 0, 0.45);
+}
+
+.hero-content-overlay .hero-title-on-scene .gradient-text {
+  -webkit-text-fill-color: #ffd700;
+  background: none;
+  color: #ffd700;
+}
+
+.hero-content-overlay .hero-meta-panel {
+  pointer-events: auto;
+  max-width: 360px;
+  margin-top: clamp(5.5rem, 18vh, 9.5rem);
+  padding: 1.15rem 1.35rem 1.25rem;
   border-radius: 18px;
   background: rgba(10, 14, 32, 0.58);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2687,8 +2701,13 @@ const formatAllianceTime = (time: string | number) => {
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
-.hero-content-overlay .hero-title {
-  font-size: clamp(2rem, 4vw, 3rem);
+.hero-content-overlay .hero-meta-panel .hero-subtitle {
+  margin: 0 0 1rem;
+}
+
+.hero-content-overlay .hero-meta-panel .guild-info {
+  margin-top: 0;
+  gap: 0.55rem;
 }
 
 .hero-content-overlay .guild-info .info-item {
@@ -2703,9 +2722,13 @@ const formatAllianceTime = (time: string | number) => {
   }
 
   .hero-content-overlay {
-    grid-template-columns: 1fr;
     min-height: auto;
     padding-bottom: 14rem;
+  }
+
+  .hero-content-overlay .hero-meta-panel {
+    margin-top: 2.75rem;
+    max-width: 100%;
   }
 }
 
