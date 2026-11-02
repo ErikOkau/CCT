@@ -197,15 +197,8 @@ async function createBattleScene(canvas: HTMLCanvasElement): Promise<SceneBundle
   let raf = 0
   let running = true
   const clock = new THREE.Clock()
-  const pointer = { x: 0, y: 0 }
-
-  const onPointer = (e: PointerEvent) => {
-    const w = canvas.clientWidth || 1
-    const h = canvas.clientHeight || 1
-    pointer.x = (e.clientX / w - 0.5) * 2
-    pointer.y = (e.clientY / h - 0.5) * 2
-  }
-  window.addEventListener('pointermove', onPointer, { passive: true })
+  const cameraHome = { x: 0, y: 2.2, z: 13.5 }
+  const lookAtHome = { x: 0, y: 3.2, z: 0 }
 
   const resize = () => {
     const parent = canvas.parentElement
@@ -224,9 +217,8 @@ async function createBattleScene(canvas: HTMLCanvasElement): Promise<SceneBundle
     raf = requestAnimationFrame(animate)
     const t = clock.getElapsedTime()
 
-    camera.position.x = pointer.x * 0.35
-    camera.position.y = 2.2 + pointer.y * 0.12
-    camera.lookAt(pointer.x * 0.2, 3.2 + pointer.y * 0.08, 0)
+    camera.position.set(cameraHome.x, cameraHome.y, cameraHome.z)
+    camera.lookAt(lookAtHome.x, lookAtHome.y, lookAtHome.z)
 
     for (const slot of [1, 2, 3] as const) {
       const mesh = bossMeshes[slot]
@@ -291,7 +283,6 @@ async function createBattleScene(canvas: HTMLCanvasElement): Promise<SceneBundle
       running = false
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', resize)
-      window.removeEventListener('pointermove', onPointer)
       textureCache.forEach(t => t.dispose())
       skyTex.dispose()
       renderer.dispose()
