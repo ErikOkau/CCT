@@ -750,10 +750,15 @@ const formatAllianceTime = (time: string | number) => {
     </header>
 
     <!-- Hero Section -->
-    <section class="hero hero-with-progress">
-      <GuildBossProgressHero :visual="seasonBossDamageVisual" />
-      <div class="hero-content" :class="{ 'progress-active': !!seasonBossDamageVisual }">
-        <div class="hero-text">
+    <section class="hero hero-battle-scene">
+      <ClientOnly>
+        <GuildBossBattleScene :visual="seasonBossDamageVisual" />
+        <template #fallback>
+          <div class="hero-scene-fallback" aria-hidden="true" />
+        </template>
+      </ClientOnly>
+      <div class="hero-content hero-content-overlay">
+        <div class="hero-text hero-text-panel">
           <div class="guild-badge">
             <div class="guild-logo">
               <img src="/img/cctLogo.png" alt="CCT Logo" class="guild-logo-img">
@@ -779,21 +784,6 @@ const formatAllianceTime = (time: string | number) => {
             <div class="info-item">
               <span class="info-label">Guild Level:</span>
               <span class="info-value">70</span>
-            </div>
-          </div>
-        </div>
-        <div v-if="!seasonBossDamageVisual" class="hero-visual">
-          <div class="sonic-illustration">
-            <div class="sonic-character">🦔</div>
-            <div class="rings">
-              <div class="ring ring-1">💍</div>
-              <div class="ring ring-2">💍</div>
-              <div class="ring ring-3">💍</div>
-            </div>
-            <div class="chaos-emeralds">
-              <div class="emerald emerald-1">💎</div>
-              <div class="emerald emerald-2">💎</div>
-              <div class="emerald emerald-3">💎</div>
             </div>
           </div>
         </div>
@@ -2655,19 +2645,54 @@ const formatAllianceTime = (time: string | number) => {
   }
 }
 
-.hero-with-progress {
+.hero-battle-scene {
   position: relative;
   overflow: hidden;
+  min-height: min(88vh, 820px);
+  padding: 4.5rem 0 0;
+  background: #0a0612;
 }
 
-.hero-with-progress .hero-content.progress-active {
-  grid-template-columns: 1fr;
-  max-width: 560px;
+.hero-battle-scene::before {
+  display: none;
 }
 
-.hero-with-progress .hero-content.progress-active .hero-text {
+.hero-scene-fallback {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, #1e1033, #134e4a 70%, #0c1929);
+}
+
+.hero-content-overlay {
   position: relative;
-  z-index: 2;
+  z-index: 3;
+  grid-template-columns: minmax(280px, 440px) 1fr;
+  align-items: start;
+  min-height: min(72vh, 640px);
+  pointer-events: none;
+}
+
+.hero-content-overlay .hero-text-panel {
+  pointer-events: auto;
+  padding: 1.5rem 1.75rem;
+  border-radius: 16px;
+  background: rgba(8, 12, 28, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+
+@media (max-width: 768px) {
+  .hero-battle-scene {
+    min-height: auto;
+    padding-bottom: 0;
+  }
+
+  .hero-content-overlay {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding-bottom: 14rem;
+  }
 }
 
 .insights-head {
