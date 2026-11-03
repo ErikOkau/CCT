@@ -1,4 +1,5 @@
 import type { ComparisonRow, CookieBuildTarget, GearVisionResult, ScannedStat, StatRequirement } from './types'
+import { GUILD_ELEMENTAL_DMG_MIN } from './buildTargets'
 import { formatStatValue } from './statNormalize'
 import { fallbackBoxForStat } from './templateBoxes'
 
@@ -6,13 +7,44 @@ const CLOSE_PERCENT = 0.92
 
 function targetLabel(req: StatRequirement): string {
   if (req.min != null && req.max != null) return `${req.min}–${req.max}%`
-  if (req.min != null) return `${req.min}%+`
+  if (req.min != null) return req.floorOnly ? `≥${req.min}%` : `${req.min}%+`
   if (req.max != null) return `≤${req.max}%`
   return 'See guide'
 }
 
 function findScanned(stats: ScannedStat[], key: StatRequirement['statKey']): ScannedStat | undefined {
   return stats.find(s => s.statKey === key)
+}
+
+function elementalStatForReq(
+  req: StatRequirement,
+  vision: GearVisionResult
+): ScannedStat | undefined {
+  const type = vision.elementalType?.toLowerCase() ?? ''
+  const value = vision.elementalValue
+  if (value == null || !type) return undefined
+
+  const matches =
+    (req.statKey === 'waterDmg' && type.includes('water')) ||
+    (req.statKey === 'windDmg' && type.includes('wind')) ||
+    (req.statKey === 'elecDmg' && type.includes('elec'))
+
+  if (!matches) return undefined
+
+  const label =
+    req.statKey === 'waterDmg' ? 'Water DMG' : req.statKey === 'windDmg' ? 'Wind DMG' : 'Electricity DMG'
+
+  return {
+    statKey: req.statKey,
+    label,
+    value,
+    unit: 'percent',
+    box: null
+  }
+}
+
+function scannedForRequirement(req: StatRequirement, vision: GearVisionResult): ScannedStat | undefined {
+  return findScanned(vision.stats, req.statKey) ?? elementalStatForReq(req, vision)
 }
 
 function compareOne(req: StatRequirement, scanned: ScannedStat | undefined): ComparisonRow {
@@ -89,24 +121,27 @@ export function compareGearToBuild(
     }))
   }
 
-  const rows = build.requirements.map(req => compareOne(req, findScanned(vision.stats, req.statKey)))
+  const rows = build.requirements.map(req => compareOne(req, scannedForRequirement(req, vision)))
 
   if (vision.elementalValue != null && vision.elementalType) {
-    const key =
-      vision.elementalType.toLowerCase().includes('water')
-        ? 'waterDmg'
-        : vision.elementalType.toLowerCase().includes('wind')
-          ? 'windDmg'
+    const type = vision.elementalType.toLowerCase()
+    const key = type.includes('water')
+      ? 'waterDmg'
+      : type.includes('wind')
+        ? 'windDmg'
+        : type.includes('elec')
+          ? 'elecDmg'
           : 'elementalDmg'
     const already = rows.some(r => r.statKey === key)
-    if (!already) {
+    if (!already && key !== 'elementalDmg') {
       rows.push(
         compareOne(
           {
             statKey: key as StatRequirement['statKey'],
             label: `${vision.elementalType} DMG`,
-            min: 15,
+            min: GUILD_ELEMENTAL_DMG_MIN,
             unit: 'percent',
+            floorOnly: true,
             hint: 'Beascuit elemental lines'
           },
           {

@@ -1,7 +1,11 @@
 import type { GuideSlug } from '~/utils/guildGuides'
+import { WA_ATK_SPD_REQ, windArcherToppingAspdMinForGearCheck } from '~/utils/tlaGuide'
 import type { CookieBuildTarget } from './types'
 
 export type GearCheckMode = GuideSlug
+
+/** Minimum beascuit elemental DMG % (4× lines) for guild DPS cookies that run elemental biscuits. */
+export const GUILD_ELEMENTAL_DMG_MIN = 55
 
 /** Guild-battle targets from CCT boss guides (Total / Beascuit stats page). */
 const MGEV: CookieBuildTarget[] = [
@@ -10,7 +14,17 @@ const MGEV: CookieBuildTarget[] = [
     short: 'Frilled',
     names: ['Frilled Jellyfish', 'Frilled'],
     portrait: '/img/guides/mgev/frilled.png',
-    requirements: [{ statKey: 'cooldown', label: 'Cooldown', min: 35, unit: 'percent', hint: 'CD tart · 5 CD or 4 ATK+1 CD' }],
+    requirements: [
+      { statKey: 'cooldown', label: 'Cooldown', min: 35, unit: 'percent', hint: 'CD tart · 5 CD or 4 ATK+1 CD' },
+      {
+        statKey: 'waterDmg',
+        label: 'Water DMG',
+        min: GUILD_ELEMENTAL_DMG_MIN,
+        unit: 'percent',
+        floorOnly: true,
+        hint: '4× Water beascuit (4× CD alt — still aim 55%+ Water if running Water lines)'
+      }
+    ],
     gearRows: [
       { label: 'Toppings', value: '5 CD or 4 ATK+1 CD · CD/ATK tart · DMG UP to monsters' },
       { label: 'Beascuit', value: '4× Water DMG or 4× CD' }
@@ -24,7 +38,14 @@ const MGEV: CookieBuildTarget[] = [
     portrait: '/img/guides/mgev/sea-fairy.png',
     requirements: [
       { statKey: 'cooldown', label: 'Cooldown', min: 35, unit: 'percent' },
-      { statKey: 'waterDmg', label: 'Water DMG', min: 20, unit: 'percent', hint: '4× Water on beascuit' }
+      {
+        statKey: 'waterDmg',
+        label: 'Water DMG',
+        min: GUILD_ELEMENTAL_DMG_MIN,
+        unit: 'percent',
+        floorOnly: true,
+        hint: '4× Water on beascuit'
+      }
     ],
     notes: ['Highest crystal jam · ATK max but below Menthol']
   },
@@ -35,7 +56,14 @@ const MGEV: CookieBuildTarget[] = [
     portrait: '/img/guides/mgev/seltzer.png',
     requirements: [
       { statKey: 'cooldown', label: 'Cooldown', min: 24.1, unit: 'percent' },
-      { statKey: 'waterDmg', label: 'Water DMG', min: 20, unit: 'percent' }
+      {
+        statKey: 'waterDmg',
+        label: 'Water DMG',
+        min: GUILD_ELEMENTAL_DMG_MIN,
+        unit: 'percent',
+        floorOnly: true,
+        hint: '4× Water beascuit'
+      }
     ]
   },
   {
@@ -44,8 +72,16 @@ const MGEV: CookieBuildTarget[] = [
     names: ['Menthol'],
     portrait: '/img/guides/mgev/menthol.png',
     requirements: [
-      { statKey: 'atkSpd', label: 'ATK SPD', min: 11.7, unit: 'percent' },
-      { statKey: 'cooldown', label: 'Cooldown', min: 18.8, unit: 'percent', hint: '19.2%+ if manual cast' }
+      { statKey: 'atkSpd', label: 'ATK SPD', min: 11.7, unit: 'percent', floorOnly: true },
+      { statKey: 'cooldown', label: 'Cooldown', min: 18.8, unit: 'percent', hint: '19.2%+ if manual cast' },
+      {
+        statKey: 'waterDmg',
+        label: 'Water DMG',
+        min: GUILD_ELEMENTAL_DMG_MIN,
+        unit: 'percent',
+        floorOnly: true,
+        hint: '4× Water beascuit'
+      }
     ],
     gearRows: [
       { label: 'Toppings', value: '4 ATK + 1 CD · CD tart · DMG UP to monsters' },
@@ -71,7 +107,31 @@ const TLA: CookieBuildTarget[] = [
     short: 'Blueberry Pie',
     names: ['Blueberry Pie'],
     portrait: '/img/guides/tla/blueberry-pie.png',
-    requirements: [{ statKey: 'atkSpd', label: 'ATK SPD', min: 33.1, unit: 'percent' }],
+    requirements: [
+      {
+        statKey: 'atkSpd',
+        label: 'ATK SPD',
+        min: 33.1,
+        unit: 'percent',
+        floorOnly: true,
+        hint: 'Minimum breakpoint — higher ATK SPD is more damage'
+      },
+      {
+        statKey: 'crit',
+        label: 'CRIT',
+        min: 34,
+        unit: 'percent',
+        hint: '34% cap on Total — higher is excess, not required'
+      },
+      {
+        statKey: 'elecDmg',
+        label: 'Electricity DMG',
+        min: GUILD_ELEMENTAL_DMG_MIN,
+        unit: 'percent',
+        floorOnly: true,
+        hint: '4× Electricity beascuit'
+      }
+    ],
     notes: ['4× Electricity beascuit']
   },
   {
@@ -81,7 +141,13 @@ const TLA: CookieBuildTarget[] = [
     portrait: '/img/guides/tla/cream-puff.png',
     requirements: [
       { statKey: 'cooldown', label: 'Cooldown', min: 14.1, max: 14.4, unit: 'percent' },
-      { statKey: 'crit', label: 'CRIT', min: 50, unit: 'percent', hint: 'On Total page' }
+      {
+        statKey: 'crit',
+        label: 'CRIT',
+        min: 34,
+        unit: 'percent',
+        hint: '34% for max buff — higher is excess'
+      }
     ],
     notes: ['HP must exceed Wind Archer × coefficient — use TLA guide calculator']
   },
@@ -90,8 +156,25 @@ const TLA: CookieBuildTarget[] = [
     short: 'Wind Archer',
     names: ['Wind Archer'],
     portrait: '/img/guides/tla/wind-archer.png',
-    requirements: [{ statKey: 'atkSpd', label: 'ATK SPD (total)', min: 48.4, unit: 'percent', hint: 'Jam + topping ATK SPD' }],
-    notes: ['4× Wind beascuit']
+    requirements: [
+      {
+        statKey: 'atkSpd',
+        label: 'ATK SPD (toppings)',
+        min: windArcherToppingAspdMinForGearCheck(),
+        unit: 'percent',
+        floorOnly: true,
+        hint: `Assumes max Crystal Jam (${WA_ATK_SPD_REQ}%+ jam + toppings combined)`
+      },
+      {
+        statKey: 'windDmg',
+        label: 'Wind DMG',
+        min: GUILD_ELEMENTAL_DMG_MIN,
+        unit: 'percent',
+        floorOnly: true,
+        hint: '4× Wind beascuit'
+      }
+    ],
+    notes: ['4× Wind beascuit · Total page ATK SPD is toppings; add jam separately in the guide calculator']
   },
   {
     id: 'ferret',

@@ -36,7 +36,10 @@ export function drawGearOverlay(
     ctx.fillStyle = '#fff'
     ctx.strokeStyle = '#000'
     ctx.lineWidth = 3
-    const tag = `${row.label}: ${row.scannedLabel} → ${row.targetLabel}`
+    const tag =
+      row.status === 'met'
+        ? `${row.label}: ${row.scannedLabel} ✓`
+        : `${row.label}: ${row.scannedLabel} → ${row.targetLabel}`
     ctx.strokeText(tag, x, y - 4)
     ctx.fillText(tag, x, y - 4)
     ctx.restore()

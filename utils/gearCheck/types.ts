@@ -27,6 +27,8 @@ export type StatRequirement = {
   max?: number
   unit: StatUnit
   hint?: string
+  /** Minimum only — higher values still count as met (e.g. ATK SPD floors). */
+  floorOnly?: boolean
 }
 
 export type GearDisplayRow = { label: string; value: string }

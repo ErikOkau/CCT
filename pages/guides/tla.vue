@@ -5,6 +5,7 @@ import {
   formatHp,
   tlaCookies,
   WA_ATK_SPD_REQ,
+  windArcherToppingAspdMinForGearCheck,
   windArcherTotalAspd
 } from '~/utils/tlaGuide'
 
@@ -43,7 +44,9 @@ const aspdPass = computed(() => waTotal.value >= WA_ATK_SPD_REQ)
           <h3>Blueberry Pie</h3>
           <div class="gear-row"><span>Toppings</span><strong>2 Raspberry + 2 Apple Jelly + 1 Caramel · Caramel tart · DMG UP to monsters</strong></div>
           <div class="gear-row"><span>Beascuit</span><strong>4× Electricity</strong></div>
-          <div class="gear-row"><span>ATK SPD</span><strong>33.1%</strong></div>
+          <div class="gear-row"><span>ATK SPD</span><strong>33.1% min (higher = more dmg)</strong></div>
+          <div class="gear-row"><span>CRIT</span><strong>34% cap on Total (higher is excess)</strong></div>
+          <div class="gear-row"><span>Electricity DMG</span><strong>55%+ (4× Electricity beascuit)</strong></div>
         </article>
 
         <article class="gear-card with-portrait">
@@ -53,7 +56,7 @@ const aspdPass = computed(() => waTotal.value >= WA_ATK_SPD_REQ)
           <div class="gear-row"><span>Beascuit</span><strong>4× HP</strong></div>
           <div class="gear-row"><span>CD</span><strong>14.1–14.4%</strong></div>
           <div class="gear-row"><span>HP</span><strong>Above coefficient × Wind Archer HP</strong></div>
-          <div class="gear-row"><span>CRIT</span><strong>Aim 50% on the Total page</strong></div>
+          <div class="gear-row"><span>CRIT</span><strong>34% for max buff (higher is excess)</strong></div>
           <p class="hint">Swap Apple Jelly for more Peanut until HP beats Wind Archer. Floor: 5A +10 candy.</p>
         </article>
 
@@ -62,8 +65,9 @@ const aspdPass = computed(() => waTotal.value >= WA_ATK_SPD_REQ)
           <h3>Wind Archer</h3>
           <div class="gear-row"><span>Toppings</span><strong>3 Raspberry + 2 Caramel · Raspberry tart · DMG UP to monsters</strong></div>
           <div class="gear-row"><span>Beascuit</span><strong>4× Wind</strong></div>
-          <div class="gear-row"><span>ATK SPD</span><strong>48.4%+ total (Jam + toppings)</strong></div>
-          <p class="hint">Floor: 2★ +15. Jam ATK SPD + topping ATK SPD = total.</p>
+          <div class="gear-row"><span>ATK SPD</span><strong>{{ WA_ATK_SPD_REQ }}%+ total (Jam + toppings)</strong></div>
+          <div class="gear-row"><span>Wind DMG</span><strong>55%+ (4× Wind beascuit)</strong></div>
+          <p class="hint">Floor: 2★ +15. At max jam (22.3% ATK SPD), toppings need ≥26.1% on Total for 48.4%+ combined.</p>
         </article>
 
         <article class="gear-card with-portrait">

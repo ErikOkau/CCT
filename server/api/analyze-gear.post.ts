@@ -7,7 +7,7 @@ import { parseGearVisionJson } from '~/utils/gearCheck/parseVision'
 import type { GearCheckResult } from '~/utils/gearCheck/types'
 import { callOpenAiVisionJson } from '../utils/openaiJsonVision'
 import { extractJsonObjectFromModelText } from '~/utils/guildBattleVisionParse'
-import { creamPuffHpRequired, WA_ATK_SPD_REQ } from '~/utils/tlaGuide'
+import { creamPuffHpRequired, windArcherToppingAspdMinForGearCheck } from '~/utils/tlaGuide'
 
 async function analyzeOneImage(
   apiKey: string,
@@ -72,11 +72,12 @@ async function analyzeOneImage(
   }
 
   if (bossSlug === 'tla' && build?.id === 'warcher') {
+    const toppingMin = windArcherToppingAspdMinForGearCheck()
     const aspd = vision.stats.find(s => s.statKey === 'atkSpd')?.value
-    if (aspd != null && aspd < WA_ATK_SPD_REQ) {
+    if (aspd != null && aspd < toppingMin) {
       comparisons = comparisons.map(row =>
         row.statKey === 'atkSpd'
-          ? { ...row, status: aspd >= WA_ATK_SPD_REQ * 0.98 ? 'close' : 'low' }
+          ? { ...row, status: aspd >= toppingMin * 0.98 ? 'close' : 'low' }
           : row
       )
     }
