@@ -42,7 +42,6 @@ const RVD_MG = activeBosses({ rvd: true, mg: true })
 const LA_MG = activeBosses({ la: true, mg: true })
 const RVD_LA = activeBosses({ rvd: true, la: true })
 
-// Flight 34+: RVD benched; schedule slots 1=AoD, 2=Machine God, 3=Living Abyss (sheet columns unchanged).
 function activeBossesAodEra(opts: { aod?: boolean; mg?: boolean; la?: boolean }): SeasonBossGrid {
   return {
     1: opts.aod ? BOSSES.aod : null,
