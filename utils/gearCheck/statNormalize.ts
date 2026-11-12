@@ -1,4 +1,4 @@
-import type { GearStatKey, ScannedStat, StatUnit } from './types'
+import type { GearStatKey, ScannedStat, StatUnit } from '~/types/types'
 
 const LABEL_TO_KEY: { re: RegExp; key: GearStatKey; unit: StatUnit }[] = [
   { re: /^cooldown/i, key: 'cooldown', unit: 'percent' },

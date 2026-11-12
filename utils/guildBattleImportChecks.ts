@@ -1,4 +1,4 @@
-import type { BossField } from './guildBattleBosses'
+import type { BossField } from '~/types/types'
 import { seasonDamageForFields } from './guildBattlePlayerMerge'
 import type { OcrPlayerRow } from './guildBattleSheet'
 

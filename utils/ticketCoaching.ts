@@ -1,4 +1,4 @@
-import type { BattlePlayer } from '~/types/battle'
+import type { BattlePlayer } from '~/types/types'
 import { getBossForSeason, getPlayerTickets } from '~/utils/seasonConfig'
 
 export function buildTicketCoachingInsights(

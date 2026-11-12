@@ -1,4 +1,4 @@
-import type { BattlePlayer, BattleStats } from '~/types/battle'
+import type { BattlePlayer, BattleStats } from '~/types/types'
 import { BattleAnalyzer } from '~/utils/battleAnalyzer'
 import { getPlayerTickets, getPlayerTotalDamage } from '~/utils/seasonConfig'
 import { buildTicketCoachingInsights } from '~/utils/ticketCoaching'

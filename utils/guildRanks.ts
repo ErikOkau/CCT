@@ -1,4 +1,6 @@
-export type GuildRankRole = 'Leader' | 'Member' | 'Officer'
+import type { GuildRankRole } from '~/types/types'
+
+export type { GuildRankRole } from '~/types/types'
 
 export const GUILD_LEADER_NAME = 'Poppy'
 export const GUILD_OFFICER_NAME = 'Lisa'

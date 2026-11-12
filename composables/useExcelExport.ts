@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx'
 import { saveAs } from 'file-saver'
-import type { BattlePlayer } from '~/types/battle'
+import type { BattlePlayer } from '~/types/types'
 
 export const useExcelExport = () => {
   const exportToExcel = (battleData: BattlePlayer[]) => {

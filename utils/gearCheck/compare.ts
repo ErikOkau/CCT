@@ -1,5 +1,5 @@
-import type { ComparisonRow, CookieBuildTarget, GearVisionResult, ScannedStat, StatRequirement } from './types'
-import { GUILD_ELEMENTAL_DMG_MIN } from './buildTargets'
+import type { ComparisonRow, CookieBuildTarget, GearVisionResult, ScannedStat, StatRequirement } from '~/types/types'
+import { GUILD_ELEMENTAL_DMG_MIN } from '~/utils/gearCheck/buildTargets'
 import { formatStatValue } from './statNormalize'
 import { fallbackBoxForStat } from './templateBoxes'
 

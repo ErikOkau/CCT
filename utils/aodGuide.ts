@@ -1,12 +1,6 @@
-export type FerretOption = {
-  cast: string
-  cd: string
-}
+import type { FerretOption, MintBreakpoint } from '~/types/types'
 
-export type MintBreakpoint = {
-  mintCd: string
-  ferret: FerretOption[]
-}
+export type { FerretOption, MintBreakpoint } from '~/types/types'
 
 export const mintBreakpoints: MintBreakpoint[] = [
   {

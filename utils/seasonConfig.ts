@@ -1,5 +1,4 @@
-import type { BattlePlayer } from '../types/battle'
-import type { BossField } from './guildBattleBosses'
+import type { BattlePlayer, BossField } from '~/types/types'
 import { seasonHasSheetTab, seasonIdHasSheetTab } from './seasonSheetTabs'
 
 export const SPREADSHEET_ID = '1Ox7NruSIuN-MATGW2RVeYq66HKQTbdMpb8opix3wggs'

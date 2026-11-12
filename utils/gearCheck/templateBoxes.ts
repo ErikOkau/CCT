@@ -1,4 +1,4 @@
-import type { GearStatKey, NormalizedBox } from './types'
+import type { GearStatKey, NormalizedBox } from '~/types/types'
 
 /** Fallback regions on Gear → Total (1080p-ish); value column right side. */
 export const TOTAL_TAB_STAT_REGIONS: Partial<Record<GearStatKey, NormalizedBox>> = {

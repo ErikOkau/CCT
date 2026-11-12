@@ -1,15 +1,6 @@
-export type AllianceCookieBuild = {
-  id: string
-  name: string
-  short: string
-  portrait?: string
-  role: string
-  toppings: string
-  tart: string
-  beascuit: string
-  stats: string
-  notes?: string[]
-}
+import type { AllianceCookieBuild } from '~/types/types'
+
+export type { AllianceCookieBuild } from '~/types/types'
 
 /** CCT Master autoplay — mirror the same tuning on all three teams unless Beacon element differs. */
 export const allianceTeamsNote =

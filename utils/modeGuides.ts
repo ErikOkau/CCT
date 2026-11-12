@@ -1,14 +1,6 @@
-export type ModeGuideSlug = 'cookie-alliance' | 'kingdom-arena'
+import type { ModeGuide, ModeGuideSlug } from '~/types/types'
 
-export type ModeGuide = {
-  slug: ModeGuideSlug
-  code: string
-  name: string
-  short: string
-  theme: ModeGuideSlug
-  blurb: string
-  image: string
-}
+export type { ModeGuide, ModeGuideSlug } from '~/types/types'
 
 export const modeGuides: ModeGuide[] = [
   {

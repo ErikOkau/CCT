@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch, computed } from 'vue'
-import type { SeasonBossDamageVisual } from '~/utils/seasonBossDamageVisual'
+import type { BossTextureEntry, GuildBossSceneBundle, SeasonBossDamageVisual } from '~/types/types'
 import { formatGuildBossDamage } from '~/utils/seasonBossDamageVisual'
 import { getHubSlotDisplayBoss, getLatestFlightAndSeason } from '~/utils/seasonConfig'
 
@@ -9,18 +9,6 @@ const props = defineProps<{
 }>()
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
-
-type SceneBundle = {
-  dispose: () => void
-  setBossTextures: (entries: BossTextureEntry[]) => void
-  resize: () => void
-}
-
-type BossTextureEntry = {
-  slot: 1 | 2 | 3
-  url: string | null
-  active: boolean
-}
 
 const hudBosses = computed(() => {
   if (props.visual?.bosses?.length) {
@@ -41,7 +29,7 @@ const hudBosses = computed(() => {
   })
 })
 
-let sceneApi: SceneBundle | null = null
+let sceneApi: GuildBossSceneBundle | null = null
 
 function syncBossTextures() {
   if (!sceneApi) return
@@ -67,7 +55,7 @@ onUnmounted(() => {
   sceneApi = null
 })
 
-async function createBattleScene(canvas: HTMLCanvasElement): Promise<SceneBundle> {
+async function createBattleScene(canvas: HTMLCanvasElement): Promise<GuildBossSceneBundle> {
   const THREE = await import('three')
 
   const renderer = new THREE.WebGLRenderer({

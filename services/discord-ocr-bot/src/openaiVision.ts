@@ -8,7 +8,9 @@ import { getActiveBossUiColumnOrder } from '../../../utils/guildBattleBosses.ts'
 import { parseSeasonIdFromText } from '../../../utils/guildBattleOcrParse.ts'
 import { getActiveBossFields, parseSeasonId } from '../../../utils/seasonConfig.ts'
 
-export type OcrProvider = 'openai' | 'tesseract'
+import type { OcrProvider } from '../../../types/types.ts'
+
+export type { OcrProvider } from '../../../types/types.ts'
 
 export function getOcrProvider(): OcrProvider {
   const explicit = process.env.OCR_PROVIDER?.trim().toLowerCase()

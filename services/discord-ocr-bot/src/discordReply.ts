@@ -1,7 +1,7 @@
 import { AttachmentBuilder, type Message } from 'discord.js'
 import type { buildCoverageReport } from '../../../utils/guildBattleImportChecks.ts'
 import type { mergeOcrPlayers } from '../../../utils/guildBattleSheet.ts'
-import type { BossField } from '../../../utils/guildBattleBosses.ts'
+import type { BossField } from '../../../types/types.ts'
 import { sortPlayersByBossDamage } from '../../../utils/guildBattlePlayerMerge.ts'
 
 /** Discord message content hard limit */

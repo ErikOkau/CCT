@@ -1,4 +1,4 @@
-import type { BossField } from './guildBattleBosses'
+import type { BossField } from '~/types/types'
 import { matchBossFieldFromHeader, uiColumnOrderForFlight } from './guildBattleBosses'
 import { mergeOcrPlayersUnique } from './guildBattlePlayerMerge'
 import type { OcrPlayerRow } from './guildBattleSheet'

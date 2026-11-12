@@ -1,4 +1,4 @@
-import type { ComparisonRow, GearCheckResult } from './types'
+import type { ComparisonRow, GearCheckResult } from '~/types/types'
 
 export function buildGearFixList(result: GearCheckResult): string {
   const lines: string[] = []

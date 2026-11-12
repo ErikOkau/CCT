@@ -1,5 +1,5 @@
 import { statusColor } from './compare'
-import type { ComparisonRow } from './types'
+import type { ComparisonRow } from '~/types/types'
 
 export function drawGearOverlay(
   canvas: HTMLCanvasElement,

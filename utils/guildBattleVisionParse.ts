@@ -1,4 +1,4 @@
-import type { BossField } from './guildBattleBosses'
+import type { BossField } from '~/types/types'
 import { matchBossFieldFromHeader } from './guildBattleBosses'
 import type { OcrPlayerRow } from './guildBattleSheet'
 import { filterAndDedupeOcrRows } from './guildBattleOcrParse'

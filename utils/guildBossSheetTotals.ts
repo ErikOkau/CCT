@@ -1,5 +1,4 @@
-import type { BattlePlayer } from '~/types/battle'
-import type { BossField } from './guildBattleBosses'
+import type { BattlePlayer, BossField } from '~/types/types'
 import { getPlayerBossStat } from './seasonConfig'
 
 /** Sum per-boss damage from the current season spreadsheet tab (all members). */

@@ -1,4 +1,4 @@
-import type { BossField } from './guildBattleBosses'
+import type { BossField } from '~/types/types'
 import type { OcrPlayerRow } from './guildBattleSheet'
 
 const BOSS_FIELDS: BossField[] = [

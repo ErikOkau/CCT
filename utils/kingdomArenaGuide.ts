@@ -1,29 +1,6 @@
-export type ArenaCookieBuild = {
-  id: string
-  name: string
-  short: string
-  portrait?: string
-  toppings: string
-  tart: string
-  beascuit: string
-  stats: string
-  notes?: string[]
-}
+import type { ArenaCookieBuild, ArenaCounterSection, ArenaCounterSubgroup } from '~/types/types'
 
-export type ArenaCounterSubgroup = {
-  /** e.g. "1s" — enemy skill start timing you are countering */
-  title: string
-  blurb?: string
-  matchups: string[]
-}
-
-/** Top-level counter bucket (Le = main meta answers; others are specific hard counters). */
-export type ArenaCounterSection = {
-  title: string
-  intro?: string
-  subgroups?: ArenaCounterSubgroup[]
-  matchups?: string[]
-}
+export type { ArenaCookieBuild, ArenaCounterSection, ArenaCounterSubgroup } from '~/types/types'
 
 export const arenaModeNote =
   'Kingdom Arena is auto-only. Defense and offense share the same gear. Losses are usually stat/build gaps, not team order.'

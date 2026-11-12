@@ -1,5 +1,5 @@
 import { reactive } from 'vue'
-import type { BattlePlayer, BattleStats } from '~/types/battle'
+import type { BattlePlayer, BattleStats } from '~/types/types'
 import { BattleAnalyzer } from '~/utils/battleAnalyzer'
 import { getLatestFlightAndSeason, getSeasonSheetRange, SPREADSHEET_ID } from '~/utils/seasonConfig'
 

@@ -1,5 +1,5 @@
 import { extractJsonObjectFromModelText } from '~/utils/guildBattleVisionParse'
-import type { GearVisionResult, ScannedStat } from './types'
+import type { GearVisionResult, ScannedStat } from '~/types/types'
 import { normalizeVisionStat, parseStatNumber } from './statNormalize'
 
 export function parseGearVisionJson(text: string): GearVisionResult {

@@ -1,8 +1,7 @@
-import type { GuideSlug } from '~/utils/guildGuides'
+import type { CookieBuildTarget, GearCheckMode } from '~/types/types'
 import { WA_ATK_SPD_REQ, windArcherToppingAspdMinForGearCheck } from '~/utils/tlaGuide'
-import type { CookieBuildTarget } from './types'
 
-export type GearCheckMode = GuideSlug
+export type { GearCheckMode } from '~/types/types'
 
 /** Minimum beascuit elemental DMG % (4× lines) for guild DPS cookies that run elemental biscuits. */
 export const GUILD_ELEMENTAL_DMG_MIN = 55

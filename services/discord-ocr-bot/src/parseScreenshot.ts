@@ -1,5 +1,5 @@
 import sharp from 'sharp'
-import type { BossField } from '../../../utils/guildBattleBosses.ts'
+import type { BossField } from '../../../types/types.ts'
 import { getActiveBossUiColumnOrder } from '../../../utils/guildBattleBosses.ts'
 import type { OcrPlayerRow, ParsedScreenshot } from '../../../utils/guildBattleSheet.ts'
 import {

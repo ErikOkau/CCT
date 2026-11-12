@@ -1,15 +1,6 @@
-export type GuideSlug = 'mgev' | 'tla' | 'aod' | 'rvd'
+import type { GuideSlug, GuildGuide } from '~/types/types'
 
-export type GuildGuide = {
-  slug: GuideSlug
-  code: string
-  name: string
-  short: string
-  image: string
-  theme: GuideSlug
-  blurb: string
-  parked?: boolean
-}
+export type { GuideSlug, GuildGuide } from '~/types/types'
 
 export const guildGuides: GuildGuide[] = [
   {

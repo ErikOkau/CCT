@@ -1,4 +1,4 @@
-export type BossField = 'redVelvetDragon' | 'avatarOfDestiny' | 'livingAbyss' | 'machineGod'
+import type { BossField } from '~/types/types'
 
 export const BOSS_LABELS: Record<BossField, string> = {
   redVelvetDragon: 'Red Velvet Dragon',

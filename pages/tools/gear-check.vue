@@ -3,7 +3,7 @@ import { guildGuides, type GuideSlug } from '~/utils/guildGuides'
 import { getCookieBuildTargets, isGearCheckMode, type GearCheckMode } from '~/utils/gearCheck/buildTargets'
 import { drawGearOverlay, downloadCanvas } from '~/utils/gearCheck/drawOverlay'
 import { buildGearFixList } from '~/utils/gearCheck/fixList'
-import type { GearCheckResult } from '~/utils/gearCheck/types'
+import type { GearCheckResult } from '~/types/types'
 
 useHead({ title: 'Gear Check — Chaos Control Team' })
 

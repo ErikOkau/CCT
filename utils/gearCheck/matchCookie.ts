@@ -1,5 +1,5 @@
 import { playerNamesSimilar } from '~/utils/guildBattlePlayerMerge'
-import type { CookieBuildTarget } from './types'
+import type { CookieBuildTarget } from '~/types/types'
 
 export function normalizeCookieName(name: string): string {
   return name.normalize('NFKC').replace(/\s*cookie\s*$/i, '').trim()

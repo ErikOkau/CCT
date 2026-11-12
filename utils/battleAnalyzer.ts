@@ -1,4 +1,4 @@
-import type { BattlePlayer, BattleStats, GoogleSheetsData } from '~/types/battle'
+import type { BattlePlayer, BattleStats, GoogleSheetsData } from '~/types/types'
 import {
   getPlayerTotalBattles as getSeasonPlayerTotalBattles,
   getPlayerTotalDamage as getSeasonPlayerTotalDamage,

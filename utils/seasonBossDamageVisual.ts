@@ -1,6 +1,7 @@
-import type { BattlePlayer } from '~/types/battle'
-import type { BossField } from './guildBattleBosses'
+import type { BattlePlayer, BossDamageBar, SeasonBossDamageVisual } from '~/types/types'
 import { sumBossDamageFromPlayers } from './guildBossSheetTotals'
+
+export type { BossDamageBar, BossSlotStatus, SeasonBossDamageVisual } from '~/types/types'
 import {
   bossNameToField,
   getBossForSeason,
@@ -9,26 +10,6 @@ import {
   hasSeasonBossSchedule,
   SHEET_PHYSICAL_BOSS_ORDER
 } from './seasonConfig'
-
-export type BossSlotStatus = 'active' | 'unavailable'
-
-export type BossDamageBar = {
-  slot: 1 | 2 | 3
-  status: BossSlotStatus
-  bossKey: BossField | null
-  name: string
-  image: string | null
-  totalDamage: number | null
-  /** Relative bar width among active bosses this season (0 if unavailable). */
-  barPercent: number
-}
-
-export type SeasonBossDamageVisual = {
-  flight: number
-  season: number
-  seasonLabel: string
-  bosses: BossDamageBar[]
-}
 
 export function formatGuildBossDamage(n: number | null | undefined): string {
   if (n == null || !Number.isFinite(n) || n <= 0) return '—'
