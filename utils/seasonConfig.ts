@@ -29,9 +29,7 @@ const SCHEDULE_4_AOD: FlightBossSchedule = {
   4: { 1: BOSSES.rvd, 2: BOSSES.aod, 3: null }
 }
 
-// Spreadsheet columns stay fixed: RVD (A–F) → AoD (H–M) → Living Abyss → Machine God.
-// Schedule grid slots for Flight 26+: 1=RVD, 2=Machine God, 3=Living Abyss (AoD out of the active pool).
-// Weekly boss pairs come from the in-game schedule — set explicitly per season below.
+
 function activeBosses(opts: { rvd?: boolean; mg?: boolean; la?: boolean }): SeasonBossGrid {
   return {
     1: opts.rvd ? BOSSES.rvd : null,
