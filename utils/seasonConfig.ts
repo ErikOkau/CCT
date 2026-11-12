@@ -15,7 +15,7 @@ type BossSlot = (typeof BOSSES)[keyof typeof BOSSES] | null
 type SeasonBossGrid = Record<1 | 2 | 3, BossSlot>
 type FlightBossSchedule = Record<number, SeasonBossGrid>
 
-// Flights 21–25: RVD / Avatar of Destiny / Machine God
+// 21-25
 const SCHEDULE_3_AOD: FlightBossSchedule = {
   1: { 1: null, 2: BOSSES.aod, 3: BOSSES.mg },
   2: { 1: BOSSES.rvd, 2: null, 3: BOSSES.mg },
